@@ -1,7 +1,7 @@
 #ifndef __HARDWAREPROFILE_H__
 #define __HARDWAREPROFILE_H__
 
-#if defined( CFG_INCLUDE_STM32_MRF24WB )
+#if defined( CFG_INCLUDE_MapleRET6_MRF24WB )
 
 	// Maple RET6
 	#define STM32F10X_HD
@@ -14,7 +14,7 @@
 	#include "HWP STM32VL-DISC MRF24WB.h"
 
 #else
-	#error "No extended HWP .h included."
+	#error "No extended HWP...h included."
 #endif
 
 #endif

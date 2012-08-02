@@ -79,13 +79,12 @@
 #if defined( __STM32F10X__ )
 	BOOL WF_EintIsDisabled(void)
 	{
-		return (EXTI_GetITStatus(WF_INT_EXTI) == RESET ? TRUE : FALSE);
+		return ((EXTI->IMR & WF_INT_EXTI) ? FALSE : TRUE);
 	}
 
 	BOOL WF_EintIsPending(void)
 	{
-		//! return (((WF_INT_IO_READ() == 0) && (WF_INT_IF == 0)));	/* works for PIC18, PIC24, and PIC32 */
-		return TRUE;
+		return ((EXTI->PR & WF_INT_EXTI) ? TRUE : FALSE);
 	}
 #else
 	BOOL WF_EintIsDisabled(void)
@@ -290,41 +289,32 @@
 	#ifdef WF_IRQ_HANDLER
 	void WF_IRQ_HANDLER(void)
 	{
-		if (EXTI_GetITStatus(WF_INT_EXTI) != RESET)
+		if (WF_INT_IF && WF_INT_IE)
 		{
+			WF_INT_IE_DISABLE();
+			WF_INT_IF_CLEAR();
+
 			WFEintHandler();
-			EXTI_ClearITPendingBit(WF_INT_EXTI);
 		}
 	}
 	#endif
 	void WF_EintEnable(void)
 	{
-		EXTI_InitTypeDef EXTI_InitStruct;
-		EXTI_InitStruct.EXTI_Mode = EXTI_Mode_Interrupt;
-		EXTI_InitStruct.EXTI_Line = WF_INT_EXTI;
-		EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Falling;
-		EXTI_InitStruct.EXTI_LineCmd = ENABLE;
-		EXTI_Init(&EXTI_InitStruct);
+		if (WF_INT_IF_PIN() == 0)
+		{
+			WF_INT_IE_ENABLE();
+			WF_INT_IF_SET();
+		}
+		else
+			WF_INT_IE_ENABLE();
 	}
 	void WF_EintDisable(void)
 	{
-		EXTI_InitTypeDef EXTI_InitStruct;
-		EXTI_InitStruct.EXTI_Mode = EXTI_Mode_Interrupt;
-		EXTI_InitStruct.EXTI_Line = WF_INT_EXTI;
-		EXTI_InitStruct.EXTI_LineCmd = DISABLE;
-		EXTI_Init(&EXTI_InitStruct);
+		WF_INT_IE_DISABLE();
 	}
 	void WF_EintInit(void)
 	{
-		EXTI_InitTypeDef EXTI_InitStruct;
-
 		WF_INT_INIT();
-
-		EXTI_InitStruct.EXTI_Mode = EXTI_Mode_Interrupt;
-		EXTI_InitStruct.EXTI_Line = WF_INT_EXTI;
-		EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Falling;
-		EXTI_InitStruct.EXTI_LineCmd = ENABLE;
-		EXTI_Init(&EXTI_InitStruct);
 	}
 
 #elif defined( __PIC32MX__ )

@@ -105,8 +105,8 @@
           <SimDlgDllArguments>-pCM3</SimDlgDllArguments>
           <TargetDllName>SARMCM3.DLL</TargetDllName>
           <TargetDllArguments></TargetDllArguments>
-          <TargetDlgDll>TCM.DLL</TargetDlgDll>
-          <TargetDlgDllArguments>-pCM3</TargetDlgDllArguments>
+          <TargetDlgDll>TARMSTM.DLL</TargetDlgDll>
+          <TargetDlgDllArguments>-pSTM32F103RB</TargetDlgDllArguments>
         </DllOption>
         <DebugOption>
           <OPTHX>
@@ -347,7 +347,7 @@
             <uSurpInc>0</uSurpInc>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>CFG_INCLUDE_STM32_MRF24WB STM32F10X</Define>
+              <Define>CFG_INCLUDE_MapleRET6_MRF24WB STM32F10X</Define>
               <Undefine></Undefine>
               <IncludePath>.\;.\Configs;..\..\Microchip\Include;"..\..\Microchip\Include\TCPIP Stack";..\..\STM\MapleRET6;..\..\STM\CMSIS\CM3\DeviceSupport;..\..\STM\STM32F10x_StdPeriph_Driver\inc</IncludePath>
             </VariousControls>
@@ -665,6 +665,21 @@
               <FileType>5</FileType>
               <FilePath>.\WF_Config.h</FilePath>
             </File>
+            <File>
+              <FileName>HWP STM32 MRF24WB.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Configs\HWP STM32 MRF24WB.h</FilePath>
+            </File>
+            <File>
+              <FileName>TCPIP STM32 MRF24WB.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Configs\TCPIP STM32 MRF24WB.h</FilePath>
+            </File>
+            <File>
+              <FileName>HWP STM32VL-DISC MRF24WB.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Configs\HWP STM32VL-DISC MRF24WB.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -734,26 +749,6 @@
               <FileName>stm32f10x_flash.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\STM\STM32F10x_StdPeriph_Driver\src\stm32f10x_flash.c</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>Configs</GroupName>
-          <Files>
-            <File>
-              <FileName>TCPIP STM32 MRF24WB.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\Configs\TCPIP STM32 MRF24WB.h</FilePath>
-            </File>
-            <File>
-              <FileName>HWP STM32 MRF24WB.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\Configs\HWP STM32 MRF24WB.h</FilePath>
-            </File>
-            <File>
-              <FileName>HWP STM32VL-DISC MRF24WB.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\Configs\HWP STM32VL-DISC MRF24WB.h</FilePath>
             </File>
           </Files>
         </Group>

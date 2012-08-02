@@ -444,7 +444,7 @@ void WFSpiTxRx(UINT8   *p_txBuf,
 #endif
 
     /* total number of byte to clock is whichever is larger, txLen or rxLen */
-    byteCount = (txLen >= rxLen)?txLen:rxLen;
+    byteCount = (txLen >= rxLen) ? txLen : rxLen;
 
     for (i = 0; i < byteCount; ++i)
     {

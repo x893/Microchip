@@ -60,7 +60,7 @@
 #if defined(STACK_USE_ICMP_CLIENT)
 
 // ICMP Timeout Value
-#define ICMP_TIMEOUT	(4ul*TICK_SECOND)
+#define ICMP_TIMEOUT	(4ul * TICK_SECOND)
 
 // ICMP Packet Structure
 typedef struct
@@ -351,7 +351,7 @@ LONG ICMPGetReply(void)
 				return -3;
 			}
 
-			ICMPState = SM_ARP_SEND_QUERY;	
+			ICMPState = SM_ARP_SEND_QUERY;
 			// No break;	
 #endif
 

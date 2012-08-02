@@ -64,12 +64,12 @@
 /*----------------------------------------------------------------------------*/
 #define WF_USE_SCAN_FUNCTIONS
 #define WF_USE_TX_POWER_CONTROL_FUNCTIONS
-#define WF_USE_POWER_SAVE_FUNCTIONS
+//!	#define WF_USE_POWER_SAVE_FUNCTIONS
 #define WF_USE_MULTICAST_FUNCTIONS
 #define WF_USE_INDIVIDUAL_SET_GETS
 #define WF_USE_GROUP_SET_GETS
-//#define WF_USE_DATA_TX_RX_FUNCTIONS
-//#define USE_GRATUITOUS_ARP
+//	#define WF_USE_DATA_TX_RX_FUNCTIONS
+//	#define USE_GRATUITOUS_ARP
 
 
 
@@ -98,7 +98,8 @@
 
 #define MY_DEFAULT_SCAN_TYPE                WF_ACTIVE_SCAN      /* WF_ACTIVE_SCAN or WF_PASSIVE_SCAN */
 
-#define MY_DEFAULT_CHANNEL_LIST             {1,2,3,4,5,6,7,8,9,10,11}	/* Desired channel list for FCC, use less channels to minimize scan time */
+//!	#define MY_DEFAULT_CHANNEL_LIST             {1,2,3,4,5,6,7,8,9,10,11}	/* Desired channel list for FCC, use less channels to minimize scan time */
+#define MY_DEFAULT_CHANNEL_LIST             {5,6,7}	/* Desired channel list for FCC, use less channels to minimize scan time */
 
 #define MY_DEFAULT_LIST_RETRY_COUNT_ADHOC           (3)                 /* Number of times to try to connect to the SSID when using Ad/Hoc network type */
 #define MY_DEFAULT_LIST_RETRY_COUNT_INFRASTRUCTURE  (WF_RETRY_FOREVER)  /* Number of times to try to connect to the SSID when using Infrastructure network type */
@@ -109,17 +110,16 @@
                                              WF_NOTIFY_CONNECTION_PERMANENTLY_LOST    |         \
                                              WF_NOTIFY_CONNECTION_REESTABLISHED)
 
-#define MY_DEFAULT_PS_POLL                   WF_DISABLED         /* WF_DISABLED or WF_ENABLED */
+#define MY_DEFAULT_PS_POLL					WF_DISABLED         /* WF_DISABLED or WF_ENABLED */
 /* #define WF_AGGRESSIVE_PS */ 	/* WARNING !!! : This only can work with 1209 module FW version or later.
 							* If you use the earlier version such as 1207 or 1205, then you should not define this.
 							* Defining this will lead ASSERT problem with old module FW.
 							*/
 
+#define MY_DEFAULT_WIFI_SECURITY_MODE			WF_SECURITY_WEP_104
 
-#define MY_DEFAULT_WIFI_SECURITY_MODE        WF_SECURITY_OPEN
-
-#define MY_DEFAULT_WIFI_SECURITY_WEP_KEYTYPE  WF_SECURITY_WEP_OPENKEY /* WF_SECURITY_WEP_OPENKEY (default) or	  */
-																		 /*  WF_SECURITY_WEP_SHAREDKEY. 			 */ 
+#define MY_DEFAULT_WIFI_SECURITY_WEP_KEYTYPE	WF_SECURITY_WEP_OPENKEY	/* WF_SECURITY_WEP_OPENKEY (default) or	*/
+																		/*  WF_SECURITY_WEP_SHAREDKEY.			*/ 
 
 //#define USE_MRF24W_HOST_BUFFER
 
@@ -148,20 +148,14 @@
 
 // Default pass phrase used for WF_SECURITY_WPA_WITH_PASS_PHRASE and 
 // WF_SECURITY_WPA2_WITH_PASS_PHRASE security modes
-#define MY_DEFAULT_PSK_PHRASE               "Microchip 802.11 Secret PSK Password"
-
+#define MY_DEFAULT_PSK_PHRASE		"Microchip 802.11 Secret PSK Password"
 
 // If using security mode of WF_SECURITY_WPA_WITH_KEY or WF_SECURITY_WPA2_WITH_KEY, then this section 
 // must be set to  match the key for MY_DEFAULT_SSID_NAME and MY_DEFAULT_PSK_PHRASE
 // combination.  The values below are derived from the SSID "MicrochipDemoAP" and the pass phrase
 // "Microchip 802.11 Secret PSK Password".
 // The tool at http://www.wireshark.org/tools/wpa-psk.html can be used to generate this field. 
-#define MY_DEFAULT_PSK "\
-\x86\xC5\x1D\x71\xD9\x1A\xAA\x49\
-\x40\xC8\x88\xC6\xE9\x7A\x4A\xD5\
-\xE5\x6D\xDA\x44\x8E\xFB\x9C\x0A\
-\xE1\x47\x81\x52\x31\x1C\x13\x7C"
-
+#define MY_DEFAULT_PSK "\x86\xC5\x1D\x71\xD9\x1A\xAA\x49\x40\xC8\x88\xC6\xE9\x7A\x4A\xD5\xE5\x6D\xDA\x44\x8E\xFB\x9C\x0A\xE1\x47\x81\x52\x31\x1C\x13\x7C"
 
 //-----------------------------------------------------------------------------------
 // Default WEP keys used in WF_SECURITY_WEP_40  and WF_SECURITY_WEP_104 security mode
@@ -169,24 +163,17 @@
 #define MY_DEFAULT_WEP_PHRASE           "WEP Phrase"
 
 // string 4 40-bit WEP keys -- corresponding to passphraseof "WEP Phrase"
-#define MY_DEFAULT_WEP_KEYS_40 "\
-\x5a\xfb\x6c\x8e\x77\
-\xc1\x04\x49\xfd\x4e\
-\x43\x18\x2b\x33\x88\
-\xb0\x73\x69\xf4\x78"
-
+#define MY_DEFAULT_WEP_KEYS_40 "\x2C\xAF\x93\x99\xB2\x88\x66\xFB\x06\x3E\x99\x6B\xB1"
 // string containing 4 104-bit WEP keys -- corresponding to passphraseof "WEP Phrase"
-#define MY_DEFAULT_WEP_KEYS_104 "\
-\x90\xe9\x67\x80\xc7\x39\x40\x9d\xa5\x00\x34\xfc\xaa\
-\x77\x4a\x69\x45\xa4\x3d\x66\x63\xfe\x5b\x1d\xb9\xfd\
-\x82\x29\x87\x4c\x9b\xdc\x6d\xdf\x87\xd1\xcf\x17\x41\
-\xcc\xd7\x62\xde\x92\xad\xba\x3b\x62\x2f\x7f\xbe\xfb"
-
+#define MY_DEFAULT_WEP_KEYS_104		 "\
+\x90\xE9\x67\x80\xC7\x39\x40\x9D\xA5\x00\x34\xFC\xAA\
+\x77\x4A\x69\x45\xA4\x3D\x66\x6E\xFE\x5B\x1D\xB9\xFD\
+\x82\x29\x87\x4C\x9B\xDC\x6D\xDF\x87\xD1\xCF\x17\x41\
+\xCC\xD7\x62\xDE\x92\xAD\xBA\x3B\x62\x2F\x7F\xBE\xFB"
 
 /* Valid Key Index: 0, 1, 2, 3  */
-#define MY_DEFAULT_WEP_KEY_INDEX        (0)
+#define MY_DEFAULT_WEP_KEY_INDEX        (0u)
 
+#define OUTPUT_RAW_TX_RX
 
 #endif /* __WF_CONFIG_H_ */
-
-

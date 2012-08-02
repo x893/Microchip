@@ -417,11 +417,11 @@ void RawWrite(UINT8 rawId, UINT16 startIndex, UINT16 length, UINT8 *p_src)
     ctrlVal |= (size & 0x00ff);             /* LS 8 bits of size (bits 7:0)          */
 
     /* Clear the interrupt bit in the register */
-    regValue8 = (rawId == RAW_ID_0)?WF_HOST_INT_MASK_RAW_0_INT_0:WF_HOST_INT_MASK_RAW_1_INT_0;
+    regValue8 = (rawId == RAW_ID_0)? WF_HOST_INT_MASK_RAW_0_INT_0 : WF_HOST_INT_MASK_RAW_1_INT_0;
     Write8BitWFRegister(WF_HOST_INTR_REG, regValue8);
 
     /* write update control value to register to control register */
-    regId = (rawId==RAW_ID_0)?RAW_0_CTRL_0_REG:RAW_1_CTRL_0_REG;
+    regId = (rawId == RAW_ID_0) ? RAW_0_CTRL_0_REG : RAW_1_CTRL_0_REG;
     Write16BitWFRegister(regId, ctrlVal);
 
     // Wait for the RAW move operation to complete, and read back the number of bytes, if any, that were overlayed
@@ -499,7 +499,6 @@ UINT16 RawGetIndex(UINT16 rawId)
 }
 
 
-//#define OUTPUT_RAW_TX_RX   
 extern UINT8 g_MgmtResponseInProgress;
 /*****************************************************************************
  * FUNCTION: RawGetByte
@@ -515,33 +514,42 @@ extern UINT8 g_MgmtResponseInProgress;
  *****************************************************************************/
 void RawGetByte(UINT16 rawId, UINT8 *pBuffer, UINT16 length)
 {
-    UINT8 regId;
 #if defined(OUTPUT_RAW_TX_RX)
-    UINT16 i;
+	char buf[8];
 #endif
 
     /* if reading a data message do following check */
     if (!g_WaitingForMgmtResponse)
     {
         // if RAW index previously set out of range and caller is trying to do illegal read
-        if ( (rawId==RAW_RX_ID)         && 
-              g_rxIndexSetBeyondBuffer  && 
-              (GetRawWindowState(RAW_RX_ID) == WF_RAW_DATA_MOUNTED) ) 
+        if ((rawId == RAW_RX_ID)		&&
+			g_rxIndexSetBeyondBuffer	&& 
+			(GetRawWindowState(RAW_RX_ID) == WF_RAW_DATA_MOUNTED))
         {
             WF_ASSERT(FALSE);  /* attempting to read past end of RAW buffer */
         }
     }
 
-    regId = (rawId==RAW_ID_0)?RAW_0_DATA_REG:RAW_1_DATA_REG;
-    ReadWFArray(regId, pBuffer, length);
+    ReadWFArray(
+		(rawId == RAW_ID_0) ? RAW_0_DATA_REG : RAW_1_DATA_REG,
+		pBuffer,
+		length
+	);
 
 #if defined(OUTPUT_RAW_TX_RX)
-    for (i = 0; i < length; ++i)
+	TICK_STOP();
+	putrsUART("   Read[");
+	if (rawId == RAW_ID_0)
+		putrsUART("0]:");
+	else
+		putrsUART("1]:");
+    while (length-- != 0)
     {
-        char buf[16];
-        sprintf(buf,"R: %#x\r\n", pBuffer[i]);
+        sprintf(buf,"%02X ", *pBuffer++);
         putsUART(buf);
-    }    
+    }
+	putrsUART("\r\n");
+	TICK_START();
 #endif
 
 }
@@ -561,11 +569,9 @@ void RawGetByte(UINT16 rawId, UINT8 *pBuffer, UINT16 length)
  *****************************************************************************/
 void RawSetByte(UINT16 rawId, UINT8 *pBuffer, UINT16 length)
 {
-    UINT8 regId;
 #if defined(OUTPUT_RAW_TX_RX)
-    UINT16 i;
+	char buf[8];
 #endif    
-
 
     /* if previously set index past legal range and now trying to write to RAW engine */
     if ( (rawId == 0) && g_rxIndexSetBeyondBuffer && (GetRawWindowState(RAW_TX_ID) == WF_RAW_DATA_MOUNTED) )
@@ -574,16 +580,26 @@ void RawSetByte(UINT16 rawId, UINT8 *pBuffer, UINT16 length)
     }
 
     /* write RAW data to chip */
-    regId = (rawId==RAW_ID_0)?RAW_0_DATA_REG:RAW_1_DATA_REG;
-    WriteWFArray(regId, pBuffer, length);
+    WriteWFArray(
+		(rawId == RAW_ID_0) ? RAW_0_DATA_REG : RAW_1_DATA_REG,
+		pBuffer,
+		length
+	);
 
 #if defined(OUTPUT_RAW_TX_RX)
-    for (i = 0; i < length; ++i)
+	TICK_STOP();
+	putrsUART("  Write[");
+	if (rawId == RAW_ID_0)
+		putrsUART("0]:");
+	else
+		putrsUART("1]:");
+    while (length-- != 0)
     {
-        char buf[16];
-        sprintf(buf,"T: %#x\r\n", pBuffer[i]);
+        sprintf(buf,"%02X ", *pBuffer++);
         putsUART(buf);
-    }    
+    }
+	putrsUART("\r\n");
+	TICK_START();
 #endif
 
 }
@@ -634,7 +650,7 @@ static UINT16 WaitForRawMoveComplete(UINT8 rawId)
     #endif
 
     /* create mask to check against for Raw Move complete interrupt for either RAW0 or RAW1 */
-    rawIntMask = (rawId == RAW_ID_0)?WF_HOST_INT_MASK_RAW_0_INT_0:WF_HOST_INT_MASK_RAW_1_INT_0;
+    rawIntMask = (rawId == RAW_ID_0) ? WF_HOST_INT_MASK_RAW_0_INT_0 : WF_HOST_INT_MASK_RAW_1_INT_0;
 
     /* 
     These variables are shared with the ISR so need to be careful when setting them.
@@ -691,7 +707,7 @@ static UINT16 WaitForRawMoveComplete(UINT8 rawId)
     }
 
     /* read the byte count and return it */
-    regId = (rawId == RAW_ID_0)?WF_HOST_RAW0_CTRL1_REG:WF_HOST_RAW1_CTRL1_REG;
+    regId = (rawId == RAW_ID_0) ? WF_HOST_RAW0_CTRL1_REG : WF_HOST_RAW1_CTRL1_REG;
     byteCount = Read16BitWFRegister(regId); 
 
     return ( byteCount );

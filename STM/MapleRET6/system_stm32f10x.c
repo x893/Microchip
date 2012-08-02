@@ -27,12 +27,12 @@
 	/* #define SYSCLK_FREQ_HSE    HSE_VALUE */
 	#define SYSCLK_FREQ_24MHz  24000000
 #else
-	/* #define SYSCLK_FREQ_HSE    HSE_VALUE */
-	/* #define SYSCLK_FREQ_24MHz  24000000 */ 
-	/* #define SYSCLK_FREQ_36MHz  36000000 */
-	/* #define SYSCLK_FREQ_48MHz  48000000 */
-	/* #define SYSCLK_FREQ_56MHz  56000000 */
-	#define SYSCLK_FREQ_72MHz  72000000
+	/* #define SYSCLK_FREQ_HSE		HSE_VALUE */
+	/* #define SYSCLK_FREQ_24MHz	24000000 */ 
+	/* #define SYSCLK_FREQ_36MHz	36000000 */
+	/* #define SYSCLK_FREQ_48MHz	48000000 */
+	/* #define SYSCLK_FREQ_56MHz	56000000 */
+	#define SYSCLK_FREQ_72MHz		72000000ul
 #endif
 
 /*!< Uncomment the following line if you need to use external SRAM mounted
@@ -90,21 +90,37 @@ static void SetSysClock(void);
 	static void SystemInit_ExtMemCtl(void); 
 #endif /* DATA_IN_ExtSRAM */
 
+volatile unsigned long CriticalTimerCount = 0;
+void TimerStop(void)
+{
+	if (CriticalTimerCount == 0)
+		SysTick->CTRL &= ~SysTick_CTRL_ENABLE;
+	CriticalTimerCount++;
+}
+void TimerStart(void)
+{
+	--CriticalTimerCount;
+	if (CriticalTimerCount == 0)
+		SysTick->CTRL |= SysTick_CTRL_ENABLE;
+}
+
 /**
   * @brief  Enter/Exit critical sections.
   * @note
   * @param  None
   * @retval None
   */
-unsigned long CriticalSectionCount = 0;
+volatile unsigned long CriticalSectionCount = 0;
 void __bsp_ENTER_CRITICAL_SECTION(void)
 {
-	if (CriticalSectionCount++ == 0)
+	if (CriticalSectionCount == 0)
 		__disable_irq();
+	CriticalSectionCount++;
 }
 void __bsp_EXIT_CRITICAL_SECTION(void)
 {
-	if (--CriticalSectionCount == 0)
+	--CriticalSectionCount;
+	if (CriticalSectionCount == 0)
 		__enable_irq();
 }
 

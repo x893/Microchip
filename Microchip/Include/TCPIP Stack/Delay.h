@@ -83,7 +83,7 @@
 	do 								\
 	{								\
 		unsigned long _dcnt;		\
-		_dcnt=x*((unsigned long)(0.00001/(1.0/GetInstructionClock())/6));	\
+		_dcnt = x * ((unsigned long)(0.00001 / (1.0 / GetInstructionClock()) / 6));	\
 		while(_dcnt--);				\
 	} while(0)
 	void DelayMs(WORD ms);

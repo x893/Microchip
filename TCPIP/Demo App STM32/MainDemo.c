@@ -161,7 +161,7 @@ int main(void)
 		if ((TickGet() - t) >= TICK_SECOND / 2ul)
 		{
 			t = TickGet();
-			LED0_TOGGLE();
+			LED1_TOGGLE();
 		}
 
 		// This task performs normal stack task including checking
@@ -337,6 +337,7 @@ static void WF_Connect(void)
 #if defined(STACK_USE_UART)
 	putrsUART("Set Beacon Timeout\r\n");
 #endif
+
 	WF_CASetBeaconTimeout(40);
 
 	if (gRFModuleVer1209orLater)
@@ -381,7 +382,7 @@ static void WF_Connect(void)
 	WF_PsPollEnable(TRUE);
 	if (gRFModuleVer1209orLater)
 		WFEnableDeferredPowerSave();
-#else
+#elif defined (WF_USE_POWER_SAVE_FUNCTIONS)
 	WF_PsPollDisable();
 #endif
 
@@ -477,13 +478,16 @@ static void InitializeBoard(void)
 {
 #if defined(STACK_USE_UART)
 	USART_InitTypeDef USART_InitStructure;
+#endif
+
 	RCC_APB2PeriphClockCmd(
 		RCC_APB2Periph_GPIOA	|
 		RCC_APB2Periph_GPIOB	|
 		RCC_APB2Periph_GPIOC	|
 		RCC_APB2Periph_AFIO, ENABLE
 	);
-#endif
+
+	BOARD_INIT();
 
 	LED0_INIT();
 	LED1_INIT();
@@ -549,7 +553,7 @@ static void InitAppConfig(void)
 		// deterministic for checksum generation
 		memset((void*)&AppConfig, 0x00, sizeof(AppConfig));
 
-		AppConfig.Flags.bIsDHCPEnabled = TRUE;
+		AppConfig.Flags.bIsDHCPEnabled = FALSE; //! TRUE;
 		AppConfig.Flags.bInConfigMode = TRUE;
 		memcpypgm2ram((void*)&AppConfig.MyMACAddr, (ROM void*)SerializedMACAddress, sizeof(AppConfig.MyMACAddr));
 		//		{
@@ -640,9 +644,9 @@ static void InitAppConfig(void)
 		memcpypgm2ram(AppConfig.SecurityKey, (ROM void*)MY_DEFAULT_PSK, sizeof(MY_DEFAULT_PSK) - 1);
 		AppConfig.SecurityKeyLength = sizeof(MY_DEFAULT_PSK) - 1;
 
-#elif (MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_WPA_WITH_PASS_PHRASE)	|| \
-	(MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_WPA2_WITH_PASS_PHRASE)	|| \
-	(MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_WPA_AUTO_WITH_PASS_PHRASE)
+#elif	(MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_WPA_WITH_PASS_PHRASE)		|| \
+		(MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_WPA2_WITH_PASS_PHRASE)	|| \
+		(MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_WPA_AUTO_WITH_PASS_PHRASE)
 		memcpypgm2ram(AppConfig.SecurityKey, (ROM void*)MY_DEFAULT_PSK_PHRASE, sizeof(MY_DEFAULT_PSK_PHRASE) - 1);
 		AppConfig.SecurityKeyLength = sizeof(MY_DEFAULT_PSK_PHRASE) - 1;
 

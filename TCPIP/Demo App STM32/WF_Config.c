@@ -191,25 +191,25 @@ void WF_ProcessEvent(UINT8 event, UINT16 eventInfo)
         /*--------------------------------------*/
         case WF_EVENT_SCAN_RESULTS_READY:
         /*--------------------------------------*/  
-            #if defined(STACK_USE_UART)
+		#if defined(STACK_USE_UART)
             putrsUART("Event: Scan Results Ready,");
             sprintf(buf, " %d", eventInfo);
             putsUART(buf);
             putrsUART("results\r\n");
-			#endif
-            #if defined ( EZ_CONFIG_SCAN )
+		#endif
+		#if defined ( EZ_CONFIG_SCAN )
             WFScanEventHandler(eventInfo);
-			#endif /* EZ_CONFIG_SCAN */
+		#endif /* EZ_CONFIG_SCAN */
             break;
             
         /*--------------------------------------*/                            
         case WF_EVENT_RX_PACKET_RECEIVED:
         /*--------------------------------------*/                        
-            #if defined(STACK_USE_UART)
+		#if defined(STACK_USE_UART)
 //            putrsUART("Event: Rx Packet Received - length = ");
 //            sprintf(buf, "%d\r\n", eventInfo);
 //          putsUART(buf);
-			#endif
+		#endif
             break;
             
 
@@ -253,7 +253,7 @@ void WF_AssertionFailed(UINT8 moduleNumber, UINT16 lineNumber)
 #if defined(STACK_USE_UART)
     char buf[64];
 	
-#if defined(DISPLAY_FILENAME) && !defined(__18CXX)
+  #if defined(DISPLAY_FILENAME) && !defined(__18CXX)
 	
 	UINT16 moduleNameIdx;
 	ROM char *moduleName[] = { 
@@ -289,18 +289,18 @@ void WF_AssertionFailed(UINT8 moduleNumber, UINT16 lineNumber)
 	else
 		moduleNameIdx = moduleNumber - 81;	/* to make index 19 */
 		
-    sprintf(buf, "\n%s", moduleName[moduleNameIdx]);
+    sprintf(buf, "\r\n%s", moduleName[moduleNameIdx]);
 
-#else
+  #else
 
 	putrsUART("\r\nWF ASSERTION: Module Number = ");
    	sprintf(buf, "%d", moduleNumber);
-#endif	// defined(DISPLAY_FILENAME) && !defined(__18CXX)
+  #endif // defined(DISPLAY_FILENAME) && !defined(__18CXX)
 
     putsUART(buf);
     putrsUART(" : ");
     
-    sprintf(buf, "%d", lineNumber);
+    sprintf(buf, "%d\r\n", lineNumber);
     putsUART(buf);
 #endif	// STACK_USE_UART
     

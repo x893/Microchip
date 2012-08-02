@@ -114,7 +114,7 @@ static void ProcessMgmtRxMsg(void);
 static void ChipReset(void);
 static void ProcessInterruptServiceResult(void);
 
-static BOOL isDhcpInProgress(void);
+BOOL isDhcpInProgress(void);
 
 extern BOOL isSleepNeeded(void);
 extern void SetSleepNeeded(void);
@@ -170,8 +170,7 @@ void WiFiTask(void)
 
 } 
  
-    
-static BOOL isDhcpInProgress(void)
+BOOL isDhcpInProgress(void)
 {
     return g_dhcpInProgress;
 }
@@ -348,13 +347,23 @@ UINT8 Read8BitWFRegister(UINT8 regId)
     g_txBuf[0] = regId | WF_READ_REGISTER_MASK;
     WF_SpiEnableChipSelect();
     
-    WFSpiTxRx(g_txBuf, 
-              1,
-              g_rxBuf,
-              2);
+    WFSpiTxRx(g_txBuf, 1, g_rxBuf, 2);
 
     WF_SpiDisableChipSelect();
     
+#if defined(OUTPUT_RAW_TX_RX)
+    {
+		char buf[8];
+		TICK_STOP();
+		putrsUART("  Read8[");
+        sprintf(buf,"%02X", regId);
+        putsUART(buf);
+		putrsUART("] ");
+        sprintf(buf,"%02X\r\n", g_rxBuf[1]);
+        putsUART(buf);
+		TICK_START();
+	}
+#endif
     return g_rxBuf[1];   /* register value returned in the second byte clocking */
 }
 
@@ -376,12 +385,23 @@ void Write8BitWFRegister(UINT8 regId, UINT8 value)
     
     WF_SpiEnableChipSelect();
 
-    WFSpiTxRx(g_txBuf, 
-              2,
-              g_rxBuf,
-              1);
+    WFSpiTxRx(g_txBuf, 2, g_rxBuf, 1);
 
     WF_SpiDisableChipSelect();
+
+	#if defined(OUTPUT_RAW_TX_RX)
+    {
+		char buf[8];
+		TICK_STOP();
+		putrsUART(" Write8[");
+        sprintf(buf,"%02X", regId);
+        putsUART(buf);
+		putrsUART("]=");
+        sprintf(buf,"%02X\r\n", value);
+        putsUART(buf);
+		TICK_START();
+	}
+#endif
 }
 
 /*****************************************************************************
@@ -399,13 +419,24 @@ UINT16 Read16BitWFRegister(UINT8 regId)
     g_txBuf[0] = regId | WF_READ_REGISTER_MASK;
     WF_SpiEnableChipSelect();
     
-    WFSpiTxRx(g_txBuf, 
-              1,
-              g_rxBuf,
-              3);
+    WFSpiTxRx(g_txBuf, 1, g_rxBuf, 3);
 
     WF_SpiDisableChipSelect();
     
+#if defined(OUTPUT_RAW_TX_RX)
+    {
+		char buf[8];
+		TICK_STOP();
+		putrsUART(" Read16[");
+        sprintf(buf,"%02X", regId);
+        putsUART(buf);
+		putrsUART("] ");
+        sprintf(buf,"%02X%02X\r\n", g_rxBuf[1], g_rxBuf[2]);
+        putsUART(buf);
+		TICK_START();
+	}
+#endif
+
     return (((UINT16)g_rxBuf[1]) << 8) | ((UINT16)(g_rxBuf[2]));
 }
 
@@ -428,12 +459,25 @@ void Write16BitWFRegister(UINT8 regId, UINT16 value)
     
     WF_SpiEnableChipSelect();
 
-    WFSpiTxRx(g_txBuf, 
-              3,
-              g_rxBuf,
-              1);
+    WFSpiTxRx(g_txBuf, 3, g_rxBuf, 1);
 
     WF_SpiDisableChipSelect();
+
+#if defined(OUTPUT_RAW_TX_RX)
+    {
+		char buf[8];
+		
+		TICK_STOP();
+		putrsUART("Write16[");
+        sprintf(buf,"%02X", regId);
+        putsUART(buf);
+		putrsUART("]=");
+        sprintf(buf,"%04X\r\n", value);
+        putsUART(buf);
+		TICK_START();
+	}
+#endif
+
 }
 
 /*****************************************************************************
@@ -455,16 +499,10 @@ void WriteWFArray(UINT8 regId, UINT8 *p_Buf, UINT16 length)
     WF_SpiEnableChipSelect();
 
     /* output cmd byte */
-    WFSpiTxRx(g_txBuf, 
-              1,
-              g_rxBuf,
-              1);
+    WFSpiTxRx(g_txBuf, 1, g_rxBuf, 1);
 
     /* output data array bytes */
-    WFSpiTxRx(p_Buf, 
-              length,
-              g_rxBuf,
-              1);
+    WFSpiTxRx(p_Buf, length, g_rxBuf, 1);
 
     WF_SpiDisableChipSelect();
 }
@@ -487,16 +525,11 @@ void ReadWFArray(UINT8  regId, UINT8 *p_Buf, UINT16 length)
     
     /* output command byte */
     g_txBuf[0] = regId | WF_READ_REGISTER_MASK;
-    WFSpiTxRx(g_txBuf, 
-              1,
-              g_rxBuf,
-              1);
+    WFSpiTxRx(g_txBuf, 1, g_rxBuf, 1);
 
     /* read data array */
-    WFSpiTxRx(g_txBuf, 
-              1,   /* garbage tx byte */
-              p_Buf,
-              length);
+    WFSpiTxRx(g_txBuf, 1,   /* garbage tx byte */
+              p_Buf,   length);
 
     WF_SpiDisableChipSelect();
 }
@@ -576,7 +609,7 @@ static void ChipReset(void)
 
 
     /* after reset is started poll register to determine when HW reset has completed */
-    startTickCount = (UINT32)TickGet();  
+    startTickCount = (UINT32)TickGet();
     do
     {
         Write16BitWFRegister(WF_INDEX_ADDR_REG, WF_HW_STATUS_REG);
@@ -649,13 +682,13 @@ static void HostInterrupt2RegInit(UINT16 hostIntMaskRegMask,
         /* set to 1 that set of interrupts in the interrupt mask copy */
         int2MaskValue |= hostIntMaskRegMask;
     }
-    
+
     /* write out new interrupt mask value */
     Write16BitWFRegister(WF_HOST_INTR2_MASK_REG, int2MaskValue);
-    
+
     /* ensure that pending interrupts from those updated interrupts are cleared */
     Write16BitWFRegister(WF_HOST_INTR2_REG, hostIntMaskRegMask);
-    
+
 }
 
 /*****************************************************************************
@@ -708,7 +741,6 @@ static void HostInterruptRegInit(UINT8 hostIntrMaskRegMask,
 
     /* ensure that pending interrupts from those updated interrupts are cleared */
     Write8BitWFRegister(WF_HOST_INTR_REG, hostIntrMaskRegMask);
-    
     
 }
 

@@ -101,7 +101,7 @@ void DoUARTConfig(void)
 	    putrsUART("\r\nEnter a menu choice: ");
 	
 		// Wait for the user to press a key
-	    lastTick = TickGetDiv256() + 10 * 1000;
+	    lastTick = TickGetDiv256() + (5ul * TICKS_PER_SECOND / 256ul);
 	    while(!DataRdyUART())
 		{
 			if (lastTick < TickGetDiv256())

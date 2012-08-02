@@ -113,6 +113,7 @@ static BOOL ARPPut(ARP_PACKET* packet);
 	Function Implementations
   ***************************************************************************/
 #ifdef STACK_USE_ZEROCONF_LINK_LOCAL
+
 /************ User Application APIs ****************************************/
 
 /*****************************************************************************

@@ -58,7 +58,7 @@
 #include "MainDemo.h"
 
 
-#define HOST_TO_PING	"ww1.microchip.com"	// Address that ICMP client will ping.  If the DNS client module is not available in the stack, then this hostname is ignored and the local gateway IP address will be pinged instead.
+//! #define HOST_TO_PING	"ww1.microchip.com"	// Address that ICMP client will ping.  If the DNS client module is not available in the stack, then this hostname is ignored and the local gateway IP address will be pinged instead.
 
 /*****************************************************************************
   Function:
@@ -103,7 +103,7 @@ void PingDemo(void)
 			if (BUTTON0_PRESS())
 			{
 				// Don't ping flood: wait at least 1 second between ping requests
-				if (TickGet() - Timer > 1ul*TICK_SECOND)
+				if (TickGet() - Timer > 1ul * TICK_SECOND)
 				{
 					// Obtain ownership of the ICMP module
 					if (!ICMPBeginUsage())
@@ -113,11 +113,11 @@ void PingDemo(void)
 					Timer = TickGet();
 
 					// Send ICMP echo request
-					#if defined(STACK_USE_DNS)
-						ICMPSendPingToHostROM((ROM BYTE*)HOST_TO_PING);
-					#else
-						ICMPSendPing(AppConfig.MyGateway.Val);
-					#endif
+	#if defined(STACK_USE_DNS)
+					ICMPSendPingToHostROM((ROM BYTE*)HOST_TO_PING);
+	#else
+					ICMPSendPing(AppConfig.MyGateway.Val);
+	#endif
 					PingState = SM_GET_ICMP_RESPONSE;
 				}
 			}
@@ -134,30 +134,39 @@ void PingDemo(void)
 			else if (ret == -1)
 			{
 				// Request timed out
-				#if defined(USE_LCD)
+	#if defined(USE_LCD)
 				memcpypgm2ram((void*)&LCDText[16], (ROM void *)"Ping timed out", 15);
 				LCDUpdate();
-				#endif
+	#endif
+	#if defined(STACK_USE_UART)
+				putrsUART("Ping timed out\r\n");
+	#endif
 				PingState = SM_HOME;
 			}
 			else if (ret == -3)
 			{
 				// DNS address not resolvable
-				#if defined(USE_LCD)
+	#if defined(USE_LCD)
 				memcpypgm2ram((void*)&LCDText[16], (ROM void *)"Can't resolve IP", 16);
 				LCDUpdate();
-				#endif
+	#endif
+	#if defined(STACK_USE_UART)
+				putrsUART("Can't resolve IP\r\n");
+	#endif
 				PingState = SM_HOME;
 			}
 			else
 			{
 				// Echo received.  Time elapsed is stored in ret (Tick units).
-				#if defined(USE_LCD)
+	#if defined(USE_LCD)
 				memcpypgm2ram((void*)&LCDText[16], (ROM void *)"Reply: ", 7);
 				uitoa((WORD)TickConvertToMilliseconds((DWORD)ret), &LCDText[16+7]);
 				strcatpgm2ram((char*)&LCDText[16+7], "ms");
 				LCDUpdate();
-				#endif
+	#endif
+	#if defined(STACK_USE_UART)
+				putrsUART("Replay\r\n");
+	#endif
 				PingState = SM_HOME;
 			}
 			

@@ -240,7 +240,7 @@ void HTTPInit(void)
 		{
 			PTR_BASE oldPtr;
 
-			oldPtr = MACSetWritePtr(BASE_HTTPB_ADDR + curHTTPID*sizeof(HTTP_CONN));
+			oldPtr = MACSetWritePtr(BASE_HTTPB_ADDR + curHTTPID * sizeof(HTTP_CONN));
 			MACPutArray((BYTE*)&curHTTP, sizeof(HTTP_CONN));
 			MACSetWritePtr(oldPtr);
 		}
@@ -412,7 +412,7 @@ static void HTTPProcess(void)
 				smHTTP = SM_HTTP_PARSE_REQUEST;
 				curHTTP.isAuthorized = 0xff;
 				curHTTP.hasArgs = FALSE;
-				curHTTP.callbackID = TickGet() + HTTP_TIMEOUT*TICK_SECOND;
+				curHTTP.callbackID = TickGet() + HTTP_TIMEOUT * TICK_SECOND;
 				curHTTP.callbackPos = 0xffffffff;
 				curHTTP.byteCount = 0;
 				#if defined(HTTP_USE_POST)
@@ -449,7 +449,7 @@ static void HTTPProcess(void)
 			}
 
 			// Reset the watchdog timer
-			curHTTP.callbackID = TickGet() + HTTP_TIMEOUT*TICK_SECOND;
+			curHTTP.callbackID = TickGet() + HTTP_TIMEOUT * TICK_SECOND;
 
 			// Determine the request method
 			lenA = TCPFind(sktHTTP, ' ', 0, FALSE);

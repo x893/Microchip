@@ -302,17 +302,17 @@ BOOL GetAppPowerSaveMode(void)
   *****************************************************************************/
 void WF_PsPollDisable(void)
 {
-   tWFPwrModeReq   pwrModeReq;
-    
-    pwrModeReq.mode     = PS_POLL_DISABLED;
-    pwrModeReq.wake     = 1;
-    pwrModeReq.rcvDtims = 1;
-    SendPowerModeMsg(&pwrModeReq);
+	tWFPwrModeReq   pwrModeReq;
 
-    SetPowerSaveState(WF_PS_OFF);
-    WFConfigureLowPowerMode(WF_LOW_POWER_MODE_OFF);    
+	pwrModeReq.mode     = PS_POLL_DISABLED;
+	pwrModeReq.wake     = 1;
+	pwrModeReq.rcvDtims = 1;
+	SendPowerModeMsg(&pwrModeReq);
+
+	SetPowerSaveState(WF_PS_OFF);
+	WFConfigureLowPowerMode(WF_LOW_POWER_MODE_OFF);    
     
-    SetAppPowerSaveMode(FALSE);   
+	SetAppPowerSaveMode(FALSE);   
 }   
 
 /*******************************************************************************

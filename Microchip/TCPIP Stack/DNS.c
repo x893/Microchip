@@ -66,7 +66,7 @@
   ***************************************************************************/
 
 #define DNS_PORT		53u					// Default port for DNS resolutions
-#define DNS_TIMEOUT		(TICK_SECOND*1)		// Elapsed time after which a DNS resolution is considered to have timed out
+#define DNS_TIMEOUT		(TICK_SECOND * 1)	// Elapsed time after which a DNS resolution is considered to have timed out
 
 static UDP_SOCKET MySocket = INVALID_UDP_SOCKET;	// UDP socket to use for DNS queries
 static BYTE *DNSHostName;							// Host name in RAM to look up
@@ -372,7 +372,7 @@ BOOL DNSIsResolved(IP_ADDR* HostIP)
 		case DNS_ARP_RESOLVE:
 			if(!ARPIsResolved(&AppConfig.PrimaryDNSServer, &ResolvedInfo.MACAddr))
 			{
-				if(TickGet() - StartTime > DNS_TIMEOUT)
+				if (TickGet() - StartTime > DNS_TIMEOUT)
 					smDNS = (vARPAttemptCount >= 3u) ? DNS_FAIL : DNS_ARP_START_RESOLVE;
 				break;
 			}
@@ -428,7 +428,7 @@ BOOL DNSIsResolved(IP_ADDR* HostIP)
 		case DNS_GET_RESULT:
 			if(!UDPIsGetReady(MySocket))
 			{
-				if(TickGet() - StartTime > DNS_TIMEOUT)
+				if (TickGet() - StartTime > DNS_TIMEOUT)
 					smDNS = DNS_FAIL;
 				break;
 			}

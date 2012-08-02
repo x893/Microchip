@@ -311,8 +311,7 @@ void StackTask(void)
 			UDPDiscard();
 		#endif
 
-		// Fetch a packet (throws old one away, if not thrown away 
-		// yet)
+		// Fetch a packet (throws old one away, if not thrown away yet)
 		if(!MACGetHeader(&remoteNode.MACAddr, &cFrameType))
 			break;
 

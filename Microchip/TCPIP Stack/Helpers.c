@@ -209,12 +209,9 @@ WORD LFSRRand(void)
   ***************************************************************************/
 DWORD GenerateRandomDWORD(void)
 {
-#if !defined( __STM32F10X__ )
-
 	BYTE vBitCount;
 	WORD w, wTime, wLastValue;
 	DWORD dwTotalTime;
-#endif
 
 	union
 	{
@@ -290,7 +287,82 @@ DWORD GenerateRandomDWORD(void)
 	}
 #elif defined( __STM32F10X__ )
 	{
-		#warning "GenerateRandomDWORD : not implemented"
+		ADC_InitTypeDef ADC_InitStructure;
+		__IO uint32_t saveCTRL;
+
+		RCC_ADCCLKConfig(RCC_PCLK2_Div8);
+		RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1, ENABLE);
+
+		ADC_InitStructure.ADC_Mode = ADC_Mode_Independent;
+		ADC_InitStructure.ADC_ScanConvMode = DISABLE;
+		ADC_InitStructure.ADC_ContinuousConvMode = DISABLE;
+		ADC_InitStructure.ADC_ExternalTrigConv = ADC_ExternalTrigConv_None;
+		ADC_InitStructure.ADC_DataAlign = ADC_DataAlign_Right;
+		ADC_InitStructure.ADC_NbrOfChannel = 1;
+		ADC_Init(ADC1, &ADC_InitStructure);
+
+		ADC_Cmd(ADC1, ENABLE);
+		ADC_RegularChannelConfig(ADC1, ADC_Channel_TempSensor, 1, ADC_SampleTime_55Cycles5);
+
+		/* Enable ADC1 reset calibaration register */   
+		ADC_ResetCalibration(ADC1);
+		/* Check the end of ADC1 reset calibration register */
+		while(ADC_GetResetCalibrationStatus(ADC1));
+		
+		/* Start ADC1 calibaration */
+		ADC_StartCalibration(ADC1);
+		/* Check the end of ADC1 calibration */
+		while(ADC_GetCalibrationStatus(ADC1));
+
+		vBitCount = 0;
+		dwTotalTime = 0;
+		wLastValue = 0;
+		randomResult.dw = LFSRRand();
+		saveCTRL = SysTick->CTRL;
+		SysTick->CTRL = SysTick_CTRL_ENABLE | SysTick_CTRL_CLKSOURCE;
+
+		while(1)
+		{
+			// Time the duration of an A/D acquisition and conversion
+			SysTick->VAL = 0;
+			ADC_SoftwareStartConvCmd(ADC1, ENABLE);
+
+			while(ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC) == RESET);
+			ADC_GetConversionValue(ADC1);
+			w = LFSRRand();
+			wTime = (WORD)(SysTick->VAL) ^ 0xFFFF;
+
+			// Wait no longer than 1 second obtaining entropy
+			dwTotalTime += wTime;
+			if(dwTotalTime >= GetInstructionClock())
+			{
+				randomResult.w[0] ^= LFSRRand();
+				randomResult.w[1] ^= LFSRRand();
+				break;
+			}
+
+			// Keep sampling if minimal entropy was likely obtained this round
+			if(wLastValue == wTime)
+				continue;
+		
+			// Add this entropy into the pseudo random number generator by reseeding
+			LFSRSeedRand(w + (wLastValue - wTime));
+			wLastValue = wTime;
+		
+			// Accumulate at least 32 bits of randomness over time
+			randomResult.dw <<= 1;
+			if(LFSRRand() & 0x0080)
+				randomResult.w[0] |= 0x1;
+		
+			// See if we've collected a fair amount of entropy and can quit early
+			if(++vBitCount == 0u)
+				break;
+		}
+
+		// Restore hardware SFRs
+		ADC_Cmd(ADC1, DISABLE);
+		RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1, DISABLE);
+		SysTick->CTRL = saveCTRL;
 	}
 #else
 	{

@@ -1368,7 +1368,7 @@ void HTTPPrint_btn(WORD num)
 	}
 
 	// Print the output
-	TCPPutROMString(sktHTTP, (num?HTML_UP_ARROW:HTML_DOWN_ARROW));
+	TCPPutROMString(sktHTTP, (num ? HTML_UP_ARROW : HTML_DOWN_ARROW));
 	return;
 }
 	

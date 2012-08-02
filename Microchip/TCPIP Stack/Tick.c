@@ -202,12 +202,9 @@ static void GetTickCopy(void)
 
 	BSP_ENTER_CRITICAL_SECTION();
 	dwTempTicks = dwInternalTicks;
-	// Get high 4 bytes
-	vTickReading[2] = ((BYTE*)&dwTempTicks)[0];
-	vTickReading[3] = ((BYTE*)&dwTempTicks)[1];
-	vTickReading[4] = ((BYTE*)&dwTempTicks)[2];
-	vTickReading[5] = ((BYTE*)&dwTempTicks)[3];
 	BSP_EXIT_CRITICAL_SECTION();
+	*((DWORD*)&vTickReading[0]) = ((SysTick->VAL & 0xFFFFFF) >> 8) ^ 0xFFFF;
+	*((DWORD*)&vTickReading[2]) = dwTempTicks;
 
 #else	// PIC32
 
@@ -455,6 +452,7 @@ void __attribute((interrupt(ipl2), vector(_TIMER_1_VECTOR), nomips16)) _T1Interr
 	#endif
 
 #else
+
 	#if __C30_VERSION__ >= 300
 	void _ISR __attribute__((__no_auto_psv__)) _T1Interrupt(void)
 	#else
