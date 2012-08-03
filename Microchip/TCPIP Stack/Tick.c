@@ -158,7 +158,6 @@ static void GetTickCopy(void)
 	// Perform an Interrupt safe and synchronized read of the 48-bit 
 	// tick value
 #if defined(__18CXX)
-
 	do
 	{
 		INTCONbits.TMR0IE = 1;		// Enable interrupt
@@ -169,7 +168,6 @@ static void GetTickCopy(void)
 		*((DWORD*)&vTickReading[2]) = dwInternalTicks;
 	} while(INTCONbits.TMR0IF);
 	INTCONbits.TMR0IE = 1;			// Enable interrupt
-
 #elif defined(__C30__)
 	do
 	{
@@ -207,7 +205,6 @@ static void GetTickCopy(void)
 	*((DWORD*)&vTickReading[2]) = dwTempTicks;
 
 #else	// PIC32
-
 	do
 	{
 		DWORD dwTempTicks;
@@ -385,7 +382,6 @@ DWORD TickConvertToMilliseconds(DWORD dwTickValue)
 }
 
 
-#if defined(__18CXX)
 /*****************************************************************************
   Function:
 	void TickUpdate(void)
@@ -402,6 +398,7 @@ DWORD TickConvertToMilliseconds(DWORD dwTickValue)
   Returns:
   	None
   ***************************************************************************/
+#if defined(__18CXX)
 void TickUpdate(void)
 {
     if(INTCONbits.TMR0IF)
@@ -414,7 +411,6 @@ void TickUpdate(void)
     }
 }
 
-#elif defined(__PIC32MX__)
 /*****************************************************************************
   Function:
 	void _ISR _T1Interrupt(void)
@@ -431,6 +427,7 @@ void TickUpdate(void)
   Returns:
   	None
   ***************************************************************************/
+#elif defined(__PIC32MX__)
 void __attribute((interrupt(ipl2), vector(_TIMER_1_VECTOR), nomips16)) _T1Interrupt(void)
 {
 	// Increment internal high tick counter
@@ -439,9 +436,7 @@ void __attribute((interrupt(ipl2), vector(_TIMER_1_VECTOR), nomips16)) _T1Interr
 	// Reset interrupt flag
 	IFS0CLR = _IFS0_T1IF_MASK;
 }
-
-#elif defined( __STM32F10X__ )
-
+#elif defined(__STM32F10X__)
 	#if defined( TICK_IRQ_HANDLER )
 	void TICK_IRQ_HANDLER(void)
 	{	// Increment internal high tick counter
@@ -450,9 +445,7 @@ void __attribute((interrupt(ipl2), vector(_TIMER_1_VECTOR), nomips16)) _T1Interr
 	#else
 		#warning "Use external Tick processing"
 	#endif
-
 #else
-
 	#if __C30_VERSION__ >= 300
 	void _ISR __attribute__((__no_auto_psv__)) _T1Interrupt(void)
 	#else
@@ -465,5 +458,4 @@ void __attribute((interrupt(ipl2), vector(_TIMER_1_VECTOR), nomips16)) _T1Interr
 		// Reset interrupt flag
 		IFS0bits.T1IF = 0;
 	}
-
 #endif

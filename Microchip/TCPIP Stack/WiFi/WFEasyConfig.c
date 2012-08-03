@@ -1,9 +1,9 @@
 /******************************************************************************
 
- MRF24WB0M Driver 
+ MRF24W Driver 
  Module for Microchip TCP/IP Stack
-  -Provides access to MRF24WB0M WiFi controller
-  -Reference: MRF24WB0M Data sheet, IEEE 802.11 Standard
+  -Provides access to MRF24W WiFi controller
+  -Reference: MRF24W Data sheet, IEEE 802.11 Standard
 
 *******************************************************************************
  FileName:		WFEasyConfig.c
@@ -45,14 +45,14 @@
  Author				Date		Comment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  Steve Collmeyer    24 Sep 2009 Initial
- Brad Rex           09 Feb 2010 Update for RoadRunner
+ Brad Rex           09 Feb 2010 Update for MRF24WB
 ******************************************************************************/
 #include "HardwareProfile.h"
 #include "TCPIPConfig.h"
 
 #if defined(WF_CS_TRIS)
 
-#include <string.h> /* for memcpy */   //SCC2????
+#include <string.h> /* for memcpy */
 
 #include "TCPIP Stack/WFEasyConfig.h"
 #include "TCPIP Stack/WFApi.h"
@@ -62,13 +62,9 @@
 tWFScanCtx  g_ScanCtx;
 #endif /* EZ_CONFIG_SCAN */
 
-#if defined	( WF_HOST_SCAN)
-extern BOOL gHostScanNotAllowed;
-#endif
-
 #if defined(STACK_USE_EZ_CONFIG)
 /* Easy Config Globals */
-extern UINT8 ConnectionProfileID;   //SCC2 ??? what to do with this...
+extern UINT8 ConnectionProfileID;
 
 tWFEasyConfigCtx g_easyConfigCtx;
 
@@ -154,6 +150,16 @@ static int WFEasyConfigProcess(void)
             strlen((char*)CFGCXT.ssid));  
 #endif       
 
+#if defined(DERIVE_KEY_FROM_PASSPHRASE_IN_HOST)
+		if ((BYTE)CFGCXT.security == WF_SECURITY_WPA_WITH_PASS_PHRASE
+			|| (BYTE)CFGCXT.security == WF_SECURITY_WPA2_WITH_PASS_PHRASE
+			|| (BYTE)CFGCXT.security == WF_SECURITY_WPA_AUTO_WITH_PASS_PHRASE) {
+			WF_ConvPassphrase2Key(strlen((char *)CFGCXT.key), CFGCXT.key,
+				strlen((char*)CFGCXT.ssid), CFGCXT.ssid);
+			CFGCXT.security--;
+		}
+#endif	/* defined(DERIVE_KEY_FROM_PASSPHRASE_IN_HOST) */
+
     /* Now deal with security... */
     switch ((BYTE)CFGCXT.security) {
         case WF_SECURITY_OPEN: /* No security */
@@ -210,6 +216,13 @@ static int WFEasyConfigProcess(void)
     /* Set wlan mode */
     WF_CPSetNetworkType(ConnectionProfileID, CFGCXT.type);
 
+#if defined(DISABLE_MODULE_FW_CONNECT_MANAGER_IN_INFRASTRUCTURE)
+	WF_DisableModuleConnectionManager();
+#endif
+
+	if (AppConfig.networkType == WF_INFRASTRUCTURE) 
+    	WF_CASetListRetryCount(MY_DEFAULT_LIST_RETRY_COUNT_INFRASTRUCTURE);
+	
     /* Kick off connection now... */
     WF_CMConnect(ConnectionProfileID);
     /* Change state and return TRUE to show we are done! */
@@ -219,7 +232,7 @@ static int WFEasyConfigProcess(void)
 }
 #endif /* STACK_USE_EZ_CONFIG */
 
-#if defined ( EZ_CONFIG_SCAN ) || defined (WF_HOST_SCAN)
+#if defined ( EZ_CONFIG_SCAN )
 void WFInitScan(void)
 {
     SCANCXT.scanState = 0;
@@ -231,35 +244,19 @@ void WFInitScan(void)
 
 UINT16 WFStartScan(void)
 {
+
+
    /* If scan already in progress bail out */
    if (IS_SCAN_IN_PROGRESS(SCANCXT.scanState))
        return WF_ERROR_OPERATION_CANCELLED;
 
-   WF_Scan(0xff);
+    if (WF_Scan(WF_SCAN_ALL) != WF_SUCCESS)
+		return WF_ERROR_OPERATION_CANCELLED;
 
    SCAN_SET_IN_PROGRESS(SCANCXT.scanState);
-   /* Should they be invalidated??? */
-   //SCAN_CLEAR_VALID(SCANCXT.scanState);
 
    return WF_SUCCESS;
 }
-
-#if defined (WF_HOST_SCAN)
-UINT16 WFStartHostScan(UINT8 profile_id)
-{
-   /* If scan already in progress bail out */
-   if (IS_SCAN_IN_PROGRESS(SCANCXT.scanState))
-       return WF_ERROR_OPERATION_CANCELLED;
-
-   WF_Scan(profile_id);
-
-   SCAN_SET_IN_PROGRESS(SCANCXT.scanState);
-   /* Should they be invalidated??? */
-   //SCAN_CLEAR_VALID(SCANCXT.scanState);
-
-   return WF_SUCCESS;
-}
-#endif
 
 UINT16 WFRetrieveScanResult(UINT8 Idx, tWFScanResult *p_ScanResult)
 {
@@ -285,12 +282,11 @@ void WFScanEventHandler(UINT16 scanResults)
 }
 #endif /* EZ_CONFIG_SCAN */
 
-#if defined ( WF_CONSOLE ) && defined ( EZ_CONFIG_SCAN ) 
-extern void
-WFDisplayScanMgr()
+#if defined ( WF_CONSOLE ) && defined ( EZ_CONFIG_SCAN ) && !defined(__18CXX)
+void WFDisplayScanMgr()
 {
     tWFScanResult   bssDesc;
-    char ssid[32];
+    char ssid[80];
 	char rssiChan[48];
 	int	count;
 
@@ -323,11 +319,6 @@ WFDisplayScanMgr()
 #if defined(WF_CONSOLE) & defined(STACK_USE_UART)
         WFConsoleReleaseConsoleMsg();
 #endif
-
-#if defined(WF_HOST_SCAN)
-		gHostScanNotAllowed = FALSE;
-#endif
-
     }
 
     return;

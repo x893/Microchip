@@ -1,9 +1,9 @@
 /******************************************************************************
 
- MRF24WB0M Driver Console Messages
+ MRF24W Driver Console Messages
  Module for Microchip TCP/IP Stack
-  -Provides access to MRF24WB0M WiFi controller
-  -Reference: MRF24WB0M Data sheet, IEEE 802.11 Standard
+  -Provides access to MRF24W WiFi controller
+  -Reference: MRF24W Data sheet, IEEE 802.11 Standard
 
 *******************************************************************************
  FileName:		WFConsoleMsgs.c
@@ -44,7 +44,7 @@
 
  Author				Date		Comment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- KH                 27 Jan 2010 Updated for MRF24WB0M
+ KH                 27 Jan 2010 Updated for MRF24W
 ******************************************************************************/
 
 #include <string.h>
@@ -79,6 +79,17 @@ ROM INT8 resetHelp[]    = "Reset host MCU";
 ROM INT8 clsCmd[]       = "cls";
 ROM INT8 clsHelp[]      = "Clears screen";
 
+#if defined(MRF24WG)
+ROM INT8 wpsPinCmd[]    = "wpspin";
+ROM INT8 wpsPinHelp[]   = "Next connection will use the WPS-Pin method";
+
+ROM INT8 wpsPushButtonCmd[]  = "wpspbc";
+ROM INT8 wpsPushButtonHelp[] = "Next connection will use the WPS-Push-Button method";
+
+ROM INT8 wpsCredCmd[]        = "wpscred";
+ROM INT8 wpsCredHelp[]       = "Dump WPS credentials";
+#endif /* MRF24WG */
+
 #if defined(WF_CONSOLE_IFCFGUTIL)
 ROM INT8 ifConfigCmd[]  = "ifconfig";
 ROM INT8 iwConfigCmd[]  = "iwconfig";
@@ -108,6 +119,21 @@ const tWFCmd g_consoleCmd[] = {
     {clsCmd,                       // [3]
      clsHelp,
      1},
+
+#if defined(MRF24WG)
+    {wpsPinCmd,
+     wpsPinHelp,
+     2},
+     
+     {wpsPushButtonCmd,
+      wpsPushButtonHelp,
+      1},
+      
+     {wpsCredCmd,
+      wpsCredHelp,
+      1},
+#endif /* MRF24WG */     
+
 #if defined(WF_CONSOLE_IFCFGUTIL)
     {ifConfigCmd,                  // [4]
      seeDocHelp,

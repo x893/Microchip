@@ -179,14 +179,14 @@
 
 	#if defined USE_IRQ0_AS_INTERRUPT
 		BOOL IRQ0select = PHY_IRQ0_En;
-		#ifdef STM32F10X
+		#if defined(__STM32F10X__)
 		PHY_IRQ0_DISABLE();
 		#else
 		PHY_IRQ0_En = 0;
 		#endif
 	#endif
         
-	#ifdef STM32F10X
+	#if defined(__STM32F10X__)
         PHY_IRQ1_DISABLE();
         Config_nCS_LOW();
 	#else
@@ -197,7 +197,7 @@
         SPIPut((BYTE)(setting >> 8));
         SPIPut((BYTE)setting);
 
-	#ifdef STM32F10X
+	#if defined(__STM32F10X__)
         Config_nCS_HIGH();
 		PHY_IRQ1_En_SET(IRQ1select);
 	#else
@@ -206,7 +206,7 @@
 	#endif
         
 	#if defined USE_IRQ0_AS_INTERRUPT
-		#ifdef STM32F10X
+		#if defined(__STM32F10X__)
         PHY_IRQ0_En_SET(IRQ1select);
 		#else
 		PHY_IRQ0_En = IRQ0select;
@@ -236,14 +236,14 @@
         BYTE IRQ1select = PHY_IRQ1_En;
 	#if defined USE_IRQ0_AS_INTERRUPT
 		BOOL IRQ0select = PHY_IRQ0_En;
-		#ifdef STM32F10X
+		#if defined(__STM32F10X__)
 			PHY_IRQ0_DISABLE();
 		#else
             PHY_IRQ0_En = 0;
 		#endif
 	#endif
 
-	#ifdef STM32F10X
+	#if defined(__STM32F10X__)
         PHY_IRQ1_DISABLE();
 		Config_nCS_LOW();
 	#else
@@ -253,7 +253,7 @@
         address = (address|0x40);
         SPIPut(address);
         value = SPIGet();
-	#ifdef STM32F10X
+	#if defined(__STM32F10X__)
 		Config_nCS_HIGH();
         PHY_IRQ1_En_SET(IRQ1select);
 	#else
@@ -262,7 +262,7 @@
 	#endif
         
 	#if defined USE_IRQ0_AS_INTERRUPT
-		#ifdef STM32F10X
+		#if defined(__STM32F10X__)
 			PHY_IRQ0_En_SET(IRQ0select);
 		#else
 			PHY_IRQ0_En = IRQ0select;
@@ -295,14 +295,14 @@
         BYTE IRQ1select = PHY_IRQ1_En;
 	#if defined USE_IRQ0_AS_INTERRUPT
 		BOOL IRQ0select = PHY_IRQ0_En;
-		#ifdef STM32F10X
+		#if defined(__STM32F10X__)
 			PHY_IRQ0_DISABLE();
 		#else
             PHY_IRQ0_En = 0;
 		#endif
 	#endif
         
-	#ifdef STM32F10X
+	#if defined(__STM32F10X__)
         PHY_IRQ1_DISABLE();
 		Data_nCS_LOW();
 	#else
@@ -312,7 +312,7 @@
 
         SPIPut(Data);
 
-	#ifdef STM32F10X
+	#if defined(__STM32F10X__)
 		Data_nCS_HIGH();
         PHY_IRQ1_En_SET(IRQ1select);
 	#else
@@ -321,7 +321,7 @@
 	#endif
         
 	#if defined USE_IRQ0_AS_INTERRUPT
-		#ifdef STM32F10X
+		#if defined(__STM32F10X__)
 			PHY_IRQ0_En_SET(IRQ0select);
 		#else
             PHY_IRQ0_En = IRQ0select;
@@ -399,13 +399,13 @@ Start_CCA:
         
             // Turn off receiver, enable the TX register
 		#if defined USE_IRQ0_AS_INTERRUPT
-			#ifdef STM32F10X
+			#if defined(__STM32F10X__)
 				PHY_IRQ0_DISABLE();
 			#else
 				PHY_IRQ0_En = 0;
 			#endif
 		#endif
-		#ifdef STM32F10X
+		#if defined(__STM32F10X__)
 			PHY_IRQ1_DISABLE();
 		#else
 			PHY_IRQ1_En = 0;
@@ -421,13 +421,13 @@ Start_CCA:
             SetRFMode(RF_TRANSMITTER);
 
 		#if defined USE_IRQ0_AS_INTERRUPT
-			#ifdef STM32F10X
+			#if defined(__STM32F10X__)
 			PHY_IRQ0_DISABLE();
 			#else
 			PHY_IRQ0_En = 1;
 			#endif
 		#endif            
-		#ifdef STM32F10X
+		#if defined(__STM32F10X__)
 			PHY_IRQ1_ENABLE();
 		#else
             PHY_IRQ1_En = 1;
@@ -660,7 +660,7 @@ TX_END_HERE:
         MACInitParams = initValue;
          
         DelayMs(20);  
-	#ifdef STM32F10X
+	#if defined(__STM32F10X__)
         Config_nCS_HIGH();		// Config select inactive
 		Data_nCS_HIGH();		// Data select inactive
 	#else
@@ -721,7 +721,7 @@ TX_END_HERE:
 
         SetRFMode(RF_RECEIVER);
 	#if defined USE_IRQ0_AS_INTERRUPT
-		#ifdef STM32F10X
+		#if defined(__STM32F10X__)
 		PHY_IRQ0_CLEAR();
 		PHY_IRQ0_ENABLE();
 		#else
@@ -729,7 +729,7 @@ TX_END_HERE:
 		PHY_IRQ0_En = 1;
 		#endif
 	#endif
-	#ifdef STM32F10X
+	#if defined(__STM32F10X__)
 		PHY_IRQ1_CLEAR();
 		PHY_IRQ1_ENABLE();
 	#else
@@ -1298,7 +1298,7 @@ void SetRFMode(BYTE mode)
     void _ISRFAST __attribute__((interrupt, auto_psv)) _INT1Interrupt(void)
 #elif defined(__PIC32MX__)
 	void __ISR(_EXTERNAL_1_VECTOR, ipl4) _INT1Interrupt(void)
-#elif defined(STM32F10X)
+#elif defined(__STM32F10X__)
 	void INT1_IRQ_HANDLER(void)
 #else
     #if !defined(__18CXX)
@@ -1308,7 +1308,7 @@ void SetRFMode(BYTE mode)
 #if !defined(__18CXX)
 {
 	if(PHY_IRQ1 && PHY_IRQ1_En)
-	#ifdef STM32F10X
+	#if defined(__STM32F10X__)
 		PHY_IRQ1_CLEAR();
 	#else
 		PHY_IRQ1 = 0;
@@ -1337,7 +1337,7 @@ void SetRFMode(BYTE mode)
 	void interrupt HighISR(void)
 #elif defined(__PIC32MX__)
 	void __ISR(_EXTERNAL_2_VECTOR, ipl4) _INT2Interrupt(void)
-#elif defined(STM32F10X)
+#elif defined(__STM32F10X__)
 	void INT2_IRQ_HANDLER(void)
 #else
 	void _ISRFAST _INT2Interrupt(void)
@@ -1361,13 +1361,13 @@ void SetRFMode(BYTE mode)
 	#endif
 			RSSILock = RSSIVal;
 			//Extract the Packet Length Information
-		#ifdef STM32F10X
+		#if defined(__STM32F10X__)
 			Data_nCS_LOW();
 		#else
 			Data_nCS = 0;
 		#endif
 			PacketLen = SPIGet();
-		#ifdef STM32F10X
+		#if defined(__STM32F10X__)
 			Data_nCS_HIGH();
 		#else
 			Data_nCS = 1;
@@ -1388,13 +1388,13 @@ IGNORE_HERE:
 					BYTE fifo_stat = RegisterRead(FTXRXIREG>>8);
 					while(fifo_stat & 0x02)
 					{
-					#ifdef STM32F10X
+					#if defined(__STM32F10X__)
 						Data_nCS_LOW();
 					#else
 						Data_nCS = 0;
 					#endif
 						SPIGet();
-					#ifdef STM32F10X
+					#if defined(__STM32F10X__)
 						Data_nCS_HIGH();
 					#else
 						Data_nCS = 1;
@@ -1416,13 +1416,13 @@ IGNORE_HERE:
 					//if ack packet store in memory structure for ack
 					if( bAck )
 					{
-					#ifdef STM32F10X
+					#if defined(__STM32F10X__)
 						Data_nCS_LOW();
 					#else
 						Data_nCS = 0;
 					#endif
 						ackPacket[RxPacketPtr++] = SPIGet();
-					#ifdef STM32F10X
+					#if defined(__STM32F10X__)
 						Data_nCS_HIGH();
 					#else
 						Data_nCS = 1;
@@ -1431,13 +1431,13 @@ IGNORE_HERE:
 					//else use the bank
 					else
 					{
-					#ifdef STM32F10X
+					#if defined(__STM32F10X__)
 						Data_nCS_LOW();
 					#else
 						Data_nCS = 0;
 					#endif
 						RxPacket[BankIndex].Payload[RxPacketPtr++] = SPIGet();
-					#ifdef STM32F10X
+					#if defined(__STM32F10X__)
 						Data_nCS_HIGH();
 					#else
 						Data_nCS = 1;
@@ -1516,7 +1516,7 @@ IGNORE_HERE:
 									}
 									MACTxBuffer[0] = PACKET_TYPE_ACK | BROADCAST_MASK;   // frame control, ack type + broadcast
 									MACTxBuffer[1] = RxPacket[BankIndex].Payload[1];     // sequenece number
-								#ifdef STM32F10X
+								#if defined(__STM32F10X__)
 									PHY_IRQ1_CLEAR();
 								#else
 									PHY_IRQ1 = 0;
@@ -1568,7 +1568,7 @@ IGNORE_HERE:
 		}
 
 RETURN_HERE:
-	#ifdef STM32F10X
+	#if defined(__STM32F10X__)
 		PHY_IRQ1_CLEAR();
 	#else
 		PHY_IRQ1 = 0;

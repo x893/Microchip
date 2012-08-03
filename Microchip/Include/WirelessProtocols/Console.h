@@ -120,7 +120,7 @@
         #define PrintChar(a)
         #define PrintDec(a)
     #endif
-#elif defined(STM32F10X)
+#elif defined(__STM32F10X__)
     #if defined(ENABLE_CONSOLE)
         void ConsoleInit(void);
         #define ConsoleIsPutReady()		(CONSOLE_UART_PORT->SR & USART_FLAG_TXE)

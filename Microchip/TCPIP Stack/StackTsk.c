@@ -65,8 +65,6 @@
 	#include "TCPIP Stack/WFApi.h"
 #endif
 
-/*
-//!
 // Stack FSM states.
 typedef enum
 {
@@ -77,17 +75,16 @@ typedef enum
     SM_STACK_TCP,
     SM_STACK_UDP
 } SM_STACK;
-static SM_STACK smStack;
-*/
+//!!! static SM_STACK smStack;
 
 NODE_INFO remoteNode;
 
 #if defined (WF_CS_TRIS) && defined (STACK_USE_DHCP_CLIENT)
 BOOL g_DhcpRenew = FALSE;
 extern void SetDhcpProgressState(void);
+UINT32 g_DhcpRetryTimer = 0;
 #endif
 
-extern BOOL ARPProcess(void);
 
 /*********************************************************************
  * Function:        void StackInit(void)
@@ -106,7 +103,8 @@ extern BOOL ARPProcess(void);
  ********************************************************************/
 void StackInit(void)
 {
-//!    smStack = SM_STACK_IDLE;
+	static BOOL once = FALSE;
+//!!! smStack = SM_STACK_IDLE;
 
 #if defined(STACK_USE_IP_GLEANING) || defined(STACK_USE_DHCP_CLIENT)
     /*
@@ -117,10 +115,22 @@ void StackInit(void)
 
 #endif
 
-    // Seed the LFSRRand() function
-    LFSRSeedRand(GenerateRandomDWORD());
+#if defined (WF_CS_TRIS) && defined (STACK_USE_DHCP_CLIENT)
+	g_DhcpRenew = FALSE;
+	g_DhcpRetryTimer = 0;
+#endif
+
+	if (!once) {
+		// Seed the LFSRRand() function
+		LFSRSeedRand(GenerateRandomDWORD());
+		once = TRUE;
+	}
 
     MACInit();
+
+#if defined (WF_AGGRESSIVE_PS) && defined (WF_CS_TRIS)
+	WFEnableAggressivePowerSave();
+#endif
 
 #if defined(WF_CS_TRIS) && defined(STACK_USE_EZ_CONFIG) && !defined(__18CXX)
     WFEasyConfigInit();
@@ -210,12 +220,11 @@ void StackTask(void)
 
    
     #if defined( WF_CS_TRIS )
-        // This task performs low-level MAC processing specific to the MRF24WB0M
+        // This task performs low-level MAC processing specific to the MRF24W
         MACProcess();
         #if defined( STACK_USE_EZ_CONFIG ) && !defined(__18CXX)
             WFEasyConfigMgr();
         #endif
-        
         
     	#if defined(STACK_USE_DHCP_CLIENT)
         	// Normally, an application would not include  DHCP module
@@ -231,6 +240,12 @@ void StackTask(void)
         			AppConfig.MyMask.Val = AppConfig.DefaultMask.Val;
         			AppConfig.Flags.bInConfigMode = TRUE;
         			DHCPInit(0);
+        			g_DhcpRetryTimer = (UINT32)TickGet();
+        		} else {
+        			if (g_DhcpRetryTimer && TickGet() - g_DhcpRetryTimer >= TICKS_PER_SECOND * 8) {
+        			DHCPInit(0);
+        			g_DhcpRetryTimer = (UINT32)TickGet();
+        			}
         		}
         	
         		// DHCP must be called all the time even after IP configuration is
@@ -239,13 +254,14 @@ void StackTask(void)
         		// time.
         		DHCPTask();
         		
-        		if(DHCPIsBound(0))
+        		if(DHCPIsBound(0)) {
         			AppConfig.Flags.bInConfigMode = FALSE;
+        			g_DhcpRetryTimer = 0;
+        		}
         	}
     	#endif // STACK_USE_DHCP_CLIENT
         
-        
-    #endif
+    #endif // WF_CS_TRIS
 
 
 	#if defined(STACK_USE_DHCP_CLIENT) && !defined(WF_CS_TRIS)
@@ -282,6 +298,7 @@ void StackTask(void)
 	}
 	#endif
 
+
     #if defined (STACK_USE_AUTO_IP)
     AutoIPTasks();
     #endif
@@ -311,7 +328,8 @@ void StackTask(void)
 			UDPDiscard();
 		#endif
 
-		// Fetch a packet (throws old one away, if not thrown away yet)
+		// Fetch a packet (throws old one away, if not thrown away 
+		// yet)
 		if(!MACGetHeader(&remoteNode.MACAddr, &cFrameType))
 			break;
 
@@ -359,7 +377,7 @@ void StackTask(void)
 					if( (tempLocalIP.Val == AppConfig.MyIPAddr.Val) ||
 						(tempLocalIP.Val == 0xFFFFFFFF) ||
 #if defined(STACK_USE_ZEROCONF_LINK_LOCAL) || defined(STACK_USE_ZEROCONF_MDNS_SD)
-                                                (tempLocalIP.Val == 0xFB0000E0) ||
+						(tempLocalIP.Val == 0xFB0000E0) ||
 #endif
 						(tempLocalIP.Val == ((AppConfig.MyIPAddr.Val & AppConfig.MyMask.Val) | ~AppConfig.MyMask.Val)))
 					{
@@ -476,5 +494,8 @@ void RenewDhcp(void)
     g_DhcpRenew = TRUE;
     SetDhcpProgressState();
 }    
+    
 #endif
+
+
 

@@ -59,7 +59,7 @@
 #define __STACK_TSK_H
 
 #if defined (WF_CS_TRIS)
-    #include "WF_Config.h" // pull in additional defines from wireless settings
+    #include "WF_Config.h"     
 #endif
 
 // Check for potential configuration errors in "TCPIPConfig.h"
@@ -73,7 +73,7 @@
 #endif
 
 // Structure to contain a MAC address
-typedef struct __attribute__((__packed__))
+typedef __PACKED_P struct __attribute__((__packed__))
 {
     BYTE v[6];
 } MAC_ADDR;
@@ -89,7 +89,7 @@ typedef struct __attribute__((__packed__))
 } NODE_INFO;
 
 // Application-dependent structure used to contain address information
-typedef struct __attribute__((__packed__)) 
+typedef struct __attribute__((__packed__)) appConfigStruct
 {
 	IP_ADDR		MyIPAddr;               // IP address
 	IP_ADDR		MyMask;                 // Subnet mask
@@ -99,7 +99,7 @@ typedef struct __attribute__((__packed__))
 	IP_ADDR		DefaultIPAddr;          // Default IP address
 	IP_ADDR		DefaultMask;            // Default subnet mask
 	BYTE		NetBIOSName[16];        // NetBIOS name
-	struct
+	__PACKED_P struct
 	{
 		unsigned char : 6;
 		unsigned char bIsDHCPEnabled : 1;
@@ -108,19 +108,19 @@ typedef struct __attribute__((__packed__))
 	MAC_ADDR	MyMACAddr;              // Application MAC address
 
 #if defined(WF_CS_TRIS)
-	BYTE		MySSID[32];             // Wireless SSID (if using MRF24WB0M)
+	BYTE        MySSID[32];             // Wireless SSID (if using MRF24W)
 	BYTE        SsidLength;             // number of bytes in SSID
 	BYTE        SecurityMode;           // WF_SECURITY_OPEN or one of the other security modes
 	BYTE        SecurityKey[64];        // WiFi Security key, or passphrase.   
 	BYTE        SecurityKeyLength;      // number of bytes in security key (can be 0)
 	BYTE        WepKeyIndex;            // WEP key index (only valid for WEP)
-    #if defined(EZ_CONFIG_STORE) // WLAN configuration data stored to NVM
+    #if defined(EZ_CONFIG_STORE)		// WLAN configuration data stored to NVM
     BYTE        dataValid;
     BYTE        networkType;
     BYTE        saveSecurityInfo;       // Save 32-byte PSK
     #endif
 #endif
-	
+
 #if defined(STACK_USE_SNMP_SERVER) || defined(STACK_USE_SNMPV3_SERVER)
 	// SNMPv2C Read community names
 	// SNMP_COMMUNITY_MAX_LEN (8) + 1 null termination byte
@@ -143,6 +143,4 @@ typedef struct __attribute__((__packed__))
 void StackInit(void);
 void StackTask(void);
 void StackApplications(void);
-void RenewDhcp(void);
-
 #endif

@@ -1,9 +1,9 @@
 /******************************************************************************
 
- MRF24WB0M Driver Scan functions
+ MRF24W Driver Scan functions
  Module for Microchip TCP/IP Stack
-  -Provides access to MRF24WB0M WiFi controller
-  -Reference: MRF24WB0M Data sheet, IEEE 802.11 Standard
+  -Provides access to MRF24W WiFi controller
+  -Reference: MRF24W Data sheet, IEEE 802.11 Standard
 
 *******************************************************************************
  FileName:		WFScan.c
@@ -44,7 +44,7 @@
 
  Author				Date		Comment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- KH                 27 Jan 2010 Created for MRF24WB0M
+ KH                 27 Jan 2010 Created for MRF24W
 ******************************************************************************/
 
 /*
@@ -68,27 +68,38 @@
     #define WF_MODULE_NUMBER    WF_MODULE_WF_SCAN
 #endif
 
+static BOOL WF_CMIsHostScanAllowed(void)
+{
+	UINT8	profileID;
+	UINT8	profileIDState;
+  
+	WF_CMCheckConnectionState(&profileIDState, &profileID);
+    if (profileIDState == WF_CSTATE_CONNECTION_IN_PROGRESS || profileIDState == WF_CSTATE_RECONNECTION_IN_PROGRESS)
+        return FALSE;
+
+	return TRUE;
+}
 
 /*******************************************************************************
   Function:	
-    void WF_Scan(UINT8 CpId)
+    UINT16 WF_Scan(UINT8 CpId)
 
   Summary:
-    Commands the MRF24WB0M to start a scan operation.  This will generate the 
+    Commands the MRF24W to start a scan operation.  This will generate the 
     WF_EVENT_SCAN_RESULTS_READY event.
 
   Description:
-    Directs the MRF24WB0M to initiate a scan operation utilizing the input 
+    Directs the MRF24W to initiate a scan operation utilizing the input 
     Connection Profile ID.  The Host Application will be notified that the scan 
     results are ready when it receives the WF_EVENT_SCAN_RESULTS_READY event.  
     The eventInfo field for this event will contain the number of scan results.  
     Once the scan results are ready they can be retrieved with 
     WF_ScanGetResult().
 
-    Scan results are retained on the MRF24WB0M until:
+    Scan results are retained on the MRF24W until:
     1.	Calling WF_Scan() again (after scan results returned from previous 
          call).
-    2.	MRF24WB0M reset.
+    2.	MRF24W reset.
 
   Precondition:
   	MACInit must be called first.
@@ -113,7 +124,7 @@
             CpId is equal to WF_SCAN_ALL
             * All scan results are retained (both Infrastructure and Ad Hoc 
                networks).
-            * All channels within the MRF24WB0M’s regional domain will be 
+            * All channels within the MRF24W’s regional domain will be 
                scanned.
             * No Connection Profiles need to be defined before calling this 
                function.
@@ -121,14 +132,26 @@
                calling this function.
 
   Returns:
-  	None.
+  	Operation results. Success or Failure
   	
   Remarks:
   	None.
   *****************************************************************************/
-void WF_Scan(UINT8 CpId)
+UINT16 WF_Scan(UINT8 CpId)
 {
     UINT8   hdr[4];
+    
+	/* WARNING !!! : 
+	* Host scan is allowed only in idle or connected state. 
+	* If module FW is in the midst of connection ( or reconenction) process, then
+	* host scan can hammer connection process, and furthermore it may cause
+	* fatal failure in module FW operation. To be safte to use host scan, we strongly
+	* recommend you to disable module FW connection manager by uncommenting
+	* #define DISABLE_MODULE_FW_CONNECT_MANAGER_IN_INFRASTRUCTURE	
+	* in WF_Config.h
+	*/
+	if (!WF_CMIsHostScanAllowed())	
+		return WF_ERROR_OPERATION_CANCELLED;
     
     hdr[0] = WF_MGMT_REQUEST_TYPE;
     hdr[1] = WF_SCAN_START_SUBTYPE; 
@@ -142,6 +165,8 @@ void WF_Scan(UINT8 CpId)
 
     /* wait for mgmt response, free it after it comes in (no data needed) */
 	WaitForMgmtResponse(WF_SCAN_START_SUBTYPE, FREE_MGMT_BUFFER); 
+
+	return WF_SUCCESS;
 }
 
 /*******************************************************************************
@@ -149,11 +174,11 @@ void WF_Scan(UINT8 CpId)
     void WF_ScanGetResult(UINT8 listIndex, tWFScanResult  *p_scanResult)
 
   Summary:
-    Read scan results back from MRF24WB0M.
+    Read scan results back from MRF24W.
 
   Description:
     After a scan has completed this function is used to read one or more of the 
-    scan results from the MRF24WB0M.  The scan results will be written 
+    scan results from the MRF24W.  The scan results will be written 
     contiguously starting at p_scanResults (see tWFScanResult structure for 
     format of scan result).    
 
@@ -165,7 +190,9 @@ void WF_Scan(UINT8 CpId)
     listIndex - Index (0-based list) of the scan entry to retrieve.
     p_scanResult - Pointer to location to store the scan result structure
 
-  Retrieve RSSI: RSSI_MAX (200) , RSSI_MIN (106)
+  Retrieve RSSI:
+    MRF24WB : RSSI_MAX (200) , RSSI_MIN (106)
+    MRF24WG : RSSI_MAX (128) , RSSI_MIN (43)
     p_scanResult->rssi
 
   Returns:

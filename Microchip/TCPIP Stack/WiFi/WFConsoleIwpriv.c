@@ -44,7 +44,7 @@
 
  Author				Date		Comment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- KH                 27 Jan 2010 Updated for MRF24WB0M
+ KH                 27 Jan 2010 Updated for MRF24W
 ******************************************************************************/
 
 
@@ -95,7 +95,7 @@ static struct
 	UINT8 securityKeyLength;
 } iwprivCb;
 
-extern UINT8 g_hibernate_state;
+extern tWFHibernate WF_hibernate;
 //============================================================================
 //                                  Local Function Prototypes
 //============================================================================
@@ -120,7 +120,7 @@ static BOOL iwprivSetCb(void)
 		iwprivCbInitialized = TRUE;
 	}
 
-	if (!g_hibernate_state && !iwconfigSetCb() ) // first set iwconfigCb
+	if (!WF_hibernate.state && !iwconfigSetCb() ) // first set iwconfigCb
 		return FALSE;
 
     if ( iwprivCb.cpId != iwconfigCb.cpId)
@@ -508,7 +508,7 @@ static BOOL iwprivSetPhrase(void)
 *****************************************************************************/
 void do_iwpriv_cmd(void)
 {
-	if (g_hibernate_state)
+	if (WF_hibernate.state)
 	{
 		WFConsolePrintRomStr("The Wi-Fi module is in hibernate mode - command failed.", TRUE);
 		return;

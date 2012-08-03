@@ -25,6 +25,7 @@ void BerkeleyTCPClientDemo(void);
 void BerkeleyTCPServerDemo(void);
 void BerkeleyUDPClientDemo(void);
 
+
 // Define a header structure for validating the AppConfig data structure in EEPROM/Flash
 typedef struct
 {
@@ -33,8 +34,10 @@ typedef struct
 	unsigned short wCurrentChecksum;		// Checksum of the current EEPROM/Flash data.  This protects against using corrupt values if power failure occurs while writing them and helps detect coding errors in which some other task writes to the EEPROM in the AppConfig area.
 } NVM_VALIDATION_STRUCT;
 
+
 // An actual function defined in MainDemo.c for displaying the current IP 
 // address on the UART and/or LCD.
 void DisplayIPValue(IP_ADDR IPVal);
+
 
 #endif // _MAINDEMO_H

@@ -1,9 +1,9 @@
 /******************************************************************************
 
- MRF24WB0M Driver Set/Get param messages
+ MRF24W Driver Set/Get param messages
  Module for Microchip TCP/IP Stack
-  -Provides access to MRF24WB0M WiFi controller
-  -Reference: MRF24WB0M Data sheet, IEEE 802.11 Standard
+  -Provides access to MRF24W WiFi controller
+  -Reference: MRF24W Data sheet, IEEE 802.11 Standard
 
 *******************************************************************************
  FileName:		WFParamMsg.c
@@ -44,7 +44,7 @@
 
  Author				Date		Comment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- KH                 27 Jan 2010 Created for MRF24WB0M
+ KH                 27 Jan 2010 Created for MRF24W
 ******************************************************************************/
 
 /*
@@ -108,7 +108,7 @@ void WFEnableMRF24WB0MMode(void)
     void WFEnableBroadcastProbeResponse(void)
 
   Summary:
-    This allows MRF24WB0M to broadcast probe response in Adhoc mode
+    This allows MRF24W to broadcast probe response in Adhoc mode
 
   Description:
 
@@ -134,10 +134,39 @@ void WFEnableBroadcastProbeResponse(void)
 
 /*******************************************************************************
   Function:	
+  WF_SetLinkDownThreshold(UINT8 threshold)
+
+  Summary:
+    Can be called to set link down threshold
+
+  Description:
+
+  Precondition:
+  MACInit must be called first.
+
+  Parameters:
+    threshold -- if transmission fails successively over this threshold, then RF reports WF_LINK_DOWN 
+    event.
+
+  Returns:
+  	None.
+  	
+  Remarks:
+  	None.
+ *****************************************************************************/
+
+void WF_SetLinkDownThreshold(UINT8 threshold)
+{ 
+    SendSetParamMsg(PARAM_LINK_DOWN_THRESHOLD, &threshold, sizeof(threshold)); 
+}  
+
+#if !defined(MRF24WG)
+/*******************************************************************************
+  Function:	
     void WFEnableDeferredPowerSave(void)
 
   Summary:
-    This allows MRF24WB0M to enter power save after DHCP process done
+    This allows MRF24W to enter power save after DHCP process done
 
   Description:
 
@@ -160,14 +189,16 @@ void WFEnableDeferredPowerSave(void)
     
     SendSetParamMsg(PARAM_DEFERRED_POWERSAVE, buf, sizeof(buf)); 
 }   
+#endif
 
 #if defined (WF_AGGRESSIVE_PS)
+#if !defined(MRF24WG)
 /*******************************************************************************
   Function:	
     void WFEnableAggressivePowerSave(void)
 
   Summary:
-    This allows MRF24WB0M to turn off RF power quicker in PS mode
+    This allows MRF24W to turn off RF power quicker in PS mode
 
   Description:
 
@@ -190,7 +221,7 @@ void WFEnableAggressivePowerSave(void)
     
     SendSetParamMsg(PARAM_AGGRESSIVE_PS, buf, sizeof(buf)); 
 }   
-
+#endif
 #endif
 
 /*******************************************************************************
@@ -198,7 +229,7 @@ void WFEnableAggressivePowerSave(void)
     void WFGetMRF24WB0MVersion(UINT8 *p_version)
 
   Summary:
-    Retrieves the MRF24WB0M version from the device.
+    Retrieves the MRF24W version from the device.
 
   Description:
 
@@ -256,20 +287,20 @@ void WF_GetDeviceInfo(tWFDeviceInfo *p_deviceInfo)
     void WF_SetMacAddress(UINT8 *p_mac)
 
   Summary:
-    Uses a different MAC address for the MRF24WB0M
+    Uses a different MAC address for the MRF24W
 
   Description:
-    Directs the MRF24WB0M to use the input MAC address instead of its 
+    Directs the MRF24W to use the input MAC address instead of its 
     factory-default MAC address.  This function does not overwrite the factory 
-    default, which is in FLASH memory – it simply tells the MRF24WB0M to use a 
+    default, which is in FLASH memory – it simply tells the MRF24W to use a 
     different MAC.
 
   Precondition:
-  	MACInit must be called first.  Cannot be called when the MRF24WB0M is in a
+  	MACInit must be called first.  Cannot be called when the MRF24W is in a
     connected state.
 
   Parameters:
-    p_mac  - Pointer to 6-byte MAC that will be sent to MRF24WB0M
+    p_mac  - Pointer to 6-byte MAC that will be sent to MRF24W
 
   Returns:
   	None.
@@ -287,7 +318,7 @@ void WF_SetMacAddress(UINT8 *p_mac)
     void WF_GetMacAddress(UINT8 *p_mac)
 
   Summary:
-    Retrieves the MRF24WB0M MAC address
+    Retrieves the MRF24W MAC address
 
   Description:
 
@@ -319,8 +350,8 @@ void WF_GetMacAddress(UINT8 *p_mac)
 
   Description:
     This function allows the application to configure up to two Multicast 
-    Address Filters on the MRF24WB0M.  If two active multicast filters are set 
-    up they are OR’d together – the MRF24WB0M will receive and pass to the Host 
+    Address Filters on the MRF24W.  If two active multicast filters are set 
+    up they are OR’d together – the MRF24W will receive and pass to the Host 
     CPU received packets from either multicast address.  
     The allowable values for the multicast filter are:
     * WF_MULTICAST_FILTER_1
@@ -478,7 +509,7 @@ void WF_GetMultiCastFilter(UINT8 multicastFilterId,
     Enables or disables Tx data confirmation management messages.
 
   Description:
-    Enables or disables the MRF24WB0M Tx data confirm mgmt message.  Data
+    Enables or disables the MRF24W Tx data confirm mgmt message.  Data
     confirms should always be disabled.
 
   Precondition:
@@ -529,12 +560,12 @@ void WF_GetTxDataConfirm(UINT8 *p_txDataConfirm)
     void WF_SetRegionalDomain(UINT8 regionalDomain)
 
   Summary:
-    Enables or disables the MRF24WB0M Regional Domain.
+    Enables or disables the MRF24W Regional Domain.
 
   Description:
-    Sets the regional domain on the MRF24WB0M.  Note that this function does not 
+    Sets the regional domain on the MRF24W.  Note that this function does not 
     overwrite the factory-set regional domain in FLASH.  By default the 
-    MRF24WB0M will use the factory-set regional domain.  It is invalid to call 
+    MRF24W will use the factory-set regional domain.  It is invalid to call 
     this function while in a connected state.
 
     Valid values for the regional domain are:
@@ -569,10 +600,10 @@ void WF_SetRegionalDomain(UINT8 regionalDomain)
     void WF_GetRegionalDomain(UINT8 *p_regionalDomain)
 
   Summary:
-    Retrieves the MRF24WB0M Regional domain
+    Retrieves the MRF24W Regional domain
 
   Description:
-    Gets the regional domain on the MRF24WB0M.  Allowable values are:
+    Gets the regional domain on the MRF24W.  Allowable values are:
     * WF_DOMAIN_FCC     
     * WF_DOMAIN_IC      
     * WF_DOMAIN_ETSI    
@@ -712,7 +743,7 @@ void WF_GetMacStats(tWFMacStats *p_macStats)
                          UINT8 paramDataLength)
 
   Summary:
-    Sends a SetParam Mgmt request to MRF24WB0M and waits for response.
+    Sends a SetParam Mgmt request to MRF24W and waits for response.
 
   Description:
     Index Set Param Request
@@ -763,7 +794,7 @@ void SendSetParamMsg(UINT8 paramType,
                 p_paramData,       /* param data        */
                 paramDataLength);  /* param data length */
 
-   	/* wait for MRF24WB0M management response; free response because not needed */
+   	/* wait for MRF24W management response; free response because not needed */
 	WaitForMgmtResponse(WF_SET_PARAM_SUBTYPE, FREE_MGMT_BUFFER); 
 }    
 
@@ -774,7 +805,7 @@ void SendSetParamMsg(UINT8 paramType,
                          UINT8 paramDataLength)
 
   Summary:
-    Sends a GetParam Mgmt request to MRF24WB0M and waits for response.
+    Sends a GetParam Mgmt request to MRF24W and waits for response.
 
   Description:  
     After response is received the param data is read from message and written 

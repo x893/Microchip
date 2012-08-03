@@ -347,7 +347,7 @@
             <uSurpInc>0</uSurpInc>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>CFG_INCLUDE_MapleRET6_MRF24WB STM32F10X</Define>
+              <Define>CFG_INCLUDE_MapleRET6_MRF24WB</Define>
               <Undefine></Undefine>
               <IncludePath>.\;.\Configs;..\..\Microchip\Include;"..\..\Microchip\Include\TCPIP Stack";..\..\STM\MapleRET6;..\..\STM\CMSIS\CM3\DeviceSupport;..\..\STM\STM32F10x_StdPeriph_Driver\inc</IncludePath>
             </VariousControls>
@@ -387,6 +387,86 @@
         </TargetArmAds>
       </TargetOption>
       <Groups>
+        <Group>
+          <GroupName>Application</GroupName>
+          <Files>
+            <File>
+              <FileName>WF_Config.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\WF_Config.c</FilePath>
+            </File>
+            <File>
+              <FileName>CustomHTTPApp.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\CustomHTTPApp.c</FilePath>
+            </File>
+            <File>
+              <FileName>MainDemo.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\MainDemo.c</FilePath>
+            </File>
+            <File>
+              <FileName>PingDemo.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\PingDemo.c</FilePath>
+            </File>
+            <File>
+              <FileName>MPFSImg2.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\MPFSImg2.c</FilePath>
+            </File>
+            <File>
+              <FileName>UARTConfig.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\UARTConfig.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Headers</GroupName>
+          <Files>
+            <File>
+              <FileName>HardwareProfile.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\HardwareProfile.h</FilePath>
+            </File>
+            <File>
+              <FileName>HTTPPrint.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\HTTPPrint.h</FilePath>
+            </File>
+            <File>
+              <FileName>MainDemo.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\MainDemo.h</FilePath>
+            </File>
+            <File>
+              <FileName>TCPIPConfig.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\TCPIPConfig.h</FilePath>
+            </File>
+            <File>
+              <FileName>WF_Config.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\WF_Config.h</FilePath>
+            </File>
+            <File>
+              <FileName>HWP STM32 MRF24WB.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Configs\HWP STM32 MRF24WB.h</FilePath>
+            </File>
+            <File>
+              <FileName>TCPIP STM32 MRF24WB.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Configs\TCPIP STM32 MRF24WB.h</FilePath>
+            </File>
+            <File>
+              <FileName>HWP STM32VL-DISC MRF24WB.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Configs\HWP STM32VL-DISC MRF24WB.h</FilePath>
+            </File>
+          </Files>
+        </Group>
         <Group>
           <GroupName>TCPIP Stack</GroupName>
           <Files>
@@ -461,11 +541,6 @@
               <FilePath>..\..\Microchip\TCPIP Stack\IP.c</FilePath>
             </File>
             <File>
-              <FileName>Announce.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\Microchip\TCPIP Stack\Announce.c</FilePath>
-            </File>
-            <File>
               <FileName>Reboot.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\Microchip\TCPIP Stack\Reboot.c</FilePath>
@@ -475,16 +550,16 @@
               <FileType>1</FileType>
               <FilePath>..\..\Microchip\TCPIP Stack\Hashes.c</FilePath>
             </File>
+            <File>
+              <FileName>UART.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Microchip\TCPIP Stack\UART.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
           <GroupName>Wi-Fi</GroupName>
           <Files>
-            <File>
-              <FileName>WF_Config.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\WF_Config.c</FilePath>
-            </File>
             <File>
               <FileName>WF_Eint.c</FileName>
               <FileType>1</FileType>
@@ -600,85 +675,10 @@
               <FileType>1</FileType>
               <FilePath>..\..\Microchip\TCPIP Stack\WiFi\WFTxPower.c</FilePath>
             </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>Application</GroupName>
-          <Files>
             <File>
-              <FileName>CustomHTTPApp.c</FileName>
+              <FileName>WFDebugStrings.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\CustomHTTPApp.c</FilePath>
-            </File>
-            <File>
-              <FileName>MainDemo.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\MainDemo.c</FilePath>
-            </File>
-            <File>
-              <FileName>PingDemo.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\PingDemo.c</FilePath>
-            </File>
-            <File>
-              <FileName>MPFSImg2.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\MPFSImg2.c</FilePath>
-            </File>
-            <File>
-              <FileName>UARTConfig.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\UARTConfig.c</FilePath>
-            </File>
-            <File>
-              <FileName>UART.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\UART.c</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>Headers</GroupName>
-          <Files>
-            <File>
-              <FileName>HardwareProfile.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\HardwareProfile.h</FilePath>
-            </File>
-            <File>
-              <FileName>HTTPPrint.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\HTTPPrint.h</FilePath>
-            </File>
-            <File>
-              <FileName>MainDemo.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\MainDemo.h</FilePath>
-            </File>
-            <File>
-              <FileName>TCPIPConfig.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\TCPIPConfig.h</FilePath>
-            </File>
-            <File>
-              <FileName>WF_Config.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\WF_Config.h</FilePath>
-            </File>
-            <File>
-              <FileName>HWP STM32 MRF24WB.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\Configs\HWP STM32 MRF24WB.h</FilePath>
-            </File>
-            <File>
-              <FileName>TCPIP STM32 MRF24WB.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\Configs\TCPIP STM32 MRF24WB.h</FilePath>
-            </File>
-            <File>
-              <FileName>HWP STM32VL-DISC MRF24WB.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\Configs\HWP STM32VL-DISC MRF24WB.h</FilePath>
+              <FilePath>..\..\Microchip\TCPIP Stack\WiFi\WFDebugStrings.c</FilePath>
             </File>
           </Files>
         </Group>

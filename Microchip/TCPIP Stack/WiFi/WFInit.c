@@ -1,9 +1,9 @@
 /******************************************************************************
 
- MRF24WB0M Driver Initialization
+ MRF24W Driver Initialization
  Module for Microchip TCP/IP Stack
-  -Provides access to MRF24WB0M WiFi controller
-  -Reference: MRF24WB0M Data sheet, IEEE 802.11 Standard
+  -Provides access to MRF24W WiFi controller
+  -Reference: MRF24W Data sheet, IEEE 802.11 Standard
 
 *******************************************************************************
  FileName:		WF_Init.c
@@ -44,7 +44,7 @@
 
  Author				Date		Comment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- KH                 27 Jan 2010 Updated for MRF24WB0M
+ KH                 27 Jan 2010 Updated for MRF24W
 ******************************************************************************/
 
 /*
@@ -53,12 +53,22 @@
 *********************************************************************************************************
 */
 
+
 #include "TCPIP Stack/TCPIP.h"
-#include "TCPIP Stack/WFMac.h"
 
 #if defined(WF_CS_TRIS)
 
+#if !defined(MRF24WG)
 BOOL gRFModuleVer1209orLater = FALSE;
+#endif
+
+#if defined(WF_CONSOLE)
+#include "TCPIP Stack/WFConsole.h"
+#include "IperfApp.h"
+#endif
+
+//#include "TCPIP Stack/WFMac.h"
+
 
 /*
 *********************************************************************************************************
@@ -71,11 +81,11 @@ BOOL gRFModuleVer1209orLater = FALSE;
     #define WF_MODULE_NUMBER    WF_MODULE_WF_INIT
 #endif
 
-#define EXPECTED_MRF24WB0M_VERSION_NUMBER      (2)
+
 
 /* This MAC address is the default MAC address used in TCPIPConfig.h.  If the */
 /* user leaves this MAC address unchanged then the WiFi Driver will get the   */
-/* unique MAC address from the MRF24WB0M and have the stack use it.           */
+/* unique MAC address from the MRF24W and have the stack use it.           */
 #define MCHP_DEFAULT_MAC_ADDRESS_BYTE_1     (0x00)
 #define MCHP_DEFAULT_MAC_ADDRESS_BYTE_2     (0x04)
 #define MCHP_DEFAULT_MAC_ADDRESS_BYTE_3     (0xa3)
@@ -92,9 +102,8 @@ BOOL gRFModuleVer1209orLater = FALSE;
 
 /* This MAC address is the default MAC address used in TCPIPConfig.h.  If the */
 /* user leaves this MAC address unchanged then the WiFi Driver will get the  */
-/* unique MAC address from the MRF24WB0M and have the stack use it.              */
+/* unique MAC address from the MRF24W and have the stack use it.              */
 static const UINT8 MchpDefaultMacAddress[WF_MAC_ADDRESS_LENGTH] = {0x00u, 0x04u, 0xA3u, 0x00u, 0x00u, 0x00u};
-
 
 /*
 *********************************************************************************************************
@@ -103,6 +112,13 @@ static const UINT8 MchpDefaultMacAddress[WF_MAC_ADDRESS_LENGTH] = {0x00u, 0x04u,
 */
 
 static void WF_LibInitialize(void);
+
+extern void SetAppPowerSaveMode(BOOL state);
+
+#if defined(CONSOLE)
+extern void IperfAppInit(void);
+#endif
+
 void SetDhcpProgressState(void);
 
 /*****************************************************************************
@@ -121,32 +137,42 @@ void SetDhcpProgressState(void);
  *****************************************************************************/
 void WF_Init(void)
 {
-    UINT8  version;
     tWFDeviceInfo deviceInfo;
 
-    /* initialize WiFi drivers, reset MRF24WB0M */
     WFHardwareInit();
-
     RawInit();
 
-    WFGetMRF24WB0MVersion(&version);
-      
-    WF_ASSERT(version >= EXPECTED_MRF24WB0M_VERSION_NUMBER);
-
+    WFEnableMRF24WB0MMode();
 	WF_GetDeviceInfo(&deviceInfo);
 
-	if (deviceInfo.romVersion == 18 && deviceInfo.patchVersion >= 9)
+    // if MRF24WB   
+    #if !defined(MRF24WG)
+        WF_ASSERT(deviceInfo.romVersion == 0x12);
+        WF_ASSERT(deviceInfo.patchVersion >= 0x02);
+        if (deviceInfo.romVersion == 0x12 && deviceInfo.patchVersion >= 0x09)
+        {
 		gRFModuleVer1209orLater = TRUE;
+        }    
+   #else // must be a MRF24WG
+        WF_ASSERT(deviceInfo.romVersion == 0x30 || deviceInfo.romVersion == 0x31);        
+   #endif
 
-    WFEnableMRF24WB0MMode();
-
-    /* send init messages to MRF24WB0M */
+    /* send init messages to MRF24W */
     WF_LibInitialize();
+
+  	#if defined(WF_CONSOLE)
+    	WFConsoleInit();
+    	#if defined(WF_CONSOLE_DEMO)
+    	    IperfAppInit();
+    	#endif
+	#endif
     
 	if(AppConfig.Flags.bIsDHCPEnabled)
 	{
     	SetDhcpProgressState();
     }
+
+
 }
 
 extern void WFMgmtMessageTest(void);
@@ -161,16 +187,15 @@ extern void WFMgmtMessageTest(void);
  *****************************************************************************/
 static void WF_LibInitialize()
 {
-    /* Disable Tx Data confirms (from the MRF24WB0M) */
+    /* Disable Tx Data confirms (from the MRF24W) */
     WF_SetTxDataConfirm(WF_DISABLED);
 
-    /*	if the user has left the default MAC address in TCPIPConfig.h unchanged then use
-	 *	the unique MRF24WB0M MAC address so prevent multiple devices from having the same
-     * MAC address.
-	 */
+    /* if the user has left the default MAC address in TCPIPConfig.h unchanged then use */
+    /* the unique MRF24W MAC address so prevent multiple devices from having the same   */
+    /* MAC address.                                                                     */
     if ( memcmp((void *)AppConfig.MyMACAddr.v, (void *)MchpDefaultMacAddress, WF_MAC_ADDRESS_LENGTH) == 0)
     {
-        /* get the MRF24WB0M MAC address and overwrite the MAC in AppConfig */
+        /* get the MRF24W MAC address and overwrite the MAC in AppConfig */
         WF_GetMacAddress((UINT8 *)AppConfig.MyMACAddr.v);
     }
     /* else presume the user has a unique MAC address of their own that they wish to use */    
@@ -183,6 +208,7 @@ static void WF_LibInitialize()
     #ifdef WF_CONFIG_DHCP
     WF_SET_DHCP_STATE(DHCP_ENABLED);
     #endif
+    
 }
 
 

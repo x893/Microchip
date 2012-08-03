@@ -168,7 +168,7 @@ extern void MacroNop(void);
 		BYTE oldGIEH = INTCONbits.GIEH;
 
 		INTCONbits.GIEH = 0;
-	#elif defined( STM32F10X )
+	#elif defined(__STM32F10X__)
 		BYTE oldRFIE = RFIE_GET();
 		RFIE_DISABLE();
 	#else
@@ -176,7 +176,7 @@ extern void MacroNop(void);
 		RFIE = 0;
 	#endif
             
-	#ifdef STM32F10X
+	#if defined(__STM32F10X__)
 		EE_nCS_LOW();
 	#else
 		EE_nCS = 0;
@@ -206,7 +206,7 @@ extern void MacroNop(void);
 			*dest++ = EESPIGet();
 			count--;
 		}
-	#ifdef STM32F10X
+	#if defined(__STM32F10X__)
 		EE_nCS_HIGH();
 	#else
 		EE_nCS = 1;
@@ -214,7 +214,7 @@ extern void MacroNop(void);
             
 	#if defined(__18CXX)
 		INTCONbits.GIEH = oldGIEH;
-	#elif defined( STM32F10X )
+	#elif defined(__STM32F10X__)
 		RFIE_SET(oldRFIE);
 	#else
 		RFIE = oldRFIE;
@@ -228,7 +228,7 @@ extern void MacroNop(void);
 		BYTE oldGIEH = INTCONbits.GIEH;   
 		INTCONbits.GIEH = 0;
 	#else
-		#ifdef STM32F10X
+		#if defined(__STM32F10X__)
 		BYTE oldRFIE = RFIE_GET();
 		RFIE_DISABLE();
 		#else
@@ -240,21 +240,21 @@ extern void MacroNop(void);
 EEPROM_NEXT_PAGE:
 		do
 		{
-		#ifdef STM32F10X
+		#if defined(__STM32F10X__)
 			EE_nCS_LOW();
 		#else
 			EE_nCS = 0;
 		#endif
 			EESPIPut(SPI_RD_STATUS);
 			PageCounter = EESPIGet();
-		#ifdef STM32F10X
+		#if defined(__STM32F10X__)
 			EE_nCS_HIGH();
 		#else
 			EE_nCS = 1;
 		#endif
 			MacroNop();
 		} while(PageCounter & 0x01 );
-	#ifdef STM32F10X
+	#if defined(__STM32F10X__)
 		EE_nCS_LOW();
 	#else
 		EE_nCS = 0;
@@ -262,13 +262,13 @@ EEPROM_NEXT_PAGE:
 
 		EESPIPut(SPI_EN_WRT);
 
-	#ifdef STM32F10X
+	#if defined(__STM32F10X__)
 		EE_nCS_HIGH();
 	#else
 		EE_nCS = 1;
 	#endif
 		MacroNop();
-	#ifdef STM32F10X
+	#if defined(__STM32F10X__)
 		EE_nCS_LOW();
 	#else
 		EE_nCS = 0;
@@ -299,7 +299,7 @@ EEPROM_NEXT_PAGE:
 			PageCounter++;
 			if( ((addr + PageCounter) & (NVM_PAGE_SIZE-1)) == 0 )
 			{
-			#ifdef STM32F10X
+			#if defined(__STM32F10X__)
 				EE_nCS_HIGH();
 			#else
 				EE_nCS = 1;
@@ -308,7 +308,7 @@ EEPROM_NEXT_PAGE:
 				goto EEPROM_NEXT_PAGE;
 			}
 		}
-	#ifdef STM32F10X
+	#if defined(__STM32F10X__)
 		EE_nCS_HIGH();
 	#else
 		EE_nCS = 1;
@@ -317,7 +317,7 @@ EEPROM_NEXT_PAGE:
 	#if defined(__18CXX)
 		INTCONbits.GIEH = oldGIEH;
 	#else
-		#ifdef STM32F10X
+		#if defined(__STM32F10X__)
 		RFIE_SET(oldRFIE);
 		#else
 		RFIE = oldRFIE;

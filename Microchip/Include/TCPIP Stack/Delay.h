@@ -64,7 +64,6 @@
 #endif
 
 #if defined(__18CXX) && !defined(HI_TECH_C)
-#error
 	#define Delay10us(us)		Delay10TCYx(((GetInstructionClock()/1000000)*(us)))
 	#define DelayMs(ms)												\
 	do																\
@@ -88,5 +87,7 @@
 	} while(0)
 	void DelayMs(WORD ms);
 #endif
+
+
 
 #endif

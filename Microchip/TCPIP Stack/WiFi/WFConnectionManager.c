@@ -1,9 +1,9 @@
 /******************************************************************************
 
- MRF24WB0M Driver Connection Manager
+ MRF24W Driver Connection Manager
  Module for Microchip TCP/IP Stack
-  -Provides access to MRF24WB0M WiFi controller
-  -Reference: MRF24WB0M Data sheet, IEEE 802.11 Standard
+  -Provides access to MRF24W WiFi controller
+  -Reference: MRF24W Data sheet, IEEE 802.11 Standard
 
 *******************************************************************************
  FileName:		WFConnectionManager.c
@@ -44,7 +44,7 @@
 
  Author				Date		Comment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- KH                 27 Jan 2010 Created for MRF24WB0M
+ KH                 27 Jan 2010 Created for MRF24W
 ******************************************************************************/
 
 
@@ -64,8 +64,6 @@
     #define WF_MODULE_NUMBER    WF_MODULE_WF_CONNECTION_MANAGER
 #endif
 
-extern void IgnoreNextMgmtResult(void);
-
 /*
 *********************************************************************************************************
 *                                           LOCAL GLOBAL VARIABLES                               
@@ -80,7 +78,7 @@ static BOOL g_LogicalConnection = FALSE;
     void WF_CMConnect(UINT8 CpId)
 
   Summary:
-    Commands the MRF24WB0M to start a connection.
+    Commands the MRF24W to start a connection.
 
   Description:
     Directs the Connection Manager to scan for and connect to a WiFi network.
@@ -120,8 +118,6 @@ void WF_CMConnect(UINT8 CpId)
     hdrBuf[2] = CpId;
     hdrBuf[3] = 0;   
 
-
-
     SendMgmtMsg(hdrBuf,
                 sizeof(hdrBuf),
                 NULL,
@@ -131,12 +127,46 @@ void WF_CMConnect(UINT8 CpId)
     WaitForMgmtResponse(WF_CM_CONNECT_SUBYTPE, FREE_MGMT_BUFFER);
 }
 
+#ifdef WICOM_MODE
+void WF_CMConnectWicom(UINT8 CpId, tWFConnectParams *connParams)
+{
+   UINT8  hdrBuf[4];
+
+    /* Write out header portion of msg (which is whole msg, there is no data) */
+    hdrBuf[0] = WF_MGMT_REQUEST_TYPE;    /* indicate this is a mgmt msg     */
+    hdrBuf[1] = WF_CM_CONNECT_SUBYTPE;   /* mgmt request subtype            */  
+    hdrBuf[2] = CpId;
+    hdrBuf[3] = 0;  
+
+    SendMgmtMsg(hdrBuf,
+                sizeof(hdrBuf),
+                (UINT8 *)connParams,
+                sizeof(tWFConnectParams));
+
+    /* wait for mgmt response, free after it comes in, don't need data bytes */
+    WaitForMgmtResponse(WF_CM_CONNECT_SUBYTPE, FREE_MGMT_BUFFER);
+}
+#endif
+
+static BOOL
+WF_CMIsDisconnectAllowed(void)
+{
+	UINT8	profileID;
+	UINT8	profileIDState;
+  
+	WF_CMCheckConnectionState(&profileIDState, &profileID);
+    if (profileIDState == WF_CSTATE_CONNECTED_INFRASTRUCTURE || profileIDState == WF_CSTATE_CONNECTED_ADHOC)
+        return TRUE;
+
+	return FALSE;
+}
+
 /*******************************************************************************
   Function:	
-    void WF_CMDisconnect(void)
+    UINT16 WF_CMDisconnect(void)
 
   Summary:
-    Commands the MRF24WB0M to close any open connections and/or to cease
+    Commands the MRF24W to close any open connections and/or to cease
     attempting to connect.
 
   Description:
@@ -153,14 +183,26 @@ void WF_CMConnect(UINT8 CpId)
     None.
 
   Returns:
-    None.
+    Operation results. Success or Failure
   	
   Remarks:
     None.
   *****************************************************************************/
-void WF_CMDisconnect(void)
+UINT16 WF_CMDisconnect(void)
 {
     UINT8  hdrBuf[2];
+
+	/* WARNING !!! : 
+	* Disconnect is allowed only in connected state. 
+	* If module FW is in the midst of connection ( or reconenction) process, then
+	* disconnect can hammer connection process, and furthermore it may cause
+	* fatal failure in module FW operation. To be safte to use disconnect, we strongly
+	* recommend you to disable module FW connection manager by uncommenting
+	* #define DISABLE_MODULE_FW_CONNECT_MANAGER_IN_INFRASTRUCTURE	
+	* in WF_Config.h
+	*/
+	if (!WF_CMIsDisconnectAllowed())
+		return WF_ERROR_DISCONNECT_FAILED;
 
     hdrBuf[0] = WF_MGMT_REQUEST_TYPE;
     hdrBuf[1] = WF_CM_DISCONNECT_SUBYTPE;
@@ -170,16 +212,13 @@ void WF_CMDisconnect(void)
                 NULL,
                 0);
  
-    // See Jira MRF24WBOM-29. The chip will return a non-successful result that we normally assert on.  For this
-    // management message, there are conditions where it returns a non-success, but we do not want to assert.
-    // This function informs the WaitForMgmtResponse() function to ignore the success code for this message. 
-    IgnoreNextMgmtResult();
- 
     /* wait for mgmt response, free after it comes in, don't need data bytes */
     WaitForMgmtResponse(WF_CM_DISCONNECT_SUBYTPE, FREE_MGMT_BUFFER);
 
     /* set state to no connection */
     SetLogicalConnectionState(FALSE);
+    
+    return WF_SUCCESS;
 }    
     
 /*******************************************************************************
@@ -239,6 +278,65 @@ void WF_CMGetConnectionState(UINT8 *p_state, UINT8 *p_currentCpId)
 
 /*******************************************************************************
   Function:	
+    BOOL WFisConnected()
+
+  Summary:
+    Query the connection status of the MRF24W.
+
+  Description:
+    Determine the fine granularity status of the connection state of the
+    MRF24W.
+
+  Precondition:
+    MACInit must be called first.
+
+  Parameters:
+    None.
+
+  Returns:
+    TRUE if the MRF24W is either connected or attempting to connect.
+    FALSE for all other conditions.
+  	
+  Remarks:
+    None.
+  *****************************************************************************/
+BOOL WFisConnected()
+{
+    return g_LogicalConnection;   
+}      
+
+/*******************************************************************************
+  Function:	
+    void SetLogicalConnectionState(BOOL state)
+
+  Summary:
+    Sets the logical connection state.
+
+  Description:
+    Logically, if the MRF24W is either connected or trying to connect, then
+    it is "connected".  For all other scenarios, the MRF24W is "not
+    connected".
+
+  Precondition:
+    MACInit must be called first.
+
+  Parameters:
+    state - Current logical connection state of the MRF24W.
+
+  Returns:
+    None.
+  	
+  Remarks:
+    None.
+  *****************************************************************************/
+void SetLogicalConnectionState(BOOL state)
+{
+    g_LogicalConnection = state;
+}
+
+
+/*******************************************************************************
+  Function:	
     void WF_CMCheckConnectionState(UINT8 *p_state, UINT8 *p_currentCpId)
 
   Summary:
@@ -283,64 +381,7 @@ void WF_CMCheckConnectionState(UINT8 *p_state, UINT8 *p_currentCpId)
     *p_currentCpId = msgData[1];        /* current CpId     */
 } 
 
-/*******************************************************************************
-  Function:	
-    BOOL WFisConnected()
-
-  Summary:
-    Query the connection status of the MRF24WB0M.
-
-  Description:
-    Determine the fine granularity status of the connection state of the
-    MRF24WB0M.
-
-  Precondition:
-    MACInit must be called first.
-
-  Parameters:
-    None.
-
-  Returns:
-    TRUE if the MRF24WB0M is either connected or attempting to connect.
-    FALSE for all other conditions.
-  	
-  Remarks:
-    None.
-  *****************************************************************************/
-BOOL WFisConnected()
-{
-    return g_LogicalConnection;   
-}      
-
-/*******************************************************************************
-  Function:	
-    void SetLogicalConnectionState(BOOL state)
-
-  Summary:
-    Sets the logical connection state.
-
-  Description:
-    Logically, if the MRF24WB0M is either connected or trying to connect, then
-    it is "connected".  For all other scenarios, the MRF24WB0M is "not
-    connected".
-
-  Precondition:
-    MACInit must be called first.
-
-  Parameters:
-    state - Current logical connection state of the MRF24WB0M.
-
-  Returns:
-    None.
-  	
-  Remarks:
-    None.
-  *****************************************************************************/
-void SetLogicalConnectionState(BOOL state)
-{
-    g_LogicalConnection = state;
-}
-
+#if defined (MRF24WG)
 /*******************************************************************************
   Function:	
     void WF_CMGetConnectContext(tWFConnectContext *p_ctx)
@@ -351,7 +392,7 @@ void SetLogicalConnectionState(BOOL state)
   Description:
 
   Precondition:
-  	MACInit must be called first.
+    MACInit must be called first.
 
   Parameters:
     p_ctx -- pointer where connect context will be written
@@ -360,11 +401,49 @@ void SetLogicalConnectionState(BOOL state)
   	None.
   	
   Remarks:
-  	None.
- *****************************************************************************/
+    None.
+  *****************************************************************************/
 void WF_CMGetConnectContext(tWFConnectContext *p_ctx)
 {
     SendGetParamMsg(PARAM_CONNECT_CONTEXT, (UINT8 *)p_ctx, sizeof(*p_ctx));
+}      
+#endif /* MRF24WG */ 
+
+#if defined(__C32__)
+/*******************************************************************************
+  Function:	
+    void WF_ConvPassphrase2Key(UINT8 key_len, UINT8 *key, UINT8 ssid_len, UINT8 *ssid)
+
+  Summary:
+    Convert passphrase to key
+
+  Description:
+
+  Precondition:
+    MACInit must be called first.
+
+  Parameters:
+    key_len : key length
+    key : passphrase as an input. key as an output
+    ssid_len : ssid length
+    ssid : ssid
+
+  Returns:
+    None.
+  	
+  Remarks:
+    None.
+  *****************************************************************************/
+
+void
+WF_ConvPassphrase2Key(UINT8 key_len, UINT8 *key, UINT8 ssid_len, UINT8 *ssid)
+{
+	UINT8 psk[32];
+  	
+	key[key_len] = '\0';
+	pbkdf2_sha1((const char *)key, (const char *)ssid, ssid_len, 4096, (UINT8 *)psk, 32);
+	memcpy(key, psk, 32);
 }
+#endif /* __C32__ */
 
 #endif /* WF_CS_TRIS */

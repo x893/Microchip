@@ -112,7 +112,7 @@ void InitSymbolTimer()
     WritePeriod3(0xFFFF);
     OpenTimer2((T2_ON | T2_32BIT_MODE_ON | CLOCK_DIVIDER_SETTING), 0xFFFFFFFF);
 
-#elif defined(STM32F10X)
+#elif defined(__STM32F10X__)
 	#error "Not implemented"
 #else
     #error "Symbol timer implementation required for stack usage."
@@ -214,7 +214,7 @@ MIWI_TICK MiWi_TickGet(void)
 #elif defined(__dsPIC30F__) || defined(__dsPIC33F__) || defined(__PIC24F__) || defined(__PIC24FK__) || defined(__PIC24H__) || defined(__PIC32MX__)
 	currentTime.word.w0 = TMR2;
 	currentTime.word.w1 = TMR3;
-#elif defined(STM32F10X)
+#elif defined(__STM32F10X__)
 	#error "Not implemented"
 #else
 	#error "Symbol timer implementation required for stack usage."

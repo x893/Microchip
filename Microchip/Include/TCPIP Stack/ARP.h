@@ -69,17 +69,17 @@
 
 
 // ARP packet structure
-typedef struct __attribute__((aligned(2), packed))
+typedef __PACKED_P struct __attribute__((aligned(2), packed))
 {
     WORD        HardwareType;   // Link-layer protocol type (Ethernet is 1).
     WORD        Protocol;       // The upper-layer protocol issuing an ARP request (0x0800 for IPv4)..
     BYTE        MACAddrLen;     // MAC address length (6).
     BYTE        ProtocolLen;    // Length of addresses used in the upper-layer protocol (4).
     WORD        Operation;      // The operation the sender is performing (ARP_REQ or ARP_RESP).
-    MAC_ADDR    SenderMACAddr;  // The sender's hardware (MAC) address.
-    IP_ADDR     SenderIPAddr;   // The sender's IP address.
-    MAC_ADDR    TargetMACAddr;  // The target node's hardware (MAC) address.
-    IP_ADDR     TargetIPAddr;   // The target node's IP address.
+    __PACKED_P  MAC_ADDR    SenderMACAddr;  // The sender's hardware (MAC) address.
+    __PACKED_P  IP_ADDR     SenderIPAddr;   // The sender's IP address.
+    __PACKED_P  MAC_ADDR    TargetMACAddr;  // The target node's hardware (MAC) address.
+    __PACKED_P  IP_ADDR     TargetIPAddr;   // The target node's IP address.
 } ARP_PACKET;
 
 BOOL ARPProcess(void);
@@ -99,9 +99,8 @@ void SwapARPPacket(ARP_PACKET* p);
 	};
 	CHAR ARPRegisterCallbacks(struct arp_app_callbacks *app);
 	BOOL ARPDeRegisterCallbacks(CHAR id);
-	BOOL ARPSendPkt(DWORD SrcIPAddr, DWORD DestIPAddr, BYTE op_req );
 #endif
-
+	BOOL ARPSendPkt(DWORD SrcIPAddr, DWORD DestIPAddr, BYTE op_req );
 #endif
 
 

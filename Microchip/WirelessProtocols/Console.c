@@ -56,7 +56,8 @@
 #include "HardwareProfile.h"
 
 #if defined(ENABLE_CONSOLE)
-#if defined(STM32F10X) || defined(__dsPIC33F__) || defined(__PIC24F__) || defined(__PIC24FK__) || defined(__PIC24H__) || defined(__PIC32MX__)
+
+#if defined(__STM32F10X__) || defined(__dsPIC33F__) || defined(__PIC24F__) || defined(__PIC24FK__) || defined(__PIC24H__) || defined(__PIC32MX__)
 
 /************************ VARIABLES ********************************/
 ROM unsigned char CharacterArray[]={'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
@@ -83,7 +84,7 @@ void ConsoleInit(void)
 {
     #ifdef __PIC32MX__
         OpenUART2(UART_EN, (1 << 12)|UART_TX_ENABLE, (CLOCK_FREQ/(1<<mOSCGetPBDIV())/16)/BAUD_RATE-1); 
-	#elif defined( STM32F10X )
+	#elif defined(__STM32F10X__)
 		#error "Initialize Console USART"
     #else    
         U2BRG   = (CLOCK_FREQ/2/16)/BAUD_RATE-1;
@@ -139,7 +140,7 @@ void ConsolePutROMString(ROM char* str)
 ********************************************************************/
 void ConsolePut(BYTE c)
 {
-	#ifdef STM32F10X
+	#if defined(__STM32F10X__)
 		while (CONSOLE_UART_TX_RDY() == 0);
 		CONSOLE_UART_DATA = c;
 	#else
@@ -167,7 +168,7 @@ void ConsolePut(BYTE c)
 ********************************************************************/
 BYTE ConsoleGet(void)
 {
-	#ifdef STM32F10X
+	#if defined(__STM32F10X__)
 		while (CONSOLE_UART_RX_RDY() == 0);
 		return (BYTE)CONSOLE_UART_DATA;
 	#else

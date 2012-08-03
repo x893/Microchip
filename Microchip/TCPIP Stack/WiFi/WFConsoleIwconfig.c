@@ -1,9 +1,9 @@
 /******************************************************************************
 
- MRF24WB0M Driver iwconfig
+ MRF24W Driver iwconfig
  Module for Microchip TCP/IP Stack
-  -Provides access to MRF24WB0M WiFi controller
-  -Reference: MRF24WB0M Data sheet, IEEE 802.11 Standard
+  -Provides access to MRF24W WiFi controller
+  -Reference: MRF24W Data sheet, IEEE 802.11 Standard
 
 *******************************************************************************
  FileName:		WFConsoleIwconfig.c
@@ -44,7 +44,7 @@
 
  Author				Date		Comment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- KH                 27 Jan 2010 Updated for MRF24WB0M
+ KH                 27 Jan 2010 Updated for MRF24W
 ******************************************************************************/
 
 
@@ -67,9 +67,6 @@
 #if defined( EZ_CONFIG_SCAN )
 #include "TCPIP Stack/WFEasyConfig.h"
 #endif /* EZ_CONFIG_SCAN */
-
-
-
 //============================================================================
 //                                  Constants
 //============================================================================
@@ -77,16 +74,9 @@
 //============================================================================
 //                                  Globals
 //============================================================================
-extern UINT8 ConnectionProfileID;
-
-#if defined( WF_HOST_SCAN )
-extern BOOL gHostScanNotAllowed;
-UINT8 hostScanProfileID;
-#endif
 
 static BOOL		iwconfigCbInitialized = FALSE;
 tWFIwconfigCb	iwconfigCb;
-
 
 //============================================================================
 //                                  Local Function Prototypes
@@ -99,10 +89,13 @@ static BOOL iwconfigSetPower(void);
 static BOOL iwconfigSetDomain(void);
 static BOOL iwconfigSetRTS(void);
 static BOOL iwconfigSetTxRate(void);
-extern UINT16 WFStartScan(void);
 
-UINT8 g_hibernate_state = WF_HB_NO_SLEEP;
-UINT8 g_wakeup_notice = FALSE;
+tWFHibernate WF_hibernate;
+
+BOOL 	test_flag;
+DWORD 	test_sec;
+int		test_count;
+char  	test_buf[80];
 
 /*****************************************************************************
  * FUNCTION: do_iwconfig_cmd
@@ -115,34 +108,41 @@ UINT8 g_wakeup_notice = FALSE;
  *****************************************************************************/
 void do_iwconfig_cmd(void)
 {
-
-	if (!g_hibernate_state && !iwconfigSetCb() )
+	if (!WF_hibernate.state && !iwconfigSetCb() )
 		return;
 
     // if user only typed in iwconfig with no other parameters
     if (ARGC == 1u)
     {
-		if (!g_hibernate_state)
+		if (!WF_hibernate.state)
 			iwconfigDisplayStatus();
 		else
+		    #if defined(STACK_USE_UART)
 			WFConsolePrintRomStr("The Wi-Fi module is in hibernate mode - command failed.", TRUE);
+			#endif
 		return;
     }
 
 	if ( (2u <= ARGC) && (strcmppgm2ram((char*)ARGV[1], "wakeup") == 0) )
     {
-		if (!g_wakeup_notice)
-    		g_wakeup_notice = TRUE;
+		if (!WF_hibernate.wakeup_notice)
+		{
+    		WF_hibernate.wakeup_notice = TRUE;
+        }  		
+    	
+		#if defined(STACK_USE_UART)
 		WFConsolePrintRomStr("The Wi-Fi module is awake.", TRUE);	
+		#endif
+		
 		return;
 	}
 
 	if ( (2u <= ARGC) && (strcmppgm2ram((char*)ARGV[1], "hibernate") == 0) )
     {
-		if (!g_hibernate_state)
+		if (!WF_hibernate.state)
 		{
-    		g_hibernate_state = WF_HB_ENTER_SLEEP;
-			g_wakeup_notice = FALSE;
+    		WF_hibernate.state = WF_HB_ENTER_SLEEP;
+			WF_hibernate.wakeup_notice = FALSE;
 			WFConsolePrintRomStr("The Wi-Fi module is in hibernate mode.", TRUE);
 		}
 		else
@@ -150,7 +150,7 @@ void do_iwconfig_cmd(void)
 		return;
 	}
 	
-	if (g_hibernate_state)
+	if (WF_hibernate.state)
 	{
 		WFConsolePrintRomStr("The Wi-Fi module is in hibernate mode - command failed.", TRUE);
 		return;
@@ -158,109 +158,90 @@ void do_iwconfig_cmd(void)
 
 	if ( (2u <= ARGC) && (strcmppgm2ram((char*)ARGV[1], "ssid") == 0) )
     {
-    	if (!g_hibernate_state && !iwconfigSetSsid())
+    	if (!WF_hibernate.state && !iwconfigSetSsid())
 			return;
 	}
     else if ( (2u <= ARGC) && (strcmppgm2ram((char*)ARGV[1], "mode") == 0) )
     {
-    	if (!g_hibernate_state && !iwconfigSetMode())
+    	if (!WF_hibernate.state && !iwconfigSetMode())
 			return;
 	}
     else if ( (2u <= ARGC) && (strcmppgm2ram((char*)ARGV[1], "channel") == 0) )
     {
-    	if (!g_hibernate_state && !iwconfigSetChannel())
+    	if (!WF_hibernate.state && !iwconfigSetChannel())
 			return;
 	}
     else if ( (2u <= ARGC) && (strcmppgm2ram((char*)ARGV[1], "power") == 0) )
     {
-    	if (!g_hibernate_state && !iwconfigSetPower())
+    	if (!WF_hibernate.state && !iwconfigSetPower())
 			return;
 	}
     else if ( (2u <= ARGC) && (strcmppgm2ram((char*)ARGV[1], "domain") == 0) )
     {
-    	if (!g_hibernate_state && !iwconfigSetDomain())
+    	if (!WF_hibernate.state && !iwconfigSetDomain())
 			return;
 	}
     else if ( (2u <= ARGC) && (strcmppgm2ram((char*)ARGV[1], "rts") == 0) )
     {
-    	if (!g_hibernate_state && !iwconfigSetRTS())
+    	if (!WF_hibernate.state && !iwconfigSetRTS())
 			return;
 	}
     else if ( (2u <= ARGC) && (strcmppgm2ram((char*)ARGV[1], "txrate") == 0) )
     {
-    	if (!g_hibernate_state && !iwconfigSetTxRate())
+    	if (!WF_hibernate.state && !iwconfigSetTxRate())
 			return;
 	}
 
-	#if (defined(EZ_CONFIG_SCAN) && !defined(WF_HOST_SCAN)) && !defined(__18CXX)
+	#if defined ( EZ_CONFIG_SCAN ) && !defined(__18CXX)
 	else if ( (2u <= ARGC) && (strcmppgm2ram((char*)ARGV[1], "scan") == 0) )
     {
-    	if (!g_hibernate_state) {
-			WFConsolePrintRomStr("Scan...", TRUE);
-        	if (WFStartScan() == WF_SUCCESS)
-	    	{
-				WFConsolePrintRomStr("Scan completed.", TRUE);
-            	SCAN_SET_DISPLAY(SCANCXT.scanState);
-            	SCANCXT.displayIdx = 0;
-        	}
-			else
-				WFConsolePrintRomStr("Scan failed.", TRUE);	
-    	}
-	    return;
-	}
-	#endif /* EZ_CONFIG_SCAN */
-
-
-	#if (defined(EZ_CONFIG_SCAN) && defined(WF_HOST_SCAN)) && !defined(__18CXX)
-	else if ( (2u <= ARGC) && (strcmppgm2ram((char*)ARGV[1], "scan") == 0) )
-    {
-    	if (!g_hibernate_state) {
-			
-			if (gHostScanNotAllowed)
-					WFConsolePrintRomStr("Scan not allowed.", TRUE);
-			else {
-				gHostScanNotAllowed = TRUE;
+    	if (!WF_hibernate.state) {
 				WFInitScan();
 				WFConsolePrintRomStr("Scanning...", TRUE);
-				if ((3u <= ARGC) && strcmppgm2ram((char*)ARGV[2], "all") == 0)
-					hostScanProfileID = WF_SCAN_ALL;
-				else
-					hostScanProfileID = ConnectionProfileID;		// Default - current profile
        			if (WFStartScan() == WF_SUCCESS){
 					WFConsolePrintRomStr("Scan completed.", TRUE);
 				}
 				else {
-					WFConsolePrintRomStr("Scan failed.", TRUE);
-					gHostScanNotAllowed = FALSE;
-				}
+				WFConsolePrintRomStr("Scan failed. Already in progress or not allowed", TRUE);
 			}
 		}
 		else 
+		{
 			WFConsolePrintRomStr("In hibernate mode - scan is not allowed.", TRUE);	
+		}
 	    return;
 	}
 	else if ( (2u <= ARGC) && (strcmppgm2ram((char*)ARGV[1], "scanresults") == 0) )
     {
- 	   	if (IS_SCAN_IN_PROGRESS(SCANCXT.scanState) || gHostScanNotAllowed)
-			WFConsolePrintRomStr("Scanning is still in process...try again later.", TRUE);
-		else {
-			gHostScanNotAllowed = TRUE;
+ 	   	if (IS_SCAN_IN_PROGRESS(SCANCXT.scanState))
+			WFConsolePrintRomStr("Scann in process...please wait or try again later", TRUE);
+		else if (SCANCXT.numScanResults > 0) 
+		{
 			SCAN_SET_DISPLAY(SCANCXT.scanState);
         	SCANCXT.displayIdx = 0;
-			if (SCANCXT.numScanResults > 0) {
 				while (IS_SCAN_STATE_DISPLAY(SCANCXT.scanState))
 				{
 					WFDisplayScanMgr();
 				}
 			}
-			else {
-				gHostScanNotAllowed = FALSE;
-				WFConsolePrintRomStr("Nothing to display ... please run \"scan\" first", TRUE);
+		else
+			WFConsolePrintRomStr("No scan results to display.", TRUE);
+
+		return;
 			}
+	else if ( (2u <= ARGC) && (strcmppgm2ram((char*)ARGV[1], "starttest") == 0))
+    {
+		test_flag = TRUE;
+		test_count = 0;
+		return;
 		}
+	else if ( (2u <= ARGC) && (strcmppgm2ram((char*)ARGV[1], "stoptest") == 0))
+    {
+		test_flag = FALSE;
 		return;
 	}
-	#endif /* WF_HOST_SCAN */
+	
+	#endif /* EZ_CONFIG_SCAN */
 
     else
     {
@@ -281,7 +262,7 @@ void do_iwconfig_cmd(void)
  *****************************************************************************/
 BOOL iwconfigSetCb(void)
 {
-	UINT8 cpId, newCpId;
+	UINT8 cpId;
 
 	if ( !iwconfigCbInitialized ) // first time call of iwconfigSetCb
 	{
@@ -289,7 +270,9 @@ BOOL iwconfigSetCb(void)
 		iwconfigCbInitialized = TRUE;
 	}
 
+    #if defined(WF_USE_POWER_SAVE_FUNCTIONS)
 	WF_GetPowerSaveState(&iwconfigCb.powerSaveState);
+	#endif
 	if (iwconfigCb.powerSaveState == WF_PS_HIBERNATE)
 	{
 		WFConsolePrintRomStr("WF device hibernated", TRUE);
@@ -302,12 +285,11 @@ BOOL iwconfigSetCb(void)
 	{
 		if ( cpId == WF_CURRENT_CPID_NONE )
 		{
-			WF_CPCreate(&newCpId);
-			iwconfigCb.cpId = newCpId;
+			iwconfigCb.cpId = 1;     // console demo only supports 1 CPID; don't create a new one here
 		}
 		else if ( cpId == WF_CURRENT_CPID_LIST )
 		{
-			WFConsolePrintRomStr("Conection profile list not supported", TRUE);
+			WFConsolePrintRomStr("Connection profile list not supported", TRUE);
 			return FALSE;
 		}
 		else
@@ -353,6 +335,24 @@ BOOL iwconfigSetCb(void)
 	return TRUE;
 }
 
+#if defined(MRF24WG)
+static void OutputMacAddress(void)
+{
+    UINT8 mac[6];
+    int i;
+    char buf[4];
+    
+    WF_GetMacAddress(mac);
+    for (i = 0; i < 6; ++i)
+    {
+        sprintf(buf, "%02X ", mac[i]);
+        putsUART(buf);
+    }    
+    putrsUART("\r\n");
+}    
+#endif
+
+extern void WF_OutputConnectionContext(void);
 /*****************************************************************************
  * FUNCTION: iwconfigDisplayStatus
  *
@@ -368,6 +368,9 @@ static void iwconfigDisplayStatus(void)
 	UINT8 tmp;
 	UINT8 connectionState;
 	UINT8 cpId;
+	#if defined(MRF24WG)
+	char buf[6];
+	#endif
 
 	union
 	{
@@ -422,6 +425,35 @@ static void iwconfigDisplayStatus(void)
 		WFConsolePrintRomStr("", TRUE);
 	}
 
+#if defined(MRF24WG)
+	// domain
+	{
+		WF_GetRegionalDomain(&ws.Domain);
+
+		WFConsolePrintRomStr("\tdomain:   ", FALSE);
+
+		if ( ws.Domain == WF_DOMAIN_FCC )
+		{
+			WFConsolePrintRomStr("fcc", TRUE);
+		}
+		else if ( ws.Domain == WF_DOMAIN_ETSI )
+		{
+			WFConsolePrintRomStr("etsi", TRUE);
+		}
+		else if ( ws.Domain == WF_DOMAIN_JAPAN )
+		{
+			WFConsolePrintRomStr("japan", TRUE);
+		}
+		else if ( ws.Domain == WF_DOMAIN_OTHER )
+		{
+			WFConsolePrintRomStr("other", TRUE);
+		}
+		else
+		{
+			WFConsolePrintRomStr("unknown", TRUE);
+		}
+	}
+#else
 	// domain
 	{
 		WF_GetRegionalDomain(&ws.Domain);
@@ -461,6 +493,8 @@ static void iwconfigDisplayStatus(void)
 			WFConsolePrintRomStr("unknown", TRUE);
 		}
 	}
+
+#endif	
 
 	// rts
 	{
@@ -534,8 +568,6 @@ static void iwconfigDisplayStatus(void)
                 {
                     WFConsolePrintRomStr("adhoc (?)", TRUE);        		                        
                 }    
-
-				WFConsolePrintRomStr("adhoc", TRUE);
 			}
 			else
 			{
@@ -575,6 +607,96 @@ static void iwconfigDisplayStatus(void)
 			break;
 		}
 	}
+	
+	#if defined(MRF24WG)
+	// context
+    WF_OutputConnectionContext();
+    
+    // Network Type
+    putrsUART("\tNetwork:  ");
+    #if defined(EZ_CONFIG_STORE) && !defined(WF_CONSOLE_DEMO)   /* if EZConfig demo */
+
+        if (AppConfig.networkType == WF_ADHOC) 
+        {
+            putrsUART("AdHoc\r\n");
+		}
+        else 
+        {
+            putrsUART("Infrastructure\r\n");
+		}
+    #else
+        #if (MY_DEFAULT_NETWORK_TYPE == WF_ADHOC)
+            putrsUART("AdHoc\r\n");
+         #elif (MY_DEFAULT_NETWORK_TYPE == WF_P2P)
+            putrsUART("P2P\r\n");
+		#elif (MY_DEFAULT_NETWORK_TYPE == WF_INFRASTRUCTURE)
+		    #if (MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_WPS_PUSH_BUTTON)
+		        putrsUART("Infrastructure (using WPS Push Button)\r\n");
+		    #elif (MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_WPS_PIN)
+                putrsUART("Infrastructure (using WPS Pin)\r\n"); 
+            #else
+                putrsUART("Infrastructure\r\n");
+            #endif
+	    #endif
+    #endif /* EZ_CONFIG_STORE  */
+    
+    // Retry Count
+    putrsUART("\tRetries   ");
+    #if (MY_DEFAULT_NETWORK_TYPE == WF_ADHOC)
+        sprintf(buf, "%d\r\n", ADHOC_RETRY_COUNT);
+        putsUART(buf);
+    #elif (MY_DEFAULT_NETWORK_TYPE == WF_INFRASTRUCTURE)
+        #if (INFRASTRUCTURE_RETRY_COUNT == WF_RETRY_FOREVER)    
+            sprintf(buf, "Retry Forever\r\n");
+            putsUART(buf);
+        #else
+            sprintf(buf, "%d\r\n", INFRASTRUCTURE_RETRY_COUNT);
+            putsUART(buf);
+        #endif
+    #endif	/* (MY_DEFAULT_NETWORK_TYPE == WF_ADHOC) */
+
+    // Security
+    putrsUART("\tSecurity: ");  
+    #if (MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_OPEN)
+        putrsUART("WF_SECURITY_OPEN");
+    #elif (MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_WEP_40)
+        putrsUART("WF_SECURITY_WEP_40");
+    #elif (MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_WEP_104)
+        putrsUART("WF_SECURITY_WEP_104");    
+    #elif (MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_WPA_WITH_KEY)
+        putrsUART("WF_SECURITY_WPA_WITH_KEY");    
+    #elif (MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_WPA_WITH_PASS_PHRASE)
+        putrsUART("WF_SECURITY_WPA_WITH_PASS_PHRASE");
+    #elif (MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_WPA2_WITH_KEY)
+        putrsUART("WF_SECURITY_WPA2_WITH_KEY");    
+    #elif (MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_WPA2_WITH_PASS_PHRASE)
+        putrsUART("WF_SECURITY_WPA2_WITH_PASS_PHRASE");
+    #elif (MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_WPA_AUTO_WITH_KEY)    
+        putrsUART("WF_SECURITY_WPA_AUTO_WITH_KEY");
+    #elif (MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_WPA_AUTO_WITH_PASS_PHRASE)    
+        putrsUART("WF_SECURITY_WPA_AUTO_WITH_PASS_PHRASE");    
+    #elif (MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_WPS_PUSH_BUTTON)    
+        putrsUART("WF_SECURITY_WPS_PUSH_BUTTON");    
+    #elif (MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_WPS_PIN)    
+        putrsUART("WF_SECURITY_WPS_PIN");    
+    #else
+        putrsUART("Unknown");
+    #endif
+    putrsUART("\r\n");
+        
+    // scan type
+    putrsUART("\tScan:     ");
+    #if (MY_DEFAULT_SCAN_TYPE == WF_ACTIVE_SCAN)
+        putrsUART("Active Scan\r\n");
+    #else
+        putrsUART("Passive Scan\r\n");
+    #endif
+    
+    // MAC address
+    putrsUART("\tMAC:      ");
+    OutputMacAddress();
+
+    #endif  /* MRF24WG */  
 }
 
 static BOOL iwconfigSetSsid(void)
@@ -610,24 +732,20 @@ static BOOL iwconfigSetMode(void)
 		}
 		else
 		{
+			if (WF_CMDisconnect() != WF_SUCCESS) {
+				#if defined(STACK_USE_UART)
+				putsUART("Disconnect failed. Disconnect is allowed only when module is in connected state\r\n");
+				#endif
+			}
 		    WF_PsPollDisable();
-			WF_CMDisconnect();
-			#if defined (WF_HOST_SCAN)
-				gHostScanNotAllowed = FALSE;			// don't allow host scan during connection
-			#endif
 		}
 	}
     else if ( (3u <= ARGC) && (strcmppgm2ram((char*)ARGV[2], "managed") == 0) )
     {
 		if ( iwconfigCb.isIdle )
 		{
-			#if defined (WF_HOST_SCAN)
-				gHostScanNotAllowed = TRUE;			// don't allow host scan during connection
-			#endif
-
 			WF_CPSetNetworkType(iwconfigCb.cpId, WF_INFRASTRUCTURE);
 			WF_CMConnect(iwconfigCb.cpId);
-
 		}
 		else
 		{
@@ -638,7 +756,11 @@ static BOOL iwconfigSetMode(void)
 			}
 			else
 			{
-				WF_CMDisconnect();
+				if (WF_CMDisconnect() != WF_SUCCESS) {
+					#if defined(STACK_USE_UART)
+					putsUART("Disconnect failed. Disconnect is allowed only when module is in connected state\r\n");
+					#endif
+				}
 
 				WF_CPSetNetworkType(iwconfigCb.cpId, WF_INFRASTRUCTURE);
 				WF_CMConnect(iwconfigCb.cpId);
@@ -648,8 +770,8 @@ static BOOL iwconfigSetMode(void)
     else if ( (3u <= ARGC) && (strcmppgm2ram((char*)ARGV[2], "adhoc") == 0) )
     {
         if ( iwconfigCb.isIdle )
-
         {
+            WF_CASetListRetryCount(ADHOC_RETRY_COUNT);
             WF_CPSetNetworkType(iwconfigCb.cpId, WF_ADHOC);
             WF_CPSetAdHocBehavior(iwconfigCb.cpId, WF_ADHOC_CONNECT_THEN_START);
             WF_CMConnect(iwconfigCb.cpId);
@@ -663,7 +785,11 @@ static BOOL iwconfigSetMode(void)
 			}
 			else
 			{
-				WF_CMDisconnect();
+				if (WF_CMDisconnect() != WF_SUCCESS) {
+					#if defined(STACK_USE_UART)
+					putsUART("Disconnect failed. Disconnect is allowed only when module is in connected state\r\n");
+					#endif
+				}
 
 				WF_CPSetNetworkType(iwconfigCb.cpId, WF_ADHOC);
 				WF_CMConnect(iwconfigCb.cpId);
@@ -742,19 +868,27 @@ static BOOL iwconfigSetPower(void)
 
     if ( (3u <= ARGC) && (strcmppgm2ram((char*)ARGV[2], "reenable") == 0) )
     {	// reenable power saving
+        #if defined(WF_USE_POWER_SAVE_FUNCTIONS)
 		WF_PsPollEnable(TRUE);
+		#endif
 	}
     else if ( (3u <= ARGC) && (strcmppgm2ram((char*)ARGV[2], "disable") == 0) )
     {	// disable power saving
+        #if defined(WF_USE_POWER_SAVE_FUNCTIONS)        
 		WF_PsPollDisable();
+		#endif
 	}
     else if ( (3u <= ARGC) && (strcmppgm2ram((char*)ARGV[2], "unicast") == 0) )
     {	// enable power saving but don't poll for DTIM
+        #if defined(WF_USE_POWER_SAVE_FUNCTIONS)
 		WF_PsPollEnable(FALSE);
+		#endif
 	}
 	else if ( (3u <= ARGC) && (strcmppgm2ram((char*)ARGV[2], "all") == 0) )
     {	// enable power saving and poll for DTIM
+        #if defined(WF_USE_POWER_SAVE_FUNCTIONS)
 		WF_PsPollEnable(TRUE);
+		#endif
 	}
 	else
 	{
@@ -781,6 +915,29 @@ static BOOL iwconfigSetDomain(void)
 		return FALSE;
 	}
 
+#if defined(MRF24WG)
+    if ( (3u <= ARGC) && (strcmppgm2ram((char*)ARGV[2], "fcc") == 0) )
+    {
+		domain = WF_DOMAIN_FCC;
+	}
+    else if ( (3u <= ARGC) && (strcmppgm2ram((char*)ARGV[2], "etsi") == 0) )
+    {
+		domain = WF_DOMAIN_ETSI;
+	}
+	else if ( (3u <= ARGC) && (strcmppgm2ram((char*)ARGV[2], "japan") == 0) )
+    {
+		domain = WF_DOMAIN_JAPAN;
+	}
+	else if ( (3u <= ARGC) && (strcmppgm2ram((char*)ARGV[2], "other") == 0) )
+    {
+		domain = WF_DOMAIN_OTHER;
+	}
+	else
+	{
+		WFConsolePrintRomStr("Unknown domain", TRUE);
+		return FALSE;
+	}
+#else
     if ( (3u <= ARGC) && (strcmppgm2ram((char*)ARGV[2], "fcc") == 0) )
     {
 		domain = WF_DOMAIN_FCC;
@@ -814,6 +971,7 @@ static BOOL iwconfigSetDomain(void)
 		WFConsolePrintRomStr("Unknown domain", TRUE);
 		return FALSE;
 	}
+#endif	
 
 	WF_SetRegionalDomain(domain);
 	WF_CASetChannelList(NULL, 0); // reset to domain default channel list

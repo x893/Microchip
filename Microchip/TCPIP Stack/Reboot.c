@@ -133,8 +133,8 @@ void RebootTask(void)
 		LCDUpdate();
 	#endif
 
-#if defined( __STM32F10X__)
-	#else
+#if defined(__STM32F10X__)
+#else
 	RCONbits.POR = 0;
 	#if defined(__18CXX)
 	{

@@ -1,6 +1,6 @@
 /******************************************************************************
 
- MRF24WB0M Driver SPI interface routines
+ MRF24W Driver SPI interface routines
  Module for Microchip TCP/IP Stack
 
 *******************************************************************************
@@ -52,7 +52,7 @@
 *********************************************************************************************************
 */
 
-#include "TCPIP Stack/WFMac.h"
+#include "TCPIP Stack/TCPIP.h"
 
 #if defined(WF_CS_TRIS)
 
@@ -67,7 +67,7 @@
     #define WF_MODULE_NUMBER   WF_MODULE_WF_SPI
 #endif
 
-/* Indicate here if the MRF24WB0M is sharing the SPI bus with another device.  For the */
+/* Indicate here if the MRF24W is sharing the SPI bus with another device.  For the */
 /* Microchip demos only the PIC18 on the PICDEM.net 2 board shares the SPI bus.        */
 #if defined(__18CXX)
     #define SPI_IS_SHARED
@@ -115,7 +115,7 @@
     }
 
     #define SPI_ON_BIT          (WF_SPICON1bits.ON)
-#elif defined( __STM32F10X__ )
+#elif defined(__STM32F10X__)
 	#define ClearSPIDoneFlag()
 	__inline static void WaitForDataByte( void )
 	{
@@ -136,7 +136,7 @@
 	static void SaveSpiContext(void);
 	static void RestoreSpiContext(void);
 #endif
-static void ConfigureSpiMRF24WB0M(void);
+static void ConfigureSpiMRF24W(void);
 
 
 /*****************************************************************************
@@ -144,10 +144,10 @@ static void ConfigureSpiMRF24WB0M(void);
 	void WF_SpiInit(void)
 
   Summary:
-	Initializes the SPI interface to the MRF24WB0M device.
+	Initializes the SPI interface to the MRF24W device.
 
   Description:
-	Configures the SPI interface for communications with the MRF24WB0M.
+	Configures the SPI interface for communications with the MRF24W.
 
   Precondition:
 	None
@@ -165,28 +165,24 @@ void WF_SpiInit(void)
 {
 	/* disable the spi interrupt */
 #if defined( __PIC32MX__ )
-
 	WF_SPI_IE_CLEAR = WF_SPI_INT_BITS;
-
-#elif defined( __STM32F10X__ )
+#elif defined(__STM32F10X__)
 
 #else
 	WF_SPI_IE = 0;
 #endif
-
 #if defined( __18CXX)
 	WF_SPI_IP = 0;
 #endif
 
-	// Set up the SPI module on the PIC for communications with the MRF24WB0M
-#if defined( __STM32F10X__ )
+    // Set up the SPI module on the PIC for communications with the MRF24W
+#if defined(__STM32F10X__)
 	WF_CS_HIGH();
 	WF_CS_INIT();
 #else
 	WF_CS_IO       = 1;
-	WF_CS_TRIS     = 0;     // Drive SPI MRF24WB0M chip select pin
+	WF_CS_TRIS     = 0;     // Drive SPI MRF24W chip select pin
 #endif
-
 #if defined( __18CXX)
 	WF_SCK_TRIS    = 0;     /* SPI Clock is an output       */
 	WF_SDO_TRIS    = 0;     /* SPI Data Out is an output    */
@@ -196,12 +192,13 @@ void WF_SpiInit(void)
 #endif
 
 #if !defined( SPI_IS_SHARED )
-	ConfigureSpiMRF24WB0M();  
+    ConfigureSpiMRF24W();  
 #endif
 	
 	/* clear the completion flag */
 	ClearSPIDoneFlag();
 }
+
 
 /*
   PIC32 SPI clock speed:
@@ -218,13 +215,13 @@ rate is Fpb /1024.
 
 /*****************************************************************************
   Function:
-	void ConfigureSpiMRF24WB0M(void)
+	void ConfigureSpiMRF24W(void)
 
   Summary:
-	Configures the SPI interface to the MRF24WB0M.
+	Configures the SPI interface to the MRF24W.
 
   Description:
-	Configures the SPI interface for communications with the MRF24WB0M.
+	Configures the SPI interface for communications with the MRF24W.
 
   Precondition:
 	None
@@ -240,12 +237,12 @@ rate is Fpb /1024.
 	   each time an SPI transaction occurs by WF_SpiEnableChipSelect.  Otherwise it 
 	   is called once during initialization by WF_SpiInit. 
 	   
-	2) Maximum SPI clock rate for the MRF24WB0M is 25MHz.
+	2) Maximum SPI clock rate for the MRF24W is 25MHz.
 *****************************************************************************/
-static void ConfigureSpiMRF24WB0M(void)
+static void ConfigureSpiMRF24W(void)
 {
     /*----------------------------------------------------------------*/
-    /* After we save context, configure SPI for MRF24WB0M communications */
+    /* After we save context, configure SPI for MRF24W communications */
     /*----------------------------------------------------------------*/
     /* enable the SPI clocks            */
     /* set as master                    */
@@ -256,25 +253,20 @@ static void ConfigureSpiMRF24WB0M(void)
     /* data is sampled on rising edge   */
     /* set the clock divider            */
     #if defined(__18CXX)
-
         WF_SPICON1 = 0x30;      // SSPEN bit is set, SPI in master mode, (0x30 is for FOSC/4),
                                 //   IDLE state is high level (0x32 is for FOSC/64)
         WF_SPISTATbits.CKE = 0; // Transmit data on falling edge of clock
         WF_SPISTATbits.SMP = 1; // Input sampled at end? of data output time
-
     #elif defined(__C30__)
-
         WF_SPICON1 = 0x027B;    // Fcy Primary prescaler 1:1, secondary prescaler 2:1, CKP=1, CKE=0, SMP=1
         WF_SPICON2 = 0x0000;
         WF_SPISTAT = 0x8000;    // Enable the module
-
     #elif defined( __PIC32MX__ )
-
         WF_SPI_BRG = (GetPeripheralClock()-1ul)/2ul/WF_MAX_SPI_FREQ;
         WF_SPICON1 = 0x00000260;    // sample at end, data change idle to active, clock idle high, master
         WF_SPICON1bits.ON = 1;
 
-    #elif defined( __STM32F10X__ )
+    #elif defined(__STM32F10X__)
 
 		SPI_InitTypeDef   SPI_InitStructure;
 
@@ -304,10 +296,10 @@ static void ConfigureSpiMRF24WB0M(void)
 	void WF_SpiEnableChipSelect(void)
 
   Summary:
-	Enables the MRF24WB0M SPI chip select.
+	Enables the MRF24W SPI chip select.
 
   Description:
-	Enables the MRF24WB0M SPI chip select as part of the sequence of SPI 
+	Enables the MRF24W SPI chip select as part of the sequence of SPI 
 	communications.
 
   Precondition:
@@ -331,11 +323,11 @@ void WF_SpiEnableChipSelect(void)
 
 #if defined(SPI_IS_SHARED)
 	SaveSpiContext();
-	ConfigureSpiMRF24WB0M();
+    ConfigureSpiMRF24W();
 #endif
 
-	/* set Slave Select low (enable SPI chip select on MRF24WB0M) */
-#if defined( __STM32F10X__ )
+    /* set Slave Select low (enable SPI chip select on MRF24W) */
+#if defined(__STM32F10X__)
 	WF_CS_LOW();
 #else
 	WF_CS_IO = 0;
@@ -346,6 +338,8 @@ void WF_SpiEnableChipSelect(void)
 	dummy = WF_SSPBUF;
 	ClearSPIDoneFlag();
 #endif
+    
+
 }
 
 /*****************************************************************************
@@ -353,10 +347,10 @@ void WF_SpiEnableChipSelect(void)
 	void WF_SpiDisableChipSelect(void)
 
   Summary:
-	Disables the MRF24WB0M SPI chip select.
+	Disables the MRF24W SPI chip select.
 
   Description:
-	Disables the MRF24WB0M SPI chip select as part of the sequence of SPI 
+	Disables the MRF24W SPI chip select as part of the sequence of SPI 
 	communications.
 
   Precondition:
@@ -377,14 +371,14 @@ void WF_SpiDisableChipSelect(void)
 	/* Disable the interrupt */
 #if defined( __PIC32MX__ )
 	WF_SPI_IE_CLEAR = WF_SPI_INT_BITS;
-#elif defined( __STM32F10X__ )
+#elif defined(__STM32F10X__)
 
 #else
 	WF_SPI_IE = 0;
 #endif
 
-	/* set Slave Select high ((disable SPI chip select on MRF24WB0M)   */
-#if defined( __STM32F10X__ )
+    /* set Slave Select high ((disable SPI chip select on MRF24W)   */
+#if defined(__STM32F10X__)
 	WF_CS_HIGH();
 #else
 	WF_CS_IO = 1;
@@ -432,10 +426,11 @@ void WFSpiTxRx(UINT8   *p_txBuf,
 #else
 	UINT16 byteCount;
 	UINT16 i;
+//!!!	UINT8  rxTrash;
 #endif
 
 #if defined(WF_DEBUG) && defined(WF_USE_POWER_SAVE_FUNCTIONS)
-    /* Cannot communicate with MRF24WB0M when it is in hibernate mode */
+    /* Cannot communicate with MRF24W when it is in hibernate mode */
     {
         static UINT8 state;  /* avoid local vars in functions called from interrupt */
         WF_GetPowerSaveState(&state);
@@ -457,7 +452,7 @@ void WFSpiTxRx(UINT8   *p_txBuf,
         /* else done writing bytes out from tx buffer */
         else
         {
-            WF_SSPBUF = 0xFF;  /* clock out a "don't care" byte */
+            WF_SSPBUF = 0xff;  /* clock out a "don't care" byte */
         }
 
         /* wait until tx/rx byte to completely clock out */
@@ -472,9 +467,11 @@ void WFSpiTxRx(UINT8   *p_txBuf,
         /* else done reading bytes into rx buffer */
         else
         {
-			WF_SSPBUF;
+//!!!		rxTrash = WF_SSPBUF;  /* read and throw away byte */
+			WF_SSPBUF;  /* read and throw away byte */
         }
     }  /* end for loop */
+    
 }
 
 #if defined(__18CXX)   
@@ -558,7 +555,7 @@ void WFSpiTxRx_Rom(ROM UINT8 *p_txBuf,
 
   Description:
 	Saves the SPI context (mainly speed setting) before using the SPI to
-    access MRF24WB0M.  Turn off the SPI module before reconfiguring it.
+    access MRF24W.  Turn off the SPI module before reconfiguring it.
     We only need this function if SPI lines are shared.
 
   Precondition:
@@ -594,7 +591,7 @@ static void SaveSpiContext(void)
 
   Description:
 	Restores the SPI context (mainly speed setting) after using the SPI to
-    access MRF24WB0M.  Turn off the SPI module before reconfiguring it.
+    access MRF24W.  Turn off the SPI module before reconfiguring it.
     We only need this function if SPI lines are shared.
 
   Precondition:
@@ -629,4 +626,6 @@ void MCHP_Spi_EmptyFunc(void)
 {
 }
 #endif /* WF_CS_TRIS */
+
+
 

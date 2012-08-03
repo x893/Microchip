@@ -1,9 +1,9 @@
 /******************************************************************************
 
- MRF24WB0M Driver Console Msg Handler
+ MRF24W Driver Console Msg Handler
  Module for Microchip TCP/IP Stack
-  -Provides access to MRF24WB0M WiFi controller
-  -Reference: MRF24WB0M Data sheet, IEEE 802.11 Standard
+  -Provides access to MRF24W WiFi controller
+  -Reference: MRF24W Data sheet, IEEE 802.11 Standard
 
 *******************************************************************************
  FileName:		WFConsoleMsgHandler.h
@@ -44,7 +44,7 @@
 
  Author				Date		Comment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- KH                 27 Jan 2010 Updated for MRF24WB0M
+ KH                 27 Jan 2010 Updated for MRF24W
 ******************************************************************************/
 
 
@@ -78,7 +78,8 @@ typedef struct dataStructDescriptor
 #define kWFValidateWithS8               (2)
 #define kWFValidateWithX8               (3)
 
-extern UINT8 g_hibernate_state;
+extern tWFHibernate WF_hibernate;
+
 //============================================================================
 // Function Prototypes
 //============================================================================
@@ -86,6 +87,12 @@ extern UINT8 g_hibernate_state;
 static void    do_help_msg(void);
 static void    do_get_wfver_cmd(void);
 static void    do_cls_cmd(void);
+
+#if defined(MRF24WG)  
+    static void    do_wps_pin_cmd(void);
+    static void    do_wps_push_button_cmd(void);
+    static void    do_wps_get_credentials_cmd(void);
+#endif   
 
 /*****************************************************************************
  * FUNCTION: process_cmd
@@ -98,12 +105,12 @@ static void    do_cls_cmd(void);
  *****************************************************************************/
 void process_cmd(void)
 {
-    BOOL new_arg;
+    //!!!BOOL new_arg;
     UINT8 i;
 
 
     g_ConsoleContext.argc = 0;
-    new_arg = TRUE;
+    //!!!new_arg = TRUE;
 
     // Get pointers to each token in the command string
     TokenizeCmdLine(g_ConsoleContext.rxBuf);
@@ -146,6 +153,22 @@ void process_cmd(void)
             do_cls_cmd();
             break;
 
+#if defined(MRF24WG)
+        case WPS_PIN_MSG:
+            do_wps_pin_cmd();
+            break;
+            
+        case WPS_PUSHBUTTON_MSG:
+            do_wps_push_button_cmd();
+            break;
+            
+        case WPS_GET_CREDENTIALS_MSG:
+            do_wps_get_credentials_cmd();
+            break;
+            
+#endif /* MRF24WG */
+
+
 #if defined(WF_CONSOLE_IFCFGUTIL)
         case IFCONFIG_MSG:
             do_ifconfig_cmd();
@@ -158,6 +181,7 @@ void process_cmd(void)
         case IWPRIV_MSG:
             do_iwpriv_cmd();
             break;
+            
 #endif // WF_CONSOLE_IFCFGUTIL
 
         default:
@@ -175,7 +199,7 @@ BOOL convertAsciiToHexInPlace( INT8 *p_string, UINT8 expectedHexBinSize )
     UINT16 hex_buffer = 0;
 
     /* gobble up any hex prefix */
-    if ( memcmppgm2ram (hex_string_start, (const ROM FAR char*) "0x", 2) == 0 )
+    if ( memcmppgm2ram (hex_string_start, (ROM FAR char*) "0x", 2) == 0 )
          hex_string_start+=2;
 
    if ( strlen( (char *) hex_string_start) != (expectedHexBinSize*2) )
@@ -235,22 +259,163 @@ static void do_help_msg(void)
 static void do_get_wfver_cmd(void)
 {
  	tWFDeviceInfo  deviceInfo;
-
-	if (g_hibernate_state)
+	if (WF_hibernate.state)
 	{
 		WFConsolePrintRomStr("The Wi-Fi module is in hibernate mode - command failed.", TRUE);
 		return;
 	}
-
 	WF_GetDeviceInfo(&deviceInfo);
-	WFConsolePrintRomStr("Firmware version   0x", FALSE);
+	
+	#if defined(MRF24WG)
+	    WFConsolePrintRomStr("MRF24WG firmware version: 0x", FALSE);
+
+	#else
+	    WFConsolePrintRomStr("MRF24WB firmware version:     0x", FALSE);	
+	#endif
+
 	WFConsolePrintHex(deviceInfo.romVersion, 2);
 	WFConsolePrintHex(deviceInfo.patchVersion, 2);
 	WFConsolePrintRomStr("", TRUE);  
 
-	WFConsolePrintRomStr("Host Driver version        ", FALSE);
+	WFConsolePrintRomStr("Host Driver version:      ", FALSE);
 	WFConsolePrintRomStr(WF_HOST_DRIVER_VERSION_NUMBER, TRUE);
 }
+
+#if defined(MRF24WG)
+static void do_wps_pin_cmd(void)
+{
+    UINT8 pinLength;
+    UINT8 pin[8];   // presume pin won't be greater than 8 digits
+    UINT8 i;
+    UINT8 pinChar;
+    
+      
+    if (ARGC == 1)
+    {
+        WFConsolePrintRomStr("Missing PIN parameter", TRUE);
+        return;
+    }    
+    
+    if (ARGC > 2)
+    {
+        WFConsolePrintRomStr("Too many parameters", TRUE);
+        return;
+    }  
+    
+    pinLength = strlen((char *)ARGV[1]);   
+    
+    
+    memset(pin, 0x00, sizeof(pin));
+    for (i = 0; i < pinLength; ++i)
+    {
+        pinChar = ARGV[1][i];
+        
+        if ((pinChar < '0') || (pinChar > '9'))
+        {
+            WFConsolePrintRomStr("PIN must be all digits", TRUE);
+            return;
+        }    
+
+        pin[i] = pinChar - '0';  // convert pin digit from ASCII to binary
+        
+ 
+    }    
+    
+    WF_CPSetSecurity(1, WF_SECURITY_WPS_PIN, 0, pin, pinLength);
+    
+}    
+
+static void do_wps_push_button_cmd(void)
+{
+    if (ARGC > 1)
+    {
+        WFConsolePrintRomStr("Too many parameters", TRUE);
+        return;
+    }  
+    
+    WF_CPSetSecurity(1, WF_SECURITY_WPS_PUSH_BUTTON, 0, NULL, 0);
+
+} 
+
+static void do_wps_get_credentials_cmd(void)
+{
+    tWFWpsCred cred;
+    int i;
+    char buf[6];
+    
+    WF_CPGetWPSCredentials(1, &cred);
+
+
+    if (cred.ssidLen > 0)
+    {
+        if (cred.ssidLen > 32)
+        {
+            putrsUART("SSID length is greater than 32, probably bad credential data\r\n");
+            return;
+        }
+            
+        putrsUART("SSID: ");
+        for (i = 0; i < cred.ssidLen; ++i) 
+        {
+            sprintf(buf, "%c", cred.ssid[i]);        
+            putsUART(buf);
+        }    
+        putrsUART("'\r\n");
+    } 
+    
+    putrsUART("Net Key:\r\n  ");
+    for (i = 0; i < sizeof(cred.netKey); ++i)
+    {
+        if ( ((i % 16) == 0) && ( i != 0) )
+        {
+            putrsUART("\r\n  ");
+        }    
+        
+        sprintf(buf, "%02X ", cred.netKey[i]);
+        putsUART(buf);
+    }  
+    putrsUART("\r\n"); 
+    
+    putrsUART("Auth Type: ");
+    sprintf(buf, "%d\r\n", cred.authType);
+    putsUART(buf);
+    
+    putrsUART("Enc Type: ");
+    sprintf(buf, "%d\r\n", cred.encType);
+    putsUART(buf);
+    
+    putrsUART("Net ID: ");
+    sprintf(buf, "%d\r\n", cred.netIdx);
+    putsUART(buf);
+    
+    putrsUART("Key ID: ");
+    sprintf(buf, "%d\r\n", cred.keyIdx); 
+    putsUART(buf);    
+    
+    putrsUART("BSSID: ");
+    for (i = 0; i < 6; ++i)
+    {
+        sprintf(buf, "%02X ", cred.bssid[i]);
+        putsUART(buf);
+    }    
+    putrsUART("\r\n");
+    
+    
+} 
+
+#if 0
+	UINT8 ssid[32];
+	UINT8 netKey[64];
+	UINT16 authType;
+	UINT16 encType;
+	UINT8 netIdx;
+	UINT8 ssidLen;
+	UINT8 keyIdx;
+	UINT8 keyLen;
+	UINT8 bssid[6];   
+#endif	
+
+#endif /* MRF24WG */
 
 #endif /* WF_CONSOLE */
 

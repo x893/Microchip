@@ -1,9 +1,9 @@
 /******************************************************************************
 
- MRF24WB0M Driver Tx Power functions
+ MRF24W Driver Tx Power functions
  Module for Microchip TCP/IP Stack
-  -Provides access to MRF24WB0M WiFi controller
-  -Reference: MRF24WB0M Data sheet, IEEE 802.11 Standard
+  -Provides access to MRF24W WiFi controller
+  -Reference: MRF24W Data sheet, IEEE 802.11 Standard
 
 *******************************************************************************
  FileName:		WFTxPower.c
@@ -44,7 +44,7 @@
 
  Author				Date		Comment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- KH                 27 Jan 2010 Updated for MRF24WB0M
+ KH                 27 Jan 2010 Updated for MRF24W
 ******************************************************************************/
 
 /*
@@ -53,7 +53,7 @@
 *********************************************************************************************************
 */
 
-#include "TCPIP Stack/WFMac.h"
+#include "TCPIP Stack/TCPIP.h"
 #if defined(WF_CS_TRIS) && defined(WF_USE_TX_POWER_CONTROL_FUNCTIONS)
 
 /*
@@ -81,16 +81,96 @@
 *********************************************************************************************************
 */
 
+#if defined (MRF24WG)
+/*******************************************************************************
+  Function:	
+    void WF_TxPowerSetMax(INT8 maxTxPower)
+
+  Summary:
+    Sets the Tx max power on the MRF24WG0M.
+
+  Description:
+    After initialization the MRF24WG0M max Tx power is determined by a 
+    factory-set value.  This function can set a different maximum 
+    Tx power levels.  However, this function can never set a maximum Tx power 
+    greater than the factory-set value, which can be read via 
+    WF_TxPowerGetFactoryMax(). 
+
+  Precondition:
+  	MACInit must be called first.
+
+  Parameters:
+    maxTxPower - valid range (0 to 18 dBm)
+
+  Returns:
+  	None.
+  	
+  Remarks:
+  	No conversion of units needed, input to MRF24WG0M is in dBm.
+  *****************************************************************************/
+void WF_TxPowerSetMax(INT8 maxTxPower)
+{
+    INT8  factoryMaxPower;
+    UINT8 msgData[2];
+    INT16 max = (INT16)maxTxPower;
+
+    WF_TxPowerGetFactoryMax(&factoryMaxPower);
+    WF_ASSERT(maxTxPower <= factoryMaxPower); /* cannot set max tx power greater than factor-set max tx power */
     
+    msgData[0] = (INT8)(max >> 8);      /* msb of max power */
+    msgData[1] = (INT8)(max & 0xff);    /* lsb of max power */
+    
+    SendSetParamMsg(PARAM_TX_POWER, msgData, sizeof(msgData)); 
+}
+    
+/*******************************************************************************
+  Function:	
+    void WF_TxPowerGetMax(INT8 *p_maxTxPower)
+
+  Summary:
+    Gets the Tx max power on the MRF24WG0M.
+
+  Description:
+    After initialization the MRF24WG0M max Tx power is determined by a 
+    factory-set value.  This function can set a different maximum 
+    Tx power levels.  However, this function can never set a maximum Tx power 
+    greater than the factory-set value, which can be read via 
+    WF_TxPowerGetFactoryMax(). 
+
+  Precondition:
+  	MACInit must be called first.
+
+  Parameters:
+    p_maxTxPower - Pointer to location to write the maxTxPower
+
+  Returns:
+  	None.
+  	
+  Remarks:
+  	No conversion of units needed, input to MRF24WG0M is in dBm.
+  *****************************************************************************/ 
+void WF_TxPowerGetMax(INT8 *p_maxTxPower)
+{
+    UINT8 msgData[6];
+    INT16 tmp;
+    
+    SendGetParamMsg(PARAM_TX_POWER, msgData, sizeof(msgData)); 
+
+    /* max tx power is a signed 16-bit value stored in the [1:0] msg data */
+    tmp = ((INT16)(msgData[0]) << 8);
+    tmp |= (INT16)msgData[1];
+    *p_maxTxPower = (INT8)tmp;
+}
+#else /* !defined (MRF24WG) */
 /*******************************************************************************
   Function:	
     void WF_TxPowerSetMinMax(INT8 minTxPower, INT8 maxTxPower)
 
   Summary:
-    Sets the Tx min and max power on the MRF24WB0M.
+    Sets the Tx min and max power on the MRF24W.
 
   Description:
-    After initialization the MRF24WB0M max Tx power is determined by a 
+    After initialization the MRF24W max Tx power is determined by a 
     factory-set value.  This function can set a different minimum and maximum 
     Tx power levels.  However, this function can never set a maximum Tx power 
     greater than the factory-set value, which can be read via 
@@ -107,14 +187,17 @@
   	None.
   	
   Remarks:
-  	No conversion of units needed, input to MRF24WB0M is in dB.
+  	No conversion of units needed, input to MRF24W is in dB.
   *****************************************************************************/
 void WF_TxPowerSetMinMax(INT8 minTxPower, INT8 maxTxPower)
 {
     INT8  factoryMaxPower;
     UINT8 msgData[4];  /* need to input to chip two signed 16-bit values, max power followed by min power */
-    INT16 max = (INT16)maxTxPower;
-    INT16 min = (INT16)minTxPower;
+    INT16 max;
+    INT16 min;
+    
+    max = (INT16)maxTxPower;
+    min = (INT16)minTxPower;
     
     WF_ASSERT(minTxPower <= maxTxPower);
 
@@ -135,10 +218,10 @@ void WF_TxPowerSetMinMax(INT8 minTxPower, INT8 maxTxPower)
     void WF_TxPowerGetMinMax(INT8 *p_minTxPower, INT8 *p_maxTxPower)
 
   Summary:
-    Gets the Tx min and max power on the MRF24WB0M.
+    Gets the Tx min and max power on the MRF24W.
 
   Description:
-    After initialization the MRF24WB0M max Tx power is determined by a 
+    After initialization the MRF24W max Tx power is determined by a 
     factory-set value.  This function can set a different minimum and maximum 
     Tx power levels.  However, this function can never set a maximum Tx power 
     greater than the factory-set value, which can be read via 
@@ -155,7 +238,7 @@ void WF_TxPowerSetMinMax(INT8 minTxPower, INT8 maxTxPower)
   	None.
   	
   Remarks:
-  	No conversion of units needed, input to MRF24WB0M is in dB.
+  	No conversion of units needed, input to MRF24W is in dB.
   *****************************************************************************/ 
 void WF_TxPowerGetMinMax(INT8 *p_minTxPower, INT8 *p_maxTxPower)
 {
@@ -178,38 +261,6 @@ void WF_TxPowerGetMinMax(INT8 *p_minTxPower, INT8 *p_maxTxPower)
   
 /*******************************************************************************
   Function:	
-    void WF_TxPowerGetFactoryMax(INT8 *p_factoryMaxTxPower)
-
-  Summary:
-    Retrieves the factory-set max Tx power from the MRF24WB0M.
-
-  Description:
-
-  Precondition:
-  	MACInit must be called first.
-
-  Parameters:
-    p_factoryMaxTxPower - Desired maxTxPower (-10 to 10dB), in 1dB steps
-
-  Returns:
-  	None.
-  	
-  Remarks:
-  	None.
-  *****************************************************************************/  
-void WF_TxPowerGetFactoryMax(INT8 *p_factoryMaxTxPower)
-{
-    UINT8 msgData[2];
-
-    /* read max and min factory-set power levels */
-    SendGetParamMsg(PARAM_FACTORY_SET_TX_MAX_POWER, msgData, sizeof(msgData)); 
-
-    /* msgData[0] = max power, msgData[1] = min power */
-    *p_factoryMaxTxPower = msgData[0];  
-}
-
-/*******************************************************************************
-  Function:	
     void WF_FixTxRateWithMaxPower(BOOL oneMegaBps)
 
   Summary:
@@ -230,11 +281,48 @@ void WF_TxPowerGetFactoryMax(INT8 *p_factoryMaxTxPower)
   	None.
   *****************************************************************************/  
 void WF_FixTxRateWithMaxPower(BOOL oneMegaBps)
-{ 
+{
 	UINT8 buf[1];
 
 	buf[0] = oneMegaBps ? 0x20 : 0x40;	/* or 2 Mbps */
 	SendSetParamMsg(PARAM_TX_THROTTLE_TABLE_ON_OFF, buf, sizeof(buf)); 
 }
+#endif /* defined (MRF24WG) */
+
+/*******************************************************************************
+  Function:	
+    void WF_TxPowerGetFactoryMax(INT8 *p_factoryMaxTxPower)
+
+  Summary:
+    Retrieves the factory-set max Tx power from the MRF24W.
+
+  Description:
+
+  Precondition:
+  	MACInit must be called first.
+
+  Parameters:
+    p_factoryMaxTxPower - 
+    for MRF24WB, desired maxTxPower (-10 to 10 dBm), in 1dB steps
+    for MRF24WG, desired maxTxPower ( 0 to 18 dBm), in 1dB steps
+
+  Returns:
+  	None.
+  	
+  Remarks:
+  	None.
+  *****************************************************************************/  
+void WF_TxPowerGetFactoryMax(INT8 *p_factoryMaxTxPower)
+{ 
+    UINT8 msgData[2];
+
+    /* read max and min factory-set power levels */
+    SendGetParamMsg(PARAM_FACTORY_SET_TX_MAX_POWER, msgData, sizeof(msgData)); 
+
+    /* msgData[0] = max power, msgData[1] = min power */
+    *p_factoryMaxTxPower = msgData[0];  
+}
+    
+    
     
 #endif /* WF_CS_TRIS && WF_USE_TX_POWER_CONTROL_FUNCTIONS */

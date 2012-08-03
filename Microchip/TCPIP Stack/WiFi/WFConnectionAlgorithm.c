@@ -1,9 +1,9 @@
 /******************************************************************************
 
- MRF24WB0M Driver Connection Algorithm
+ MRF24W Driver Connection Algorithm
  Module for Microchip TCP/IP Stack
-  -Provides access to MRF24WB0M WiFi controller
-  -Reference: MRF24WB0M Data sheet, IEEE 802.11 Standard
+  -Provides access to MRF24W WiFi controller
+  -Reference: MRF24W Data sheet, IEEE 802.11 Standard
 
 *******************************************************************************
  FileName:		WFConnectionManager.c
@@ -44,7 +44,7 @@
 
  Author				Date		Comment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- KH                 27 Jan 2010 Created for MRF24WB0M
+ KH                 27 Jan 2010 Created for MRF24W
 ******************************************************************************/
 
 /*
@@ -122,7 +122,7 @@ static void LowLevel_CAGetElement(UINT8 elementId,
                                   UINT8 dataReadAction);
 
 static void SetEventNotificationMask(UINT8 eventNotificationBitMask);
-       
+
                        
 #if defined(WF_USE_GROUP_SET_GETS)
 /*****************************************************************************
@@ -133,7 +133,7 @@ static void SetEventNotificationMask(UINT8 eventNotificationBitMask);
 	Writes all Connection Algorithm elements.
 
   Description:
-	Sends a message to the MRF24WB0M which sets all the Connection Algorithm 
+	Sends a message to the MRF24W which sets all the Connection Algorithm 
 	elements.
 
   Precondition:
@@ -192,13 +192,56 @@ void WF_CASetElements(tWFCAElements *p_elements)
 
 /*****************************************************************************
   Function:
+	void WF_CASetElementsN(const tWFCAElements *p_elements)
+
+  Summary:
+	Writes all Connection Algorithm elements.
+
+  Description:
+	Sends a message to the MRF24W which sets all the Connection Algorithm
+	elements.
+
+  Precondition:
+	MACInit must be called first.
+
+  Parameters:
+	p_elements - Pointer to the input structure (tWFCAElements) containing the
+	             connection algorithm elements.
+
+  Returns:
+  	None
+
+  Remarks:
+	None
+*****************************************************************************/
+void WF_CASetElementsN(const tWFCAElements *p_elements)
+{
+    UINT8 i;
+
+    /* Connection Profile lists not supported yet, make sure one is not defined */
+    for (i = 0; i < WF_CP_LIST_LENGTH; ++i)
+    {
+        /* all elements in list should be 0xff, indicating CP list is unused */
+        if (p_elements->connectionProfileList[i] != 0xff)
+        {
+            WF_ASSERT(FALSE);
+        }
+    }
+
+    LowLevel_CASetElement(WF_CA_ELEMENT_ALL,      /* Element ID                   */
+                          (UINT8 *)p_elements,    /* pointer to element data      */
+                          sizeof(tWFCAElements)); /* number of element data bytes */
+}
+
+/*****************************************************************************
+  Function:
 	void WF_CAGetElements(tWFCAElements *p_elements)
 
   Summary:
 	Reads all Connection Algorithm elements.
 
   Description:
-	Sends a message to the MRF24WB0M which requests all the Connection Algorithm 
+	Sends a message to the MRF24W which requests all the Connection Algorithm 
 	elements.
 
   Precondition:
@@ -250,8 +293,8 @@ void WF_CAGetElements(tWFCAElements *p_elements)
   	None
   	
   Remarks:
-	Active scanning causes the MRF24WB0M to send probe requests.  Passive
-	scanning implies the MRF24WB0M only listens for beacons.
+	Active scanning causes the MRF24W to send probe requests.  Passive
+	scanning implies the MRF24W only listens for beacons.
 	Default is WF_ACTIVE_SCAN.
 *****************************************************************************/
 void WF_CASetScanType(UINT8 scanType)
@@ -281,8 +324,8 @@ void WF_CASetScanType(UINT8 scanType)
   	None
   	
   Remarks:
-	Active scanning causes the MRF24WB0M to send probe requests.  Passive
-	scanning implies the MRF24wB0M only listens for beacons.  
+	Active scanning causes the MRF24W to send probe requests.  Passive
+	scanning implies the MRF24W only listens for beacons.  
 	Default is WF_ACTIVE_SCAN.
 *****************************************************************************/
 void WF_CAGetScanType(UINT8 *p_scanType)
@@ -573,8 +616,8 @@ void WF_CAGetScanCount(UINT8 *p_scanCount)
 	     
 	 Values:
 	   0      : Connect to the first network found
-	   1 - 254: Only connect to a network if the RSSI is greater than or equal to
-	            the specified value
+	   1 - 254 (MRF24WB), 1 - 128 (MRF24WG): Only connect to a network if the RSSI
+	   	is greater than or equal to the specified value
 	   255:     Connect to the highest RSSI found
 
 	   Note that RSSI is a relative value with no units -- it is not correlated to dBm.
@@ -799,7 +842,7 @@ void WF_CAGetListRetryCount(UINT8 *p_listRetryCount)
  *****************************************************************************/
 void WF_CASetEventNotificationAction(UINT8 eventNotificationAction)
 {    
-    /* Remember what events application wants to be notified of.  The MRF24WB0M will inform the WiFi driver    */
+    /* Remember what events application wants to be notified of.  The MRF24W will inform the WiFi driver    */
     /* of all events, but only events the application wants to see will ripple up to WF_ProcessEvent().     */
     SetEventNotificationMask(eventNotificationAction);
    
@@ -992,7 +1035,7 @@ void WF_CAGetDeauthAction(UINT8 *p_deauthAction)
   Parameters:
     p_channelList - Pointer to channel list.
     numChannels   - Number of channels in p_channelList.  If set to 0, the
-                     MRF24WB0M will use all valid channels for the current 
+                     MRF24W will use all valid channels for the current 
                      regional domain.
 
   Returns:
@@ -1008,6 +1051,9 @@ void WF_CASetChannelList(UINT8 *p_channelList, UINT8 numChannels)
                           numChannels);                /* number of element data bytes */
 }
 
+#if !defined(MRF24WG)
+#define RAW_MGMT_RX_ID   RAW_RX_ID
+#endif
 /*******************************************************************************
   Function:	
     void WF_CAGetChannelList(UINT8 *p_channelList, UINT8 *p_numChannels)
@@ -1045,12 +1091,12 @@ void WF_CAGetChannelList(UINT8 *p_channelList, UINT8 *p_numChannels)
     /* at this point, management response is mounted and ready to be read */  
 
     /* read managment header */
-    RawRead(RAW_RX_ID, 0, sizeof(tCAElementResponseHdr), (UINT8 *)&mgmtHdr);
+    RawRead(RAW_MGMT_RX_ID, 0, sizeof(tCAElementResponseHdr), (UINT8 *)&mgmtHdr);
     
     /* extract data length (which will be channel list length) */
     *p_numChannels = mgmtHdr.elementDataLength;
 
-    RawRead(RAW_RX_ID, sizeof(tCAElementResponseHdr), *p_numChannels, p_channelList);
+    RawRead(RAW_MGMT_RX_ID, sizeof(tCAElementResponseHdr), *p_numChannels, p_channelList);
     
     /* free management buffer */
     DeallocateMgmtRxBuffer();
@@ -1070,10 +1116,10 @@ void WF_CAGetChannelList(UINT8 *p_channelList, UINT8 *p_numChannels)
     <table>
         Value   Description
         -----   -----------
-        1       MRF24WB0M wakes up every 100ms to receive buffered messages.
-        2       MRF24WB0M wakes up every 200ms to receive buffered messages.
+        1       MRF24W wakes up every 100ms to receive buffered messages.
+        2       MRF24W wakes up every 200ms to receive buffered messages.
         ...     ...
-        65535   MRF24WB0M wakes up every 6535.5 seconds (~109 minutes) to
+        65535   MRF24W wakes up every 6535.5 seconds (~109 minutes) to
                  receive buffered messages.
     </table>
 
@@ -1082,7 +1128,7 @@ void WF_CAGetChannelList(UINT8 *p_channelList, UINT8 *p_numChannels)
 
   Parameters:
     listenInterval - Number of 100ms intervals between instances when 
-                      the MRF24WB0M wakes up to receive buffered messages 
+                      the MRF24W wakes up to receive buffered messages 
                       from the network.
 
   Returns:
@@ -1101,6 +1147,42 @@ void WF_CASetListenInterval(UINT16 listenInterval)
                           sizeof(listenInterval));          /* number of element data bytes */
 }      
 
+#if defined(MRF24WG)
+/*******************************************************************************
+  Function:	
+    void WF_CASetDtimInterval(UINT16 dtimInterval)
+
+  Summary:
+    Sets the dtim interval.
+
+  Description:
+    Sets the dtim interval used by the Connection Algorithm.  
+
+  Precondition:
+    MACInit must be called first.  Only used when PS Poll mode is enabled. 
+
+  Parameters:
+    dtimInterval -- Number of DTIM intervals between instances when 
+                      the MRF24W wakes up to receive buffered messages 
+                      from the network.
+
+  Returns:
+    None.
+  	
+  Remarks:
+    None.
+ *****************************************************************************/
+void WF_CASetDtimInterval(UINT16 dtimInterval)
+{
+    /* correct endianness before sending message */
+    dtimInterval = HSTOWFS(dtimInterval);
+
+    LowLevel_CASetElement(WF_CA_ELEMENT_DTIM_INTERVAL,    /* Element ID                   */
+                         (UINT8 *)&dtimInterval,          /* pointer to element data      */
+                          sizeof(dtimInterval));          /* number of element data bytes */
+}      
+#endif /* MRF24WG */
+
 /*******************************************************************************
   Function:	
     void WF_CAGetListenInterval(UINT16 *p_listenInterval)
@@ -1115,10 +1197,10 @@ void WF_CASetListenInterval(UINT16 listenInterval)
     <table>
         Value   Description
         -----   -----------
-        1       MRF24WB0M wakes up every 100ms to receive buffered messages.
-        2       MRF24WB0M wakes up every 200ms to receive buffered messages.
+        1       MRF24W wakes up every 100ms to receive buffered messages.
+        2       MRF24W wakes up every 200ms to receive buffered messages.
         ...     ...
-        65535   MRF24WB0M wakes up every 6535.5 seconds (~109 minutes) to
+        65535   MRF24W wakes up every 6535.5 seconds (~109 minutes) to
                  receive buffered messages.
     </table>
 
@@ -1144,6 +1226,107 @@ void WF_CAGetListenInterval(UINT16 *p_listenInterval)
     /* fix endianness before returning value */
     *p_listenInterval = WFSTOHS(*p_listenInterval);
 }  
+
+#if defined(MRF24WG)
+/*******************************************************************************
+  Function:	
+    void WF_CASetBeaconPeriod(UINT16 beaconPeriod)
+
+  Summary:
+    Sets the beacon period in Adhoc start mode
+
+  Description:
+    Sets the beacon period used by the Connection Algorithm.  
+
+  Precondition:
+    MACInit must be called first.
+
+  Parameters:
+    beaconPeriod - beacon period in adhoc start mode by ms resoluation 
+
+  Returns:
+    None.
+  	
+  Remarks:
+    None.
+ *****************************************************************************/
+void WF_CASetBeaconPeriod(UINT16 beaconPeriod)
+{
+    /* correct endianness before sending message */
+    beaconPeriod = HSTOWFS(beaconPeriod);
+
+    LowLevel_CASetElement(WF_CA_ELEMENT_BEACON_PERIOD,    /* Element ID                   */
+                         (UINT8 *)&beaconPeriod,          /* pointer to element data      */
+                          sizeof(beaconPeriod));          /* number of element data bytes */
+}      
+
+/*******************************************************************************
+  Function:	
+    void WF_CAGetBeaconPeriod(UINT16 *beaconPeriod)
+
+  Summary:
+    Retrieves beacon period in Adhoc start mode
+
+  Description:
+    Gets Beacon period in Adhoc start mode
+
+  Precondition:
+    MACInit must be called first.
+
+  Parameters:
+    listenInterval -- pointer to where beacon period is returned
+
+  Returns:
+    None.
+  	
+  Remarks:
+    None.
+ *****************************************************************************/
+void WF_CAGetBeaconPeriod(UINT16 *beaconPeriod)
+{
+    LowLevel_CAGetElement(WF_CA_ELEMENT_BEACON_PERIOD,     /* Element ID                   */
+                         (UINT8 *)beaconPeriod,          /* pointer to element data      */
+                          sizeof(*beaconPeriod),                    /* number of element data bytes */
+                          TRUE);                             /* read data, free buffer       */
+
+    /* fix endianness before returning value */
+    *beaconPeriod = WFSTOHS(*beaconPeriod);
+} 
+ 
+
+/*******************************************************************************
+  Function:	
+    void WF_CAGetDtimInterval(UINT16 *p_dtimInterval)
+
+  Summary:
+    Gets the dtim interval.    
+
+  Description:
+    Gets the DTIM Interval used by the Connection Algorithm. 
+
+  Precondition:
+    MACInit must be called first.  Only used when PS Poll mode is enabled. 
+
+  Parameters:
+    p_dtimInterval -- pointer to where listen interval is returned
+
+  Returns:
+    None.
+  	
+  Remarks:
+    None.
+ *****************************************************************************/
+void WF_CAGetDtimInterval(UINT16 *p_dtimInterval)
+{
+    LowLevel_CAGetElement(WF_CA_ELEMENT_DTIM_INTERVAL,     /* Element ID                   */
+                         (UINT8 *)p_dtimInterval,          /* pointer to element data      */
+                          sizeof(UINT16),                    /* number of element data bytes */
+                          TRUE);                             /* read data, free buffer       */
+
+    /* fix endianness before returning value */
+    *p_dtimInterval = WFSTOHS(*p_dtimInterval);
+}
+#endif /* MRF24WG */  
 
 /*******************************************************************************
   Function:	
@@ -1316,11 +1499,11 @@ UINT8 GetEventNotificationMask(void)
                                       UINT8 elementDataLength)
 
   Summary:
-    Set an element of the connection algorithm on the MRF24WB0M.
+    Set an element of the connection algorithm on the MRF24W.
 
   Description:
     Low-level function to send the appropriate management message to the
-    MRF24WB0M to set the Connection Algorithm element.
+    MRF24W to set the Connection Algorithm element.
     
   Precondition:
     MACInit must be called first.
@@ -1366,11 +1549,11 @@ static void LowLevel_CASetElement(UINT8 elementId,
                                       UINT8 dataReadAction)
 
   Summary:
-    Get an element of the connection algorithm on the MRF24WB0M.
+    Get an element of the connection algorithm on the MRF24W.
 
   Description:
     Low-level function to send the appropriate management message to the
-    MRF24WB0M to get the Connection Algorithm element.
+    MRF24W to get the Connection Algorithm element.
 
   Precondition:
     MACInit must be called first.
@@ -1421,6 +1604,14 @@ static void LowLevel_CAGetElement(UINT8 elementId,
         /* wait for mgmt response, don't read any data bytes, do not release mgmt buffer */
         WaitForMgmtResponse(WF_CA_GET_ELEMENT_SUBTYPE, DO_NOT_FREE_MGMT_BUFFER);
     }                   	                             
+}
+
+void
+WF_DisableModuleConnectionManager(void)
+{
+	WF_CASetListRetryCount(0 /* MY_DEFAULT_LIST_RETRY_COUNT */);
+	WF_CASetDeauthAction(WF_DO_NOT_ATTEMPT_TO_RECONNECT);
+	WF_CASetBeaconTimeoutAction(WF_DO_NOT_ATTEMPT_TO_RECONNECT);
 }
   
 #if defined(WF_CM_DEBUG)

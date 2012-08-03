@@ -113,7 +113,6 @@ static BOOL ARPPut(ARP_PACKET* packet);
 	Function Implementations
   ***************************************************************************/
 #ifdef STACK_USE_ZEROCONF_LINK_LOCAL
-
 /************ User Application APIs ****************************************/
 
 /*****************************************************************************
@@ -146,13 +145,13 @@ static BOOL ARPPut(ARP_PACKET* packet);
 CHAR ARPRegisterCallbacks(struct arp_app_callbacks *app)
 {
     BYTE i;
-    for(i=0; i<MAX_REG_APPS; i++)
+    for(i = 0; i < MAX_REG_APPS; i++)
     {
         if(!reg_apps[i].used)
         {
             reg_apps[i].ARPPkt_notify = app->ARPPkt_notify;
-            reg_apps[i].used = 1;
-            return (i+1); // Return Code. Should be used in deregister.
+            reg_apps[i].used = TRUE;
+            return (i + 1); // Return Code. Should be used in deregister.
         }
     }
     return -1; // No space for registration
@@ -187,59 +186,8 @@ BOOL ARPDeRegisterCallbacks(CHAR reg_id)
     if(reg_id <= 0 || reg_id > MAX_REG_APPS)
         return FALSE;
 
-    reg_apps[reg_id-1].used = 0; // To indicate free slot for registration
+    reg_apps[reg_id - 1].used = FALSE; // To indicate free slot for registration
 	return TRUE;
-}
-
-/*****************************************************************************
-  Function:
-	void ARPSendPkt(IP_ADDR* SrcIPAddr, IP_ADDR* DestIPAddr, int op_req )
-
-  Summary:
-	Transmits an ARP request/Reply initated by Application or external module.
-	
-  Description:
-  	This function transmits and ARP request/reply to determine the hardware
-  	address of a given IP address (or) Announce self-address to all nodes in
-    network. Extended for zeroconf protocol. 
-
-  Precondition:
-	ARP packet is ready in the MAC buffer.
-
-  Parameters:
-	SrcIPAddr - The Source IP-address 
-    DestIPAddr - The Destination IP-Address
-    op_req     - Operation Request (ARP_REQ/ARP_RESP)
-
-  Returns:
-    TRUE - The ARP packet was generated properly
-  	FALSE - Not possible return value
-
-  Remarks:
-  	This API is to give control over AR-packet to external modules. 
-  ***************************************************************************/
-BOOL ARPSendPkt(DWORD SrcIPAddr, DWORD DestIPAddr, BYTE op_req )
-{
-    ARP_PACKET packet;
-
-    if(op_req == ARP_REQ)
-        packet.Operation = ARP_OPERATION_REQ;
-    else if (op_req == ARP_RESP) 
-        packet.Operation = ARP_OPERATION_RESP;
-    else
-        return FALSE; // Invalid op-code
-
-	packet.TargetMACAddr.v[0]   = 0xff;
-	packet.TargetMACAddr.v[1]   = 0xff;
-	packet.TargetMACAddr.v[2]   = 0xff;
-	packet.TargetMACAddr.v[3]   = 0xff;
-	packet.TargetMACAddr.v[4]   = 0xff;
-	packet.TargetMACAddr.v[5]   = 0xff;
-
-    packet.TargetIPAddr.Val	= DestIPAddr;
-    packet.SenderIPAddr.Val = SrcIPAddr;
-
-    return ( ARPPut(&packet) );
 }
 
 /*****************************************************************************
@@ -297,6 +245,73 @@ void ARPProcessRxPkt(ARP_PACKET* packet)
     }
 }
 #endif
+
+/*****************************************************************************
+  Function:
+	void ARPSendPkt(IP_ADDR* SrcIPAddr, IP_ADDR* DestIPAddr, int op_req )
+
+  Summary:
+	Transmits an ARP request/Reply initated by Application or external module.
+	
+  Description:
+  	This function transmits and ARP request/reply to determine the hardware
+  	address of a given IP address (or) Announce self-address to all nodes in
+    network. Extended for zeroconf protocol. 
+
+  Precondition:
+	ARP packet is ready in the MAC buffer.
+
+  Parameters:
+	SrcIPAddr - The Source IP-address 
+    DestIPAddr - The Destination IP-Address
+    op_req     - Operation Request (ARP_REQ/ARP_RESP)
+
+  Returns:
+    TRUE - The ARP packet was generated properly
+  	FALSE - Not possible return value
+
+  Remarks:
+  	This API is to give control over AR-packet to external modules. 
+  ***************************************************************************/
+BOOL ARPSendPkt(DWORD SrcIPAddr, DWORD DestIPAddr, BYTE op_req )
+{
+    ARP_PACKET packet;
+
+#ifdef STACK_USE_ZEROCONF_LINK_LOCAL
+#define KS_ARP_IP_MULTICAST_HACK y
+#ifdef KS_ARP_IP_MULTICAST_HACK
+	DWORD_VAL *DestAddr = (DWORD_VAL *)&DestIPAddr;
+	if ((DestAddr->v[0] >= 224) &&(DestAddr->v[0] <= 239)) {
+		// "Resolve" the IP to MAC address mapping for
+		// IP multicast address range from 224.0.0.0 to 239.255.255.255
+	
+		Cache.MACAddr.v[0] = 0x01;
+		Cache.MACAddr.v[1] = 0x00;
+		Cache.MACAddr.v[2] = 0x5E;
+		Cache.MACAddr.v[3] = 0x7f & DestAddr->v[1];
+		Cache.MACAddr.v[4] = DestAddr->v[2];
+		Cache.MACAddr.v[5] = DestAddr->v[3];
+	
+		Cache.IPAddr.Val = DestAddr->Val;
+	
+		return TRUE;
+	}
+#endif
+#endif
+
+    packet.Operation = op_req;
+	packet.TargetMACAddr.v[0]   = 0xff;
+	packet.TargetMACAddr.v[1]   = 0xff;
+	packet.TargetMACAddr.v[2]   = 0xff;
+	packet.TargetMACAddr.v[3]   = 0xff;
+	packet.TargetMACAddr.v[4]   = 0xff;
+	packet.TargetMACAddr.v[5]   = 0xff;
+
+    packet.TargetIPAddr.Val	= DestIPAddr;
+    packet.SenderIPAddr.Val = SrcIPAddr;
+
+    return ( ARPPut(&packet) );
+}
 
 
 /*****************************************************************************
@@ -533,8 +548,6 @@ BOOL ARPProcess(void)
     return TRUE;
 }
 
-
-
 /*****************************************************************************
   Function:
 	void ARPResolve(IP_ADDR* IPAddr)
@@ -607,6 +620,7 @@ void ARPResolve(IP_ADDR* IPAddr)
     ARPPut(&packet);
 }
 #endif
+
 
 
 

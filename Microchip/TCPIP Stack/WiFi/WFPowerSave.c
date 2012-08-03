@@ -1,9 +1,9 @@
 /******************************************************************************
 
- MRF24WB0M Driver Power Save functions
+ MRF24W Driver Power Save functions
  Module for Microchip TCP/IP Stack
-  -Provides access to MRF24WB0M WiFi controller
-  -Reference: MRF24WB0M Data sheet, IEEE 802.11 Standard
+  -Provides access to MRF24W WiFi controller
+  -Reference: MRF24W Data sheet, IEEE 802.11 Standard
 
 *******************************************************************************
  FileName:		WFPowerSave.c
@@ -44,7 +44,7 @@
 
  Author				Date		Comment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- KH                 27 Jan 2010 Created for MRF24WB0M
+ KH                 27 Jan 2010 Created for MRF24W
 ******************************************************************************/
 
 /*
@@ -53,10 +53,10 @@
 *********************************************************************************************************
 */
 
-#include "TCPIP Stack/WFMac.h"
-
-#if defined(WF_CS_TRIS) && defined(WF_USE_POWER_SAVE_FUNCTIONS)
 #include "TCPIP Stack/TCPIP.h"
+#include "TCPIP Stack/WFMac.h"
+#if defined(WF_CS_TRIS) && defined(WF_USE_POWER_SAVE_FUNCTIONS)
+
 
 /*
 *********************************************************************************************************
@@ -70,6 +70,7 @@
 #endif
 
 #define REG_ENABLE_LOW_POWER_MASK   ((UINT16)(0x01))
+#define REG_DISABLE_LOW_POWER_MASK  ((UINT16)(0x00))
 
 /*
 *********************************************************************************************************
@@ -101,12 +102,14 @@ typedef struct pwrModeRequestStruct
 
 static UINT8 g_powerSaveState = WF_PS_OFF;
 static BOOL  g_psPollActive   = FALSE;     
-
 static BOOL  g_sleepNeeded    = FALSE;
 static BOOL  g_AppPowerSaveModeEnabled = FALSE;
+
 BOOL g_rxDtim;
 
+#if !defined(MRF24WG)
 extern BOOL gRFModuleVer1209orLater;
+#endif
 
 /*
 *********************************************************************************************************
@@ -115,7 +118,8 @@ extern BOOL gRFModuleVer1209orLater;
 */
 
 static void SendPowerModeMsg(tWFPwrModeReq *p_powerMode);
-static void SetPowerSaveState(UINT8 powerSaveState);
+void SetPowerSaveState(UINT8 powerSaveState);
+
 
 void SetAppPowerSaveMode(BOOL state);
 BOOL GetAppPowerSaveMode(void);
@@ -153,28 +157,33 @@ void WFConfigureLowPowerMode(UINT8 action)
     UINT16 lowPowerStatusRegValue;
 
     /*-----------------------------------------*/
-    /* if activating PS-Poll mode on MRF24WB0M */
+    /* if activating PS-Poll mode on MRF24W */
     /*-----------------------------------------*/
     if (action == WF_LOW_POWER_MODE_ON)
     {
-        //putrsUART("PS-Poll Enable\r\n");
+        //putrsUART("Enable PS\r\n");
         Write16BitWFRegister(WF_PSPOLL_H_REG, REG_ENABLE_LOW_POWER_MASK);
         g_psPollActive = TRUE;           
     }        
     /*---------------------------------------------------------------------------------------------*/    
-    /* else deactivating PS-Poll mode on MRF24WB0M (taking it out of low-power mode and waking it up) */
+    /* else deactivating PS-Poll mode on MRF24W (taking it out of low-power mode and waking it up) */
     /*---------------------------------------------------------------------------------------------*/
     else /* action == WF_LOW_POWER_MODE_OFF */
     {
-        //putrsUART("PS-Poll Disable\r\n");        
-        Write16BitWFRegister(WF_PSPOLL_H_REG, 0x00);      
+        //putrsUART("Disable PS\r\n");
+        Write16BitWFRegister(WF_PSPOLL_H_REG, REG_DISABLE_LOW_POWER_MASK);      
         g_psPollActive = FALSE;                 
 
-        /* poll the response bit that indicates when the MRF24WB0M has come out of low power mode */
+        /* poll the response bit that indicates when the MRF24W has come out of low power mode */
         do
         {
-            /* set the index register to the register we wish to read (kWFCOMRegLoPwrStatusReg) */
+            #if defined(MRF24WG)
+                /* set the index register to the register we wish to read */
+                Write16BitWFRegister(WF_INDEX_ADDR_REG, WF_SCRATCHPAD_1_REG);
+            #else /* must be a MRF24WB */
+                /* set the index register to the register we wish to read */
             Write16BitWFRegister(WF_INDEX_ADDR_REG, WF_LOW_POWER_STATUS_REG);
+            #endif
             lowPowerStatusRegValue = Read16BitWFRegister(WF_INDEX_DATA_REG);
 
         } while (lowPowerStatusRegValue & REG_ENABLE_LOW_POWER_MASK);
@@ -183,22 +192,22 @@ void WFConfigureLowPowerMode(UINT8 action)
 
 /*******************************************************************************
   Function:	
-    void WF_PsPollEnable(BOOL rxDtim)
+    void WF_PsPollEnable(BOOL rxDtim,  BOOL aggressive)
 
   Summary:
     Enables PS Poll mode.
 
   Description:
     Enables PS Poll mode.  PS-Poll (Power-Save Poll) is a mode allowing for 
-    longer battery life.  The MRF24WB0M coordinates with the Access Point to go 
+    longer battery life.  The MRF24W coordinates with the Access Point to go 
     to sleep and wake up at periodic intervals to check for data messages, which 
     the Access Point will buffer.  The listenInterval in the Connection 
     Algorithm defines the sleep interval.  By default, PS-Poll mode is disabled.
 
     When PS Poll is enabled, the WF Host Driver will automatically force the 
-    MRF24WB0M to wake up each time the Host sends Tx data or a control message 
-    to the MRF24WB0M.  When the Host message transaction is complete the 
-    MRF24WB0M driver will automatically re-enable PS Poll mode.
+    MRF24W to wake up each time the Host sends Tx data or a control message 
+    to the MRF24W.  When the Host message transaction is complete the 
+    MRF24W driver will automatically re-enable PS Poll mode.
 
     When the application is likely to experience a high volume of data traffic 
     then PS-Poll mode should be disabled for two reasons:
@@ -210,8 +219,7 @@ void WFConfigureLowPowerMode(UINT8 action)
   	MACInit must be called first.
 
   Parameters:
-    rxDtim - TRUE if MRF24WB0M should wake up periodically and check for
-             buffered broadcast messages, else FALSE
+    rxDtim -  TRUE listens at the DTIM interval and FALSE listens at the CASetListenInterval
 
   Returns:
   	None.
@@ -221,10 +229,18 @@ void WFConfigureLowPowerMode(UINT8 action)
   *****************************************************************************/
 void WF_PsPollEnable(BOOL rxDtim)
 {
+    #if defined(__18CXX)
+        static tWFPwrModeReq   pwrModeReq;
+    #else
     tWFPwrModeReq   pwrModeReq;
+    #endif
     
     // if not currently connected
+#if !defined(MRF24WG)
     if (gRFModuleVer1209orLater && !WFisConnected())
+#else
+    if (!WFisConnected())
+#endif
     {
         // save caller parameters for later, when we can enable this mode    
         g_rxDtim = rxDtim;
@@ -232,7 +248,7 @@ void WF_PsPollEnable(BOOL rxDtim)
         return;
     }    
     
-    /* fill in request structure and send message to MRF24WB0M */
+    /* fill in request structure and send message to MRF24W */
     pwrModeReq.mode     = PS_POLL_ENABLED;
     pwrModeReq.wake     = 0;
     pwrModeReq.rcvDtims = rxDtim;
@@ -252,6 +268,7 @@ void WF_PsPollEnable(BOOL rxDtim)
 
 }
 
+
 BOOL isSleepNeeded(void)
 {
     return g_sleepNeeded;    
@@ -266,6 +283,7 @@ void SetSleepNeeded(void)
 {
     g_sleepNeeded = TRUE;
 }
+
 
 void SetAppPowerSaveMode(BOOL state)  // TRUE or FALSE
 {
@@ -286,7 +304,7 @@ BOOL GetAppPowerSaveMode(void)
     Disables PS-Poll mode.
 
   Description:
-    Disables PS Poll mode.  The MRF24WB0M will stay active and not go sleep.
+    Disables PS Poll mode.  The MRF24W will stay active and not go sleep.
 
   Precondition:
   	MACInit must be called first.
@@ -311,7 +329,6 @@ void WF_PsPollDisable(void)
 
 	SetPowerSaveState(WF_PS_OFF);
 	WFConfigureLowPowerMode(WF_LOW_POWER_MODE_OFF);    
-    
 	SetAppPowerSaveMode(FALSE);   
 }   
 
@@ -323,15 +340,15 @@ void WF_PsPollDisable(void)
     Returns current power-save state.
 
   Description:
-    Returns the current MRF24WB0M power save state.
+    Returns the current MRF24W power save state.
 
     <table>
     Value                       Definition
     -----                       ----------
-    WF_PS_HIBERNATE             MRF24WB0M in hibernate state
-    WF_PS_PS_POLL_DTIM_ENABLED  MRF24WB0M in PS-Poll mode with DTIM enabled
-    WF_PS_PS_POLL_DTIM_DISABLED MRF24WB0M in PS-Poll mode with DTIM disabled
-    WF_PS_POLL_OFF              MRF24WB0M is not in any power-save state
+    WF_PS_HIBERNATE             MRF24W in hibernate state
+    WF_PS_PS_POLL_DTIM_ENABLED  MRF24W in PS-Poll mode with DTIM enabled
+    WF_PS_PS_POLL_DTIM_DISABLED MRF24W in PS-Poll mode with DTIM disabled
+    WF_PS_POLL_OFF              MRF24W is not in any power-save state
     </table>
 
   Precondition:
@@ -418,13 +435,13 @@ BOOL WFIsPsPollActive(void)
     void EnsureWFisAwake()
 
   Summary:
-    If PS-Poll is active or the MRF24WB0M is asleep, ensure that it is woken up.
+    If PS-Poll is active or the MRF24W is asleep, ensure that it is woken up.
 
   Description:
     Called by the WiFi driver when it needs to transmit or receive a data or 
     mgmt message. If the application has enabled PS-Poll mode and the WiFi 
     driver has activated PS-Poll mode then this function will deactivate PS-Poll
-    mode and wake up the MRF24WB0M.
+    mode and wake up the MRF24W.
 
   Precondition:
   	MACInit must be called first.
@@ -440,34 +457,38 @@ BOOL WFIsPsPollActive(void)
   *****************************************************************************/
 void EnsureWFisAwake()
 {
-    /* if the application desires the MRF24WB0M to be in PS-Poll mode (PS-Poll with DTIM enabled or disabled */
+    #if defined(WF_USE_POWER_SAVE_FUNCTIONS)
+        /* if the application desires the MRF24W to be in PS-Poll mode (PS-Poll with DTIM enabled or disabled */
     if ((g_powerSaveState == WF_PS_PS_POLL_DTIM_ENABLED) || (g_powerSaveState == WF_PS_PS_POLL_DTIM_DISABLED)) 
     {
         /* if the WF driver has activated PS-Poll */
         if (g_psPollActive == TRUE)
         {
-            /* wake up MRF24WB0M */
+                /* wake up MRF24W */
             WFConfigureLowPowerMode(WF_LOW_POWER_MODE_OFF);
         }    
         
         // will need to put device back into PS-Poll sleep mode
         SetSleepNeeded();
     }
+
+    #endif
 }        
+            
             
 /*******************************************************************************
   Function:	
     void WF_HibernateEnable()
 
   Summary:
-    Puts the MRF24WB0M into hibernate mode.
+    Puts the MRF24W into hibernate mode.
 
   Description:
-    Enables Hibernate mode on the MRF24WB0M, which effectively turns off the 
+    Enables Hibernate mode on the MRF24W, which effectively turns off the 
     device for maximum power savings.  
 
-    MRF24WB0M state is not maintained when it transitions to hibernate mode.  
-    To remove the MRF24WB0M from hibernate mode call WF_Init().
+    MRF24W state is not maintained when it transitions to hibernate mode.  
+    To remove the MRF24W from hibernate mode call WF_Init().
 
   Precondition:
   	MACInit must be called first.
@@ -479,19 +500,19 @@ void EnsureWFisAwake()
   	None.
   	
   Remarks:
-  	Note that because the MRF24WB0M does not save state, there will be a
+  	Note that because the MRF24W does not save state, there will be a
     disconnect between the TCP/IP stack and the MRF24B0M state.  If it is
     desired by the application to use hibernate, additional measures must be
     taken to save application state.  Then the host should be reset.  This will
-    ensure a clean connection between MRF24WB0M and TCP/IP stack
+    ensure a clean connection between MRF24W and TCP/IP stack
 
     Future versions of the stack might have the ability to save stack context
-    as well, ensuring a clean wake up for the MRF24WB0M without needing a host
+    as well, ensuring a clean wake up for the MRF24W without needing a host
     reset.
   *****************************************************************************/
 void WF_HibernateEnable()
 {
-	WF_SetCE_N(WF_HIGH);   /* set XCEN33 pin high, which puts MRF24WB0M in hibernate mode */
+    WF_SetCE_N(WF_HIGH);   /* set XCEN33 pin high, which puts MRF24W in hibernate mode */
 
     /* SetPowerSaveState(WF_PS_HIBERNATE);	*/
 }
@@ -501,7 +522,7 @@ void WF_HibernateEnable()
     static void SendPowerModeMsg(tWFPwrModeReq *p_powerMode)
 
   Summary:
-    Send power mode management message to the MRF24WB0M.
+    Send power mode management message to the MRF24W.
 
   Description:
 
@@ -509,7 +530,7 @@ void WF_HibernateEnable()
   	MACInit must be called first.
 
   Parameters:
-    p_powerMode - Pointer to tWFPwrModeReq structure to send to MRF24WB0M.
+    p_powerMode - Pointer to tWFPwrModeReq structure to send to MRF24W.
 
   Returns:
   	None.
@@ -519,7 +540,11 @@ void WF_HibernateEnable()
   *****************************************************************************/
 static void SendPowerModeMsg(tWFPwrModeReq *p_powerMode)
 {
+    #if defined(__18CXX)
+        static UINT8 hdr[2]; 
+    #else
     UINT8 hdr[2];
+    #endif
     
     hdr[0] = WF_MGMT_REQUEST_TYPE;
     hdr[1] = WF_SET_POWER_MODE_SUBTYPE;
@@ -536,10 +561,10 @@ static void SendPowerModeMsg(tWFPwrModeReq *p_powerMode)
 
 /*******************************************************************************
   Function:	
-    static void SetPowerSaveState(UINT8 powerSaveState)
+    void SetPowerSaveState(UINT8 powerSaveState)
 
   Summary:
-    Sets the desired power save state of the MRF24WB0M.
+    Sets the desired power save state of the MRF24W.
 
   Description:
 
@@ -552,10 +577,10 @@ static void SendPowerModeMsg(tWFPwrModeReq *p_powerMode)
     <table>
     Value                       Definition
     -----                       ----------
-    WF_PS_HIBERNATE             MRF24WB0M in hibernate state
-    WF_PS_PS_POLL_DTIM_ENABLED  MRF24WB0M in PS-Poll mode with DTIM enabled
-    WF_PS_PS_POLL_DTIM_DISABLED MRF24WB0M in PS-Poll mode with DTIM disabled
-    WF_PS_POLL_OFF              MRF24WB0M is not in any power-save state
+    WF_PS_HIBERNATE             MRF24W in hibernate state
+    WF_PS_PS_POLL_DTIM_ENABLED  MRF24W in PS-Poll mode with DTIM enabled
+    WF_PS_PS_POLL_DTIM_DISABLED MRF24W in PS-Poll mode with DTIM disabled
+    WF_PS_POLL_OFF              MRF24W is not in any power-save state
     </table>
 
   Returns:
@@ -564,8 +589,10 @@ static void SendPowerModeMsg(tWFPwrModeReq *p_powerMode)
   Remarks:
   	None.
   *****************************************************************************/
-static void SetPowerSaveState(UINT8 powerSaveState)
+void SetPowerSaveState(UINT8 powerSaveState)
 {
     g_powerSaveState = powerSaveState;
 }    
 #endif /* WF_CS_TRIS && WF_USE_POWER_SAVE_FUNCTIONS */
+
+

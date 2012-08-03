@@ -1,9 +1,9 @@
 /******************************************************************************
 
- MRF24WB0M Driver Connection Profile
+ MRF24W Driver Connection Profile
  Module for Microchip TCP/IP Stack
-  -Provides access to MRF24WB0M WiFi controller
-  -Reference: MRF24WB0M Data sheet, IEEE 802.11 Standard
+  -Provides access to MRF24W WiFi controller
+  -Reference: MRF24W Data sheet, IEEE 802.11 Standard
 
 *******************************************************************************
  FileName:		WFConnectionProfile.c
@@ -44,7 +44,7 @@
 
  Author				Date		Comment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- KH                 27 Jan 2010 Created for MRF24WB0M
+ KH                 27 Jan 2010 Created for MRF24W
 ******************************************************************************/
 
 /*
@@ -62,6 +62,9 @@
     #define WF_MODULE_NUMBER    WF_MODULE_WF_CONNECTION_PROFILE
 #endif
 
+#if !defined(MRF24WG)
+#define RAW_MGMT_RX_ID  RAW_RX_ID
+#endif
 
 /*
 *********************************************************************************************************
@@ -102,13 +105,13 @@ static void LowLevel_CPGetElement(UINT8 CpId,
     void WF_CPCreate(UINT8 *p_CpId)
 
   Summary:
-    Creates a Connection Profile on the MRF24WB0M.
+    Creates a Connection Profile on the MRF24W.
 
   Description:
-    Requests the MRF24WB0M to create a Connection Profile (CP), assign it an ID, 
+    Requests the MRF24W to create a Connection Profile (CP), assign it an ID, 
     and set all the elements to default values.  The ID returned by this function
 	is used in other connection profile functions.  A maximum of 2 Connection 
-    Profiles can exist on the MRF24WB0M.
+    Profiles can exist on the MRF24W.
 
   Precondition:
     MACInit must be called first.
@@ -137,7 +140,7 @@ void WF_CPCreate(UINT8 *p_CpId)
                 NULL,            /* no data */
                 0);              /* no data */
     
-    /* wait for MRF24WB0M management response, read data, free response after read */
+    /* wait for MRF24W management response, read data, free response after read */
 	WaitForMgmtResponseAndReadData(WF_CP_CREATE_PROFILE_SUBTYPE, 
                                    1,                             /* num data bytes to read          */
 	                               MGMT_RESP_1ST_DATA_BYTE_INDEX, /* read starting at index 4        */
@@ -149,7 +152,7 @@ void WF_CPCreate(UINT8 *p_CpId)
     void WF_CPDelete(UINT8 CpId)
 
   Summary:
-    Deletes a Connection Profile on the MRF24WB0M.
+    Deletes a Connection Profile on the MRF24W.
 
   Description:
     Deletes the specified Connection Profile.  If the Connection Profile was in 
@@ -162,7 +165,7 @@ void WF_CPCreate(UINT8 *p_CpId)
     MACInit must be called first.
 
   Parameters:
-    CpId - Connection Profile to delete test case.
+    CpId - Connection Profile to delete.
 
   Returns:
     None.
@@ -195,7 +198,7 @@ void WF_CPDelete(UINT8 CpId)
 
   Description:
     Returns a list of all Connection Profile ID’s that have been created on the 
-    MRF24WB0M.  This is not to be confused with the Connection Algorithm’s 
+    MRF24W.  This is not to be confused with the Connection Algorithm’s 
     connectionProfileList.  This function returns a bit mask corresponding to a 
     list of all Connection Profiles that have been created (whether they are in 
     the connectionProfileList or not).  Any Connection Profiles that have been 
@@ -239,6 +242,9 @@ void WF_CPGetIds(UINT8 *p_cpIdList)
 }    
 
 #if defined(WF_USE_GROUP_SET_GETS)
+#if !defined(MRF24WG)
+extern BOOL gRFModuleVer1209orLater;
+#endif
 /*******************************************************************************
   Function:	
     void WF_CPSetElements(UINT8 CpId, tWFCPElements *p_elements)
@@ -268,10 +274,19 @@ void WF_CPSetElements(UINT8 CpId, tWFCPElements *p_elements)
 {
     WF_ASSERT(p_elements->ssidLength <= WF_MAX_SSID_LENGTH);
     
+#if !defined(MRF24WG)
+	LowLevel_CPSetElement(CpId,                   /* CP ID                        */
+                          WF_CP_ELEMENT_ALL,      /* Element ID                   */
+                          (UINT8 *)p_elements,    /* pointer to element data      */
+                          gRFModuleVer1209orLater ? sizeof(tWFCPElements)
+                                                  : sizeof(tWFCPElements)-2);
+                                                /* number of element data bytes */
+#else
     LowLevel_CPSetElement(CpId,                   /* CP ID                        */
                           WF_CP_ELEMENT_ALL,      /* Element ID                   */
                           (UINT8 *)p_elements,    /* pointer to element data      */
                           sizeof(tWFCPElements)); /* number of element data bytes */
+#endif
 }
 
 /*******************************************************************************
@@ -310,95 +325,6 @@ void WF_CPGetElements(UINT8 CpId, tWFCPElements *p_elements)
 #endif /* WF_USE_GROUP_SET_GETS */ 
 
 #if defined(WF_USE_INDIVIDUAL_SET_GETS)
-/*******************************************************************************
-  Function:	
-    void WF_CPSetSsid(UINT8 CpId, UINT8 *p_ssid, UINT8 *p_ssidLength)
-
-  Summary:
-    Sets the SSID for the specified Connection Profile ID.    
-
-  Description:
-    Sets the SSID and SSID Length elements in the Connection Profile.  Note that
-	if an Access Point can have either a visible or hidden SSID.  If an Access Point
-	uses a hidden SSID then an active scan must be used (see scanType field in the 
-	Connection Algorithm).
-
-  Precondition:
-    MACInit must be called first.
-
-  Parameters:
-    CpId - Connection Profile ID
-    p_ssid - Pointer to the SSID string
-    ssidLength - Number of bytes in the SSID
-
-  Returns:
-    None.
-  	
-  Remarks:
-    None.
-  *****************************************************************************/
-void WF_CPSetSsid(UINT8 CpId, UINT8 *p_ssid,  UINT8 ssidLength)
-{
-    WF_ASSERT(ssidLength <= WF_MAX_SSID_LENGTH);
-    LowLevel_CPSetElement(CpId,                   /* CP ID                        */
-                          WF_CP_ELEMENT_SSID,     /* Element ID                   */
-                         (UINT8 *)p_ssid,         /* pointer to element data      */
-                          ssidLength);            /* number of element data bytes */
-
-}   
-
-/*******************************************************************************
-  Function:	
-    void WF_CPGetSsid(UINT8 CpId, UINT8 *p_ssid, UINT8 *p_ssidLength)
-
-  Summary:
-    Gets the SSID for the specified Connection Profile ID.    
-
-  Description:
-    Gets the SSID and SSID Length elements in the Connection Profile.
-
-  Precondition:
-    MACInit must be called first.
-
-  Parameters:
-    CpId - Connection Profile ID
-    p_ssid - Pointer to the SSID string
-    ssidLength - Pumber of bytes in the SSID
-
-  Returns:
-    None.
-  	
-  Remarks:
-    None.
-  *****************************************************************************/
-void WF_CPGetSsid(UINT8 CpId, UINT8 *p_ssid, UINT8 *p_ssidLength)
-{
-    tCPElementResponseHdr  mgmtHdr;
-    
-    /* Request SSID, but don't have this function read data or free response buffer.       */
-    LowLevel_CPGetElement(CpId,                   /* Connection Profile ID                 */
-                          WF_CP_ELEMENT_SSID,     /* Element ID                            */
-                          NULL,                   /* ptr to element data (not used here    */
-                          0,                      /* num data bytes to read (not used here */ 
-                          FALSE);                 /* no read, leave response mounted       */
-    
-    /* At this point, management response is mounted and ready to be read.                 */
-    /* Set raw index to 0, read normal 4 byte header plus the next 3 bytes, these will be: */
-    /*   profile id             [4]                                                        */
-    /*   element id             [5]                                                        */
-    /*   element data length    [6]                                                        */
-    RawRead(RAW_RX_ID, 0, sizeof(tCPElementResponseHdr), (UINT8 *)&mgmtHdr);
-
-    /* extract SSID length and write to caller */
-    *p_ssidLength = mgmtHdr.elementDataLength;
-    
-    /* copy SSID name to callers buffer */
-    RawRead(RAW_RX_ID, sizeof(tCPElementResponseHdr), *p_ssidLength, p_ssid);
-    
-    /* free management buffer */
-    DeallocateMgmtRxBuffer();
-}   
-
 /*******************************************************************************
   Function:	
     void WF_CPSetSsidType(UINT8 CpId, UINT8 hidden)
@@ -466,71 +392,92 @@ void WF_CPGetSsidType(UINT8 CpId, UINT8 *hidden)
 
 /*******************************************************************************
   Function:	
-    void WF_CPSetWepKeyType(UINT8 CpId, UINT8 wepKeyType)
+    void WF_CPSetSsid(UINT8 CpId, UINT8 *p_ssid, UINT8 *p_ssidLength)
 
   Summary:
-    Sets the Wep key type for the specified Connection Profile ID.
+    Sets the SSID for the specified Connection Profile ID.    
 
   Description:
-    Sets the Wep key Type element a Connection Profile.  Allowable values are:
-    * WF_SECURITY_WEP_SHAREDKEY
-    * WF_SECURITY_WEP_OPENKEY
+    Sets the SSID and SSID Length elements in the Connection Profile.  Note that
+	an Access Point can have either a visible or hidden SSID.  If an Access Point
+	uses a hidden SSID then an active scan must be used (see scanType field in the 
+	Connection Algorithm).
 
   Precondition:
-  	MACInit must be called first.
+    MACInit must be called first.
 
   Parameters:
-    CpId -- Connection Profile ID
-    keyType -- type of key for Wep security (shared key or open key )
+    CpId - Connection Profile ID
+    p_ssid - Pointer to the SSID string
+    ssidLength - Number of bytes in the SSID
 
   Returns:
-  	None.
+    None.
   	
   Remarks:
-  	None.
+    None.
   *****************************************************************************/
-void WF_CPSetWepKeyType(UINT8 CpId, UINT8 wepKeyType)
+void WF_CPSetSsid(UINT8 CpId, UINT8 *p_ssid,  UINT8 ssidLength)
 {
-    LowLevel_CPSetElement(CpId,                         /* CP ID                        */
-                          WF_CP_ELEMENT_WEPKEY_TYPE,   /* Element ID                   */
-                          &wepKeyType,                 	/* pointer to element data      */
-                          1);                           /* number of element data bytes */
+    WF_ASSERT(ssidLength <= WF_MAX_SSID_LENGTH);
+    LowLevel_CPSetElement(CpId,                   /* CP ID                        */
+                          WF_CP_ELEMENT_SSID,     /* Element ID                   */
+                         (UINT8 *)p_ssid,         /* pointer to element data      */
+                          ssidLength);            /* number of element data bytes */
+
 }   
 
 /*******************************************************************************
   Function:	
-    void WF_CPGetWepKeyType(UINT8 CpId, UINT8 *p_keyType)
+    void WF_CPGetSsid(UINT8 CpId, UINT8 *p_ssid, UINT8 *p_ssidLength)
 
   Summary:
-    Gets the Wep Key type for the specified Connection Profile ID.
+    Gets the SSID for the specified Connection Profile ID.    
 
   Description:
-    Gets the Network Type element a Connection Profile.  Allowable values are:
-    * WF_SECURITY_WEP_SHAREDKEY
-    * WF_SECURITY_WEP_OPENKEY
+    Gets the SSID and SSID Length elements in the Connection Profile.
 
   Precondition:
-  	MACInit must be called first.
+    MACInit must be called first.
 
   Parameters:
-    CpId -- Connection Profile ID
-    networkType -- type of key for Wep security (shared key or open key)
+    CpId - Connection Profile ID
+    p_ssid - Pointer to the SSID string
+    ssidLength - Pumber of bytes in the SSID
 
   Returns:
-  	None.
+    None.
   	
   Remarks:
-  	None.
-  *****************************************************************************/ 
-void WF_CPGetWepKeyType(UINT8 CpId, UINT8 *p_wepKeyType)
+    None.
+  *****************************************************************************/
+void WF_CPGetSsid(UINT8 CpId, UINT8 *p_ssid, UINT8 *p_ssidLength)
 {
-    LowLevel_CPGetElement(CpId,                       /* conn. profile ID       */
-                          WF_CP_ELEMENT_WEPKEY_TYPE, /* element ID             */
-                          p_wepKeyType,              /* element data pointer   */
-                          1,                          /* read one byte          */
-                          TRUE);                      /* read data, free buffer */
-}
+    tCPElementResponseHdr  mgmtHdr;
+    
+    /* Request SSID, but don't have this function read data or free response buffer.       */
+    LowLevel_CPGetElement(CpId,                   /* Connection Profile ID                 */
+                          WF_CP_ELEMENT_SSID,     /* Element ID                            */
+                          NULL,                   /* ptr to element data (not used here    */
+                          0,                      /* num data bytes to read (not used here */ 
+                          FALSE);                 /* no read, leave response mounted       */
+    
+    /* At this point, management response is mounted and ready to be read.                 */
+    /* Set raw index to 0, read normal 4 byte header plus the next 3 bytes, these will be: */
+    /*   profile id             [4]                                                        */
+    /*   element id             [5]                                                        */
+    /*   element data length    [6]                                                        */
+    RawRead(RAW_MGMT_RX_ID, 0, sizeof(tCPElementResponseHdr), (UINT8 *)&mgmtHdr);
 
+    /* extract SSID length and write to caller */
+    *p_ssidLength = mgmtHdr.elementDataLength;
+    
+    /* copy SSID name to callers buffer */
+    RawRead(RAW_MGMT_RX_ID, sizeof(tCPElementResponseHdr), *p_ssidLength, p_ssid);
+    
+    /* free management buffer */
+    DeallocateMgmtRxBuffer();
+}   
 
 /*******************************************************************************
   Function:	
@@ -557,11 +504,11 @@ void WF_CPGetWepKeyType(UINT8 CpId, UINT8 *p_wepKeyType)
   *****************************************************************************/
 void WF_CPSetBssid(UINT8 CpId, UINT8 *p_bssid)
 {
-    LowLevel_CPSetElement(CpId,                  /* CP ID                        */
+    LowLevel_CPSetElement(CpId,                   /* CP ID                        */
                           WF_CP_ELEMENT_BSSID,   /* Element ID                   */
                           p_bssid,               /* pointer to element data      */
                           WF_BSSID_LENGTH);      /* number of element data bytes */
-}   
+}  
 
 /*******************************************************************************
   Function:	
@@ -593,7 +540,7 @@ void WF_CPGetBssid(UINT8 CpId, UINT8 *p_bssid)
                           p_bssid,               /* pointer to element data           */
                           WF_BSSID_LENGTH,       /* number of element data bytes      */
                           TRUE);                 /* read data, free buffer after read */
-}   
+}
 
 /*******************************************************************************
   Function:	
@@ -664,6 +611,128 @@ void WF_CPGetNetworkType(UINT8 CpId, UINT8 *p_networkType)
 
 /*******************************************************************************
   Function:	
+    void WF_CPSetWepKeyType(UINT8 CpId, UINT8 wepKeyType)
+
+  Summary:
+    Sets the Wep key type for the specified Connection Profile ID.
+
+  Description:
+     Sets the Wep key type for the specified Connection Profile ID.  
+
+  Precondition:
+    MACInit must be called first.
+
+  Parameters:
+    CpId       -- Connection Profile ID
+    wepKeyType -- WF_SECURITY_WEP_SHAREDKEY or WF_SECURITY_WEP_OPENKEY (default)
+
+  Returns:
+    None.
+  	
+  Remarks:
+    None.
+  *****************************************************************************/
+void WF_CPSetWepKeyType(UINT8 CpId, UINT8 wepKeyType)
+{
+    LowLevel_CPSetElement(CpId,                  /* CP ID                        */
+                          WF_CP_ELEMENT_WEPKEY_TYPE,   /* Element ID                   */
+                          &wepKeyType,                 	/* pointer to element data      */
+                          1);                           /* number of element data bytes */
+}   
+
+/*******************************************************************************
+  Function:	
+    void WF_CPGetWepKeyType(UINT8 CpId, UINT8 *p_keyType)
+
+  Summary:
+    Gets the Wep Key type for the specified Connection Profile ID.
+
+  Description:
+    Gets the Network Type element a Connection Profile.  Allowable values are:
+    * WF_SECURITY_WEP_SHAREDKEY
+    * WF_SECURITY_WEP_OPENKEY
+
+  Precondition:
+    MACInit must be called first.
+
+  Parameters:
+    CpId -- Connection Profile ID
+    networkType -- type of key for Wep security (shared key or open key)
+
+  Returns:
+    None.
+  	
+  Remarks:
+    None.
+  *****************************************************************************/
+void WF_CPGetWepKeyType(UINT8 CpId, UINT8 *p_wepKeyType)
+{
+    LowLevel_CPGetElement(CpId,                       /* conn. profile ID       */
+                          WF_CP_ELEMENT_WEPKEY_TYPE, /* element ID             */
+                          p_wepKeyType,              /* element data pointer   */
+                          1,                          /* read one byte          */
+                          TRUE);                      /* read data, free buffer */
+}   
+
+#if defined(MRF24WG)
+#ifdef WICOM_MODE
+void WF_CPSetPMK(UINT8 CpId, UINT8 *pmk)
+{
+    UINT8  hdrBuf[5];
+    UINT8  *p_key;
+
+    /* Write out header portion of msg */
+    hdrBuf[0] = WF_MGMT_REQUEST_TYPE;           /* indicate this is a mgmt msg     */
+    hdrBuf[1] = WF_CP_SET_ELEMENT_SUBTYPE;      /* mgmt request subtype            */     
+    hdrBuf[2] = CpId;                           /* Connection Profile ID           */
+    hdrBuf[3] = WF_CP_ELEMENT_UPDATE_PMK;         /* Element ID                      */
+  	hdrBuf[4] = 32;      /* pmk length */ 
+
+    SendMgmtMsg(hdrBuf,              /* msg header which includes the security type and WEP index)    */
+                sizeof(hdrBuf),      /* msg header length                                             */
+                pmk,               /* msg data (security key), can be NULL                          */
+                32);  /* msg data length (will be 0 if p_securityKey is NULL)          */
+
+    /* wait for mgmt response, free after it comes in, don't need data bytes */
+    WaitForMgmtResponse(WF_CP_SET_ELEMENT_SUBTYPE, FREE_MGMT_BUFFER);
+}   
+#endif	/* WICOM_MODE */
+
+/*******************************************************************************
+  Function:	
+    void WF_CPGetWPSCredentials(UINT8 CpId, tWFWpsCred *p_cred)
+
+  Summary:
+    Gets the WPS credentials for the specified Connection Profile ID.
+
+  Description:
+    Gets the WPS credentials after WPS completed
+
+  Precondition:
+  	MACInit must be called first.
+
+  Parameters:
+    CpId - Connection Profile ID
+    p_cred - Pointer to the credentials
+
+  Returns:
+  	None.
+  	
+  Remarks:
+  	None.
+  *****************************************************************************/ 
+void WF_CPGetWPSCredentials(UINT8 CpId, tWFWpsCred *p_cred)
+{
+    LowLevel_CPGetElement(CpId,                  /* CP ID                             */
+                          WF_CP_ELEMENT_READ_WPS_CRED,   /* Element ID                        */
+                          (UINT8 *)p_cred,               /* pointer to element data           */
+                          sizeof(*p_cred),       /* number of element data bytes      */
+                          TRUE);                 /* read data, free buffer after read */
+}
+#endif /* MRF24WG */ 
+
+/*******************************************************************************
+  Function:	
     void WF_CPSetSecurity(UINT8 CpId, 
                           UINT8 securityType,
                           UINT8 wepKeyIndex,
@@ -729,8 +798,10 @@ void WF_CPSetSecurity(UINT8 CpId,
     hdrBuf[5] = securityType;                   
     hdrBuf[6] = wepKeyIndex;                     
     
-    /* if security is open (no key) */
-    if (securityType == WF_SECURITY_OPEN)
+    /* if security is open (no key) or WPS push button method */
+    if (securityType == WF_SECURITY_OPEN 
+		|| securityType == WF_SECURITY_WPS_PUSH_BUTTON
+		|| securityType == WF_SECURITY_EAP)
     {
         hdrBuf[4]         = 2;      /* Only data is security type and wep index */ 
         p_key             = NULL;   
@@ -823,14 +894,14 @@ void WF_CPGetSecurity(UINT8 CpId,
     /*   profile id             [4]                                                        */
     /*   element id             [5]                                                        */
     /*   element data length    [6]                                                        */
-    RawRead(RAW_RX_ID, 0, sizeof(tCPElementResponseHdr), (UINT8 *)&mgmtHdr);
+    RawRead(RAW_MGMT_RX_ID, 0, sizeof(tCPElementResponseHdr), (UINT8 *)&mgmtHdr);
     
-    RawRead(RAW_RX_ID,                          /* raw Id                     */
+    RawRead(RAW_MGMT_RX_ID,                     /* raw Id                     */
             sizeof(tCPElementResponseHdr) + 0,  /* index of security type [7] */
             1,                                  /* read one byte              */
             p_securityType);                    /* copy that byte here        */
 
-    RawRead(RAW_RX_ID,                          /* raw Id                     */
+    RawRead(RAW_MGMT_RX_ID,                     /* raw Id                     */
             sizeof(tCPElementResponseHdr) + 1 , /* index of WEP key index [8] */
             1,                                  /* read one byte              */
             p_wepKeyIndex);                     /* copy that byte here        */
@@ -841,7 +912,7 @@ void WF_CPGetSecurity(UINT8 CpId,
     {
         *p_securityKeyLength = keyLength;
         
-        RawRead(RAW_RX_ID,                          /* raw Id                  */
+        RawRead(RAW_MGMT_RX_ID,                     /* raw Id                  */
                 sizeof(tCPElementResponseHdr) + 2,  /* index of first key byte */
                 keyLength,                          /* number of bytes to read */
                 p_securityKey);                     /* copy bytes here         */
@@ -1006,7 +1077,7 @@ void WF_CPGetAdHocBehavior(UINT8 CpId, UINT8 *p_adHocBehavior)
                                   UINT8 elementDataLength)
 
   Summary:
-    Set an element of the connection profile on the MRF24WB0M.
+    Set an element of the connection profile on the MRF24W.
 
   Description:
     All Connection Profile 'Set Element' functions call this function to 
@@ -1061,7 +1132,7 @@ static void LowLevel_CPSetElement(UINT8 CpId,
                                       UINT8 dataReadAction)
 
   Summary:
-    Get an element of the connection profile on the MRF24WB0M.
+    Get an element of the connection profile on the MRF24W.
 
   Description:
     All Connection Profile 'Get Element' functions call this function to 

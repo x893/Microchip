@@ -72,7 +72,7 @@
 	char BusyUART2(void);
 	unsigned int ReadUART2(void);
 	void WriteUART2(unsigned int data);
-#elif defined( __STM32F10X__ )
+#elif defined(__STM32F10X__)
 	char BusyUSART(void);
 	void CloseUSART(void);
 	char DataRdyUSART(void);

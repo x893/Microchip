@@ -1,9 +1,9 @@
 /******************************************************************************
 
- MRF24WB0M Driver RAW driver
+ MRF24W Driver RAW driver
  Module for Microchip TCP/IP Stack
-  -Provides access to MRF24WB0M WiFi controller
-  -Reference: MRF24WB0M Data sheet, IEEE 802.11 Standard
+  -Provides access to MRF24W WiFi controller
+  -Reference: MRF24W Data sheet, IEEE 802.11 Standard
 
 *******************************************************************************
  FileName:		WFDriverRaw.c
@@ -44,7 +44,7 @@
 
  Author				Date		Comment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- KH                 27 Jan 2010 Updated for MRF24WB0M
+ KH                 27 Jan 2010 Updated for MRF24W
 ******************************************************************************/
 
 /*
@@ -136,12 +136,18 @@ void DeallocateMgmtRxBuffer(void)
      /* Unmount (release) mgmt packet now that we are done with it */
     RawMove(RAW_RX_ID, RAW_MGMT_POOL, FALSE, 0);
     SetRawRxMgmtInProgress(FALSE);
+    g_WaitingForMgmtResponse = FALSE;
+    
 }    
 
 BOOL AllocateDataTxBuffer(UINT16 bytesNeeded)
 {
     UINT16 bufAvail;
     UINT16 byteCount;
+    
+    /* Ensure the MRF24W is awake (only applies if PS-Poll was enabled) */
+    EnsureWFisAwake();
+
     
     /* get total bytes available for DATA tx memory pool */
     bufAvail = Read16BitWFRegister(WF_HOST_WFIFO_BCNT0_REG) & 0x0fff; /* LS 12 bits contain length */                    
@@ -161,6 +167,8 @@ BOOL AllocateDataTxBuffer(UINT16 bytesNeeded)
     
     RawWindowReady[RAW_TX_ID] = TRUE;
     SetRawWindowState(RAW_TX_ID, WF_RAW_DATA_MOUNTED);
+    
+    
     return TRUE;
 
 }    
@@ -177,7 +185,7 @@ void DeallocateDataRxBuffer(void)
     RawMove(RAW_RX_ID, RAW_DATA_POOL, FALSE, 0);
 }    
 
-/* if a mgmt msg mounted in RAW window then message handled by MRF24WB0M.                */
+/* if a mgmt msg mounted in RAW window then message handled by MRF24W.                */
 /* If a data message mounted in RAW window then will be transmitted to 802.11 network */
 void RawSendTxBuffer(UINT16 len)
 {
@@ -390,11 +398,11 @@ void RawWrite(UINT8 rawId, UINT16 startIndex, UINT16 length, UINT8 *p_src)
  *
  * PARAMS:
  *      rawId   - RAW ID
- *      srcDest - MRF24WB0M object that will either source or destination of move
+ *      srcDest - MRF24W object that will either source or destination of move
  *      rawIsDestination - TRUE if RAW engine is the destination, FALSE if its the source
  *      size    - number of bytes to overlay (not always applicable)
  *
- *  NOTES: Performs a RAW move operation between a RAW engine and a MRF24WB0M object
+ *  NOTES: Performs a RAW move operation between a RAW engine and a MRF24W object
  *****************************************************************************/
  static UINT16 RawMove(UINT16   rawId,           
                        UINT16   srcDest,         
@@ -499,7 +507,8 @@ UINT16 RawGetIndex(UINT16 rawId)
 }
 
 
-extern UINT8 g_MgmtResponseInProgress;
+// #define OUTPUT_RAW_TX_RX   
+extern BOOL g_WaitingForMgmtResponse;
 /*****************************************************************************
  * FUNCTION: RawGetByte
  *
@@ -514,6 +523,7 @@ extern UINT8 g_MgmtResponseInProgress;
  *****************************************************************************/
 void RawGetByte(UINT16 rawId, UINT8 *pBuffer, UINT16 length)
 {
+    UINT8 regId;
 #if defined(OUTPUT_RAW_TX_RX)
 	char buf[8];
 #endif
@@ -530,26 +540,17 @@ void RawGetByte(UINT16 rawId, UINT8 *pBuffer, UINT16 length)
         }
     }
 
-    ReadWFArray(
-		(rawId == RAW_ID_0) ? RAW_0_DATA_REG : RAW_1_DATA_REG,
-		pBuffer,
-		length
-	);
+    regId = (rawId == RAW_ID_0) ? RAW_0_DATA_REG : RAW_1_DATA_REG;
+    ReadWFArray(regId, pBuffer, length);
 
 #if defined(OUTPUT_RAW_TX_RX)
-	TICK_STOP();
-	putrsUART("   Read[");
-	if (rawId == RAW_ID_0)
-		putrsUART("0]:");
-	else
-		putrsUART("1]:");
+	putrsUART("R:");
     while (length-- != 0)
     {
-        sprintf(buf,"%02X ", *pBuffer++);
+        sprintf(buf," %02X", *pBuffer++);
         putsUART(buf);
     }
 	putrsUART("\r\n");
-	TICK_START();
 #endif
 
 }
@@ -569,9 +570,11 @@ void RawGetByte(UINT16 rawId, UINT8 *pBuffer, UINT16 length)
  *****************************************************************************/
 void RawSetByte(UINT16 rawId, UINT8 *pBuffer, UINT16 length)
 {
+    UINT8 regId;
 #if defined(OUTPUT_RAW_TX_RX)
-	char buf[8];
+	char buf [8];
 #endif    
+
 
     /* if previously set index past legal range and now trying to write to RAW engine */
     if ( (rawId == 0) && g_rxIndexSetBeyondBuffer && (GetRawWindowState(RAW_TX_ID) == WF_RAW_DATA_MOUNTED) )
@@ -580,26 +583,17 @@ void RawSetByte(UINT16 rawId, UINT8 *pBuffer, UINT16 length)
     }
 
     /* write RAW data to chip */
-    WriteWFArray(
-		(rawId == RAW_ID_0) ? RAW_0_DATA_REG : RAW_1_DATA_REG,
-		pBuffer,
-		length
-	);
+    regId = (rawId == RAW_ID_0) ? RAW_0_DATA_REG : RAW_1_DATA_REG;
+    WriteWFArray(regId, pBuffer, length);
 
 #if defined(OUTPUT_RAW_TX_RX)
-	TICK_STOP();
-	putrsUART("  Write[");
-	if (rawId == RAW_ID_0)
-		putrsUART("0]:");
-	else
-		putrsUART("1]:");
+	putrsUART("T:");
     while (length-- != 0)
     {
-        sprintf(buf,"%02X ", *pBuffer++);
+        sprintf(buf," %02X", *pBuffer++);
         putsUART(buf);
     }
 	putrsUART("\r\n");
-	TICK_START();
 #endif
 
 }

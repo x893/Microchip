@@ -1,9 +1,9 @@
 /******************************************************************************
 
- MRF24WB0M Driver WiFi Console
+ MRF24W Driver WiFi Console
  Module for Microchip TCP/IP Stack
-  -Provides access to MRF24WB0M WiFi controller
-  -Reference: MRF24WB0M Data sheet, IEEE 802.11 Standard
+  -Provides access to MRF24W WiFi controller
+  -Reference: MRF24W Data sheet, IEEE 802.11 Standard
 
 *******************************************************************************
  FileName:		WFConsole.c
@@ -44,7 +44,7 @@
 
  Author				Date		Comment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- KH                 27 Jan 2010 Updated for MRF24WB0M
+ KH                 27 Jan 2010 Updated for MRF24W
 ******************************************************************************/
 
 //============================================================================
@@ -148,22 +148,22 @@ static  INT8 gTmpCmdLine[kConsoleMaxMsgSize];
 //============================================================================
 
 // VT100 escapse sequences that are output to the terminal
-static ROM INT8 cursorLeftEscapeSequence[]           = {kWFEscape, '[', '1', 'D', 0x00};
-static ROM INT8 cursorRightEscapeSequence[]          = {kWFEscape, '[', '1', 'C', 0x00};
-static ROM INT8 cursorHomeEscapeSequence[]           = {kWFEscape, '[', 'f', 0x00};
-static ROM INT8 eraseToEndOfLineEscapeSequence[]     = {kWFEscape, '[', 'K', 0x00};
-static ROM INT8 saveCursorPositionEscapeSequence[]   = {kWFEscape, '7', 0x00};
-static ROM INT8 restoreCursorPositionSequence[]      = {kWFEscape, '8', 0x00};
-static ROM INT8 eraseEntireLineEscapeSequence[]      = {kWFEscape, '[', '2', 'K', 0x00};
-static ROM INT8 eraseEntireScreenEscapeSequence[]    = {kWFEscape, '[', '2', 'J', 0x00};
-static ROM INT8 underlineModeEscapeSequence[]        = {kWFEscape, '[', '4', 'm', 0x00};
-static ROM INT8 normalModeEscapeSequence[]           = {kWFEscape, '[', 'm', 0x00};
-static ROM INT8 highlightModeEscapeSequence[]        = {kWFEscape, '[', '1', 'm', 0x00};
-static ROM INT8 inverseVideoEscapeSequence[]         = {kWFEscape, '[', '7', 'm', 0x00};
+ROM INT8 cursorLeftEscapeSequence[]           = {kWFEscape, '[', '1', 'D', 0x00};
+ROM INT8 cursorRightEscapeSequence[]          = {kWFEscape, '[', '1', 'C', 0x00};
+ROM INT8 cursorHomeEscapeSequence[]           = {kWFEscape, '[', 'f', 0x00};
+ROM INT8 eraseToEndOfLineEscapeSequence[]     = {kWFEscape, '[', 'K', 0x00};
+ROM INT8 saveCursorPositionEscapeSequence[]   = {kWFEscape, '7', 0x00};
+ROM INT8 restoreCursorPositionSequence[]      = {kWFEscape, '8', 0x00};
+ROM INT8 eraseEntireLineEscapeSequence[]      = {kWFEscape, '[', '2', 'K', 0x00};
+ROM INT8 eraseEntireScreenEscapeSequence[]    = {kWFEscape, '[', '2', 'J', 0x00};
+ROM INT8 underlineModeEscapeSequence[]        = {kWFEscape, '[', '4', 'm', 0x00};
+ROM INT8 normalModeEscapeSequence[]           = {kWFEscape, '[', 'm', 0x00};
+ROM INT8 highlightModeEscapeSequence[]        = {kWFEscape, '[', '1', 'm', 0x00};
+ROM INT8 inverseVideoEscapeSequence[]         = {kWFEscape, '[', '7', 'm', 0x00};
 
 // VT100 escape sequences that are input from the terminal
 // (note, if we ever use a longer sequence, update kWFMaxInputEscapeSequence)
-static ROM INT8 upArrowEscapeSequence[]     = {kWFEscape, 0x5b, 'A', 0x00};
+ROM INT8 upArrowEscapeSequence[]     = {kWFEscape, 0x5b, 'A', 0x00};
 static ROM INT8 downArrowEscapeSequence[]   = {kWFEscape, 0x5b, 'B', 0x00};
 static ROM INT8 rightArrowEscapeSequence[]  = {kWFEscape, 0x5b, 'C', 0x00};
 static ROM INT8 leftArrowEscapeSequence[]   = {kWFEscape, 0x5b, 'D', 0x00};
@@ -273,10 +273,10 @@ void WFConsoleInit(void)
 void WFConsoleProcess(void)
 {
     //UINT8 *pStart = &(cmdline[0]);
-    UINT16  rc;
+    //!!!UINT16  rc;
     INT8  c;
     static INT8 escape_sequence[kWFMaxInputEscapeSequence];
-    static INT8 esc_seq_index;
+    //!!!static INT8 esc_seq_index;
 
     // if this state machine has been disabled
     if (g_ConsoleContext.bStateMachineLoop == FALSE)
@@ -292,7 +292,8 @@ void WFConsoleProcess(void)
     }
 
     // if no character(s) received
-    if ( (rc = DataRdyUART() ) == 0u )
+    //!!!if ( (rc = DataRdyUART() ) == 0u )
+	if ( DataRdyUART() == 0u )
     {
         return;
     }
@@ -338,7 +339,7 @@ void WFConsoleProcess(void)
                 /* zero out escape buffer, init with ESC */
                 memset(escape_sequence, 0x00, sizeof(escape_sequence));
                 escape_sequence[0] = kWFEscape;
-                esc_seq_index = 1;
+                //!!!esc_seq_index = 1;
                 SET_RX_STATE(kSTWaitForEscSeqSecondChar);
             }
             // else if Ctrl C
@@ -400,11 +401,17 @@ void WFConsoleProcessEpilogue(void)
 {
     if (WFConsoleIsConsoleMsgReceived())
 	{
+		if (( memcmppgm2ram(ARGV[0], "iperf", 5) == 0 ) || ( memcmppgm2ram(ARGV[0], "kill", 4) == 0 ))
+		{
+    		return;
+        } 
+	
 		if ( memcmppgm2ram(ARGV[0], "help", 4) != 0 )
 		{
 			WFConsolePrintRomStr("Unknown cmd: ", FALSE);
 			WFConsolePrintRamStr(ARGV[0], TRUE);
 		}
+
 
 	    WFConsoleReleaseConsoleMsg();
 	}
@@ -483,7 +490,7 @@ void Output_Monitor_Hdr(void)
     putrsUART("\n\r");
     OutputLine('=', 79);
     putrsUART("* WiFi Host Interface Monitor\n\r");
-    putrsUART("* (c) 2008, 2009, 2010 -- Microchip Technology, Inc.\n\r");
+    putrsUART("* (c) 2008, 2009, 2010, 2011 -- Microchip Technology, Inc.\n\r");
     putrsUART("*\n\r* Type 'help' to get a list of commands.\n\r");
     OutputLine('=', 79);
     OutputCommandPrompt();
@@ -500,7 +507,6 @@ Returns: None
 ============================================================================*/
 static void OutputLine(INT8 lineChar, UINT8 count)
 {
-#if defined( STACK_USE_UART )
     UINT8 i;
 
     for (i = 0; i < count; ++i)
@@ -509,7 +515,6 @@ static void OutputLine(INT8 lineChar, UINT8 count)
         putcUART(lineChar);
     }
     putrsUART("\n\r");
-#endif
 }
 
 

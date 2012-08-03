@@ -1,6 +1,8 @@
 #ifndef __HARDWAREPROFILE_H__
 #define __HARDWAREPROFILE_H__
 
+#define __STM32F10X__
+
 #if defined( CFG_INCLUDE_MapleRET6_MRF24WB )
 
 	// Maple RET6

@@ -49,7 +49,7 @@
 #ifndef __TCPIP_HITECH_WORKAROUND_H
 #define __TCPIP_HITECH_WORKAROUND_H
 
-#define TCPIP_STACK_VERSION 		"v5.41"		// TCP/IP stack version
+#define TCPIP_STACK_VERSION 		"v5.42"		// TCP/IP stack version
 
 #include <string.h>
 #include <stdlib.h>
@@ -92,6 +92,8 @@
  *******************************************************************/
 
 #ifndef STACK_USE_MDD
+	
+	
 	
 	#if defined(STACK_USE_HTTP2_SERVER) || defined(STACK_USE_FTP_SERVER)
 		#define STACK_USE_MPFS2

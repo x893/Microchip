@@ -58,7 +58,9 @@
 
 #if !defined(__PACKED)
 	#if defined(__CC_ARM)
-		#define __attribute__(x)
+		#define __PACKED_P __packed
+	#else
+		#define __PACKED_P
 	#endif
 	#define __PACKED
 #endif
@@ -124,7 +126,7 @@ typedef union
 typedef union 
 {
     UINT16 Val;
-    UINT8 v[2] __PACKED;
+    __PACKED_P UINT8 v[2] __PACKED;
     struct __PACKED
     {
         UINT8 LB;
@@ -378,16 +380,16 @@ typedef union
     } bits;
 } BYTE_VAL, BYTE_BITS;
 
-typedef union
+typedef __PACKED_P union
 {
-    WORD Val;
-    BYTE v[2] __PACKED;
-    struct __PACKED
+    __PACKED_P WORD Val;
+    __PACKED_P BYTE v[2] __PACKED;
+    __PACKED_P struct __PACKED
     {
         BYTE LB;
         BYTE HB;
     } byte;
-    struct __PACKED
+    __PACKED_P struct __PACKED
     {
         __EXTENSION BYTE b0:1;
         __EXTENSION BYTE b1:1;
@@ -408,29 +410,29 @@ typedef union
     } bits;
 } WORD_VAL, WORD_BITS;
 
-typedef union
+typedef __PACKED_P union
 {
     DWORD Val;
-    WORD w[2] __PACKED;
-    BYTE v[4] __PACKED;
-    struct __PACKED
+    __PACKED_P WORD w[2] __PACKED;
+    __PACKED_P BYTE v[4] __PACKED;
+    __PACKED_P struct __PACKED
     {
         WORD LW;
         WORD HW;
     } word;
-    struct __PACKED
+    __PACKED_P struct __PACKED
     {
         BYTE LB;
         BYTE HB;
         BYTE UB;
         BYTE MB;
     } byte;
-    struct __PACKED
+    __PACKED_P struct __PACKED
     {
         WORD_VAL low;
         WORD_VAL high;
-    }wordUnion;
-    struct __PACKED
+    } wordUnion;
+    __PACKED_P struct __PACKED
     {
         __EXTENSION BYTE b0:1;
         __EXTENSION BYTE b1:1;

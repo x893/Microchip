@@ -53,7 +53,7 @@
 #include "GenericTypeDefs.h"
 #include "WirelessProtocols/Console.h"
 
-#if  defined(STM32F10X) || defined(__dsPIC30F__) || defined(__dsPIC33F__) || defined(__PIC24F__) || defined(__PIC24FK__) || defined(__PIC24H__) || defined(__PIC32MX__)
+#if defined(__STM32F10X__) || defined(__dsPIC30F__) || defined(__dsPIC33F__) || defined(__PIC24F__) || defined(__PIC24FK__) || defined(__PIC24H__) || defined(__PIC32MX__)
 
 /************************ FUNCTIONS ********************************/
 
@@ -76,7 +76,7 @@ void SPIPut(BYTE v)
 {
     #if !defined(HARDWARE_SPI)
 		BYTE i;
-		#if defined(STM32F10X)
+		#if defined(__STM32F10X__)
 			SPI_SDO_LOW();
 			SPI_SCK_LOW();
 			i = 0x80;
@@ -104,7 +104,7 @@ void SPIPut(BYTE v)
 			SPI_SDO = 0;
 		#endif
     #else
-		#if defined(__PIC32MX__) || defined(STM32F10X)
+		#if defined(__PIC32MX__) || defined(__STM32F10X__)
             putcSPI1(v);
             (BYTE)getcSPI1();
         #else
@@ -166,7 +166,7 @@ BYTE SPIGet(void)
 			return spidata;
 		#endif
     #else 
-        #if defined(__PIC32MX__) || defined(STM32F10X)
+        #if defined(__PIC32MX__) || defined(__STM32F10X__)
             BYTE dummy;
 
             putcSPI1(0x00);

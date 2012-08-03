@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+ 
+ <response>
+	<led0>~led(0)~</led0>
+	<led1>~led(1)~</led1>
+	<led2>~led(2)~</led2>
+	<btn0>~btn(0)~</btn0>
+ </response>

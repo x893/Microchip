@@ -9,11 +9,10 @@
 #include "TCPIP Stack/TCPIP.h"
 
 #if defined(STACK_USE_ZEROCONF_LINK_LOCAL)
-	#include "TCPIP_Stack/ZeroconfLinkLocal.h"
+#include "TCPIP Stack/ZeroconfLinkLocal.h"
 #endif
-
 #if defined(STACK_USE_ZEROCONF_MDNS_SD)
-	#include "TCPIP_Stack/ZeroconfMulticastDNS.h"
+#include "TCPIP Stack/ZeroconfMulticastDNS.h"
 #endif
 
 // Include functions specific to this stack application
@@ -29,13 +28,21 @@ BYTE AN0String[8];
 
 // Private helper functions.
 // These may or may not be present in all applications.
-static void InitAppConfig(void);
-static void InitializeBoard(void);
-static void ProcessIO(void);
+void InitAppConfig(void);
+void InitializeBoard(void);
+void ProcessIO(void);
 
 #if defined(WF_CS_TRIS)
-	static void WF_Connect(void);
-	extern BOOL gRFModuleVer1209orLater;
+    void WF_Connect(void);
+    #if !defined(MRF24WG)
+    extern BOOL gRFModuleVer1209orLater;
+    #endif
+	
+    #if defined(DERIVE_KEY_FROM_PASSPHRASE_IN_HOST)
+	tPassphraseReady g_WpsPassphrase;
+    #endif	/* defined(DERIVE_KEY_FROM_PASSPHRASE_IN_HOST) */
+
+	UINT8 ConnectionProfileID;
 #endif
 
 //
@@ -61,17 +68,12 @@ int main(void)
 	// Initialize stack-related hardware components that may be 
 	// required by the UART configuration routines
 	TickInit();
-
 #if defined(STACK_USE_MPFS2)
 	MPFSInit();
 #endif
 
 	// Initialize Stack and application related NV variables into AppConfig.
 	InitAppConfig();
-
-#if defined(STACK_USE_UART)
-		DoUARTConfig();
-#endif
 
 	// Initiates board setup process if button is depressed on startup
 	if (BUTTON0_PRESS())
@@ -108,6 +110,10 @@ int main(void)
 			}
 		}
 #endif
+
+		#if defined(STACK_USE_UART)
+        DoUARTConfig();
+		#endif
 	}
 
 	// Initialize core stack layers (MAC, ARP, TCP, UDP) and
@@ -115,6 +121,9 @@ int main(void)
 	StackInit();
 
 #if defined(WF_CS_TRIS)
+    #if defined(DERIVE_KEY_FROM_PASSPHRASE_IN_HOST)
+		g_WpsPassphrase.valid = FALSE;
+    #endif	/* defined(DERIVE_KEY_FROM_PASSPHRASE_IN_HOST) */
 	WF_Connect();
 #endif
 
@@ -194,7 +203,6 @@ int main(void)
 		// the inputs on the board itself.
 		// Any custom modules or processing you need to do should
 		// go here.
-
 #if defined(STACK_USE_GENERIC_TCP_CLIENT_EXAMPLE)
 		GenericTCPClient();
 #endif
@@ -243,7 +251,9 @@ int main(void)
 #if defined(STACK_USE_UART)
 			putrsUART((ROM char*)"\r\nNew IP Address: ");
 #endif
+
 			DisplayIPValue(AppConfig.MyIPAddr);
+
 #if defined(STACK_USE_UART)
 			putrsUART((ROM char*)"\r\n");
 #endif
@@ -272,133 +282,116 @@ int main(void)
 *****************************************************************************/
 static void WF_Connect(void)
 {
-	UINT8 ConnectionProfileID;
-	UINT8 channelList[] = MY_DEFAULT_CHANNEL_LIST;
-
-	/* create a Connection Profile */
-	WF_CPCreate(&ConnectionProfileID);
-
-#if defined(STACK_USE_UART)
-	putrsUART("Set SSID (");
-	putsUART(AppConfig.MySSID);
-	putrsUART(")\r\n");
-#endif
-	WF_CPSetSsid(
-		ConnectionProfileID,
-		AppConfig.MySSID,
-		AppConfig.SsidLength
-	);
-
-#if defined(STACK_USE_UART)
-	putrsUART("Set Network Type\r\n");
-#endif
-	WF_CPSetNetworkType(ConnectionProfileID, MY_DEFAULT_NETWORK_TYPE);
-
-#if defined(STACK_USE_UART)
-	putrsUART("Set Scan Type\r\n");
-#endif
-	WF_CASetScanType(MY_DEFAULT_SCAN_TYPE);
-
-#if defined(STACK_USE_UART)
-	putrsUART("Set Channel List\r\n");
-#endif
-	WF_CASetChannelList(channelList, sizeof(channelList));
-
-#if defined(STACK_USE_UART)
-	putrsUART("Set list retry count\r\n");
-#endif
-
-	// The Retry Count parameter tells the WiFi Connection manager how many attempts to make when trying
-	// to connect to an existing network.  In the Infrastructure case, the default is to retry forever so that
-	// if the AP is turned off or out of range, the radio will continue to attempt a connection until the
-	// AP is eventually back on or in range.  In the Adhoc case, the default is to retry 3 times since the 
-	// purpose of attempting to establish a network in the Adhoc case is only to verify that one does not
-	// initially exist.  If the retry count was set to WF_RETRY_FOREVER in the AdHoc mode, an AdHoc network
-	// would never be established.  The constants MY_DEFAULT_LIST_RETRY_COUNT_ADHOC and 
-	// MY_DEFAULT_LIST_RETRY_COUNT_INFRASTRUCTURE have been created specifically for the June 2011 MAL release.
-#if defined(EZ_CONFIG_STORE)
-	if (AppConfig.networkType == WF_ADHOC)
-		WF_CASetListRetryCount(MY_DEFAULT_LIST_RETRY_COUNT_ADHOC);
-	else
-		WF_CASetListRetryCount(MY_DEFAULT_LIST_RETRY_COUNT_INFRASTRUCTURE);
-#else
-	#if (MY_DEFAULT_NETWORK_TYPE == WF_ADHOC)
-		WF_CASetListRetryCount(MY_DEFAULT_LIST_RETRY_COUNT_ADHOC);
-	#else
-		WF_CASetListRetryCount(MY_DEFAULT_LIST_RETRY_COUNT_INFRASTRUCTURE);
-	#endif
-#endif
-
-#if defined(STACK_USE_UART)        
-	putrsUART("Set Event Notify\r\n");    
-#endif
+    UINT8 channelList[] = MY_DEFAULT_CHANNEL_LIST;
+ 
+    /* create a Connection Profile */
+    WF_CPCreate(&ConnectionProfileID);
+    WF_SetRegionalDomain(MY_DEFAULT_DOMAIN);  
+    WF_CPSetSsid(ConnectionProfileID, AppConfig.MySSID, AppConfig.SsidLength);
+    WF_CPSetNetworkType(ConnectionProfileID, MY_DEFAULT_NETWORK_TYPE);
+    WF_CASetScanType(MY_DEFAULT_SCAN_TYPE);
+    WF_CASetChannelList(channelList, sizeof(channelList));
+    
+    // The Retry Count parameter tells the WiFi Connection manager how many attempts to make when trying
+    // to connect to an existing network.  In the Infrastructure case, the default is to retry forever so that
+    // if the AP is turned off or out of range, the radio will continue to attempt a connection until the
+    // AP is eventually back on or in range.  In the Adhoc case, the default is to retry 3 times since the 
+    // purpose of attempting to establish a network in the Adhoc case is only to verify that one does not
+    // initially exist.  If the retry count was set to WF_RETRY_FOREVER in the AdHoc mode, an AdHoc network
+    // would never be established. 
+    WF_CASetListRetryCount(MY_DEFAULT_LIST_RETRY_COUNT);
 	WF_CASetEventNotificationAction(MY_DEFAULT_EVENT_NOTIFICATION_LIST);
+    WF_CASetBeaconTimeout(MY_DEFAULT_BEACON_TIMEOUT);
 
-#if defined(STACK_USE_UART)
-	putrsUART("Set Beacon Timeout\r\n");
-#endif
-
-	WF_CASetBeaconTimeout(40);
-
-	if (gRFModuleVer1209orLater)
-	{
-		// If WEP security is used, set WEP Key Type.  The default WEP Key Type is Shared Key.
-		if (AppConfig.SecurityMode == WF_SECURITY_WEP_40 || AppConfig.SecurityMode == WF_SECURITY_WEP_104)
-		{
-			WF_CPSetWepKeyType(ConnectionProfileID, MY_DEFAULT_WIFI_SECURITY_WEP_KEYTYPE);
+    #if !defined(MRF24WG)
+        if (gRFModuleVer1209orLater)
+        {
+	#else
+			// If WEP security is used, set WEP Key Type.  The default WEP Key Type is Shared Key.
+			if (AppConfig.SecurityMode == WF_SECURITY_WEP_40 || AppConfig.SecurityMode == WF_SECURITY_WEP_104)
+			{
+				WF_CPSetWepKeyType(ConnectionProfileID, MY_DEFAULT_WIFI_SECURITY_WEP_KEYTYPE);
+			}
+    #endif
+    #if !defined(MRF24WG)
 		}
-	}
+    #endif
 
-	/* Set Security */
-#if defined(STACK_USE_UART)
-	#if (MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_OPEN)
-		putrsUART("Set Security (Open)\r\n");
-	#elif (MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_WEP_40)
-		putrsUART("Set Security (WEP40)\r\n");
-	#elif (MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_WEP_104)
-		putrsUART("Set Security (WEP104)\r\n");
-	#elif MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_WPA_WITH_KEY 
-		putrsUART("Set Security (WPA with key)\r\n");
-	#elif MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_WPA2_WITH_KEY 
-		putrsUART("Set Security (WPA2 with key)\r\n");
-	#elif MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_WPA_WITH_PASS_PHRASE
-		putrsUART("Set Security (WPA with pass phrase)\r\n");
-	#elif MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_WPA2_WITH_PASS_PHRASE
-		putrsUART("Set Security (WPA2 with pass phrase)\r\n");    
-	#elif MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_WPA_AUTO_WITH_KEY
-		putrsUART("Set Security (WPA with key, auto-select)\r\n");
-	#elif MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_WPA_AUTO_WITH_PASS_PHRASE
-		putrsUART("Set Security (WPA with pass phrase, auto-select)\r\n");
-	#endif /* MY_DEFAULT_WIFI_SECURITY_MODE */
-#endif
+    #if defined(MRF24WG)
+        // Error check items specific to WPS Push Button mode 
+        #if (MY_DEFAULT_WIFI_SECURITY_MODE==WF_SECURITY_WPS_PUSH_BUTTON)
+		    #if !defined(WF_P2P)
+                WF_ASSERT(strlen(AppConfig.MySSID) == 0);  // SSID must be empty when using WPS
+                WF_ASSERT(sizeof(channelList)==11);        // must scan all channels for WPS       
+            #endif
 
-	WF_CPSetSecurity(ConnectionProfileID,
-		AppConfig.SecurityMode,
-		AppConfig.WepKeyIndex,   /* only used if WEP enabled */
-		AppConfig.SecurityKey,
-		AppConfig.SecurityKeyLength);
+			 #if (MY_DEFAULT_NETWORK_TYPE == WF_P2P)
+                WF_ASSERT(strcmp((char *)AppConfig.MySSID, "DIRECT-") == 0);
+                WF_ASSERT(sizeof(channelList) == 3);
+                WF_ASSERT(channelList[0] == 1);
+                WF_ASSERT(channelList[1] == 6);
+                WF_ASSERT(channelList[2] == 11);           
+            #endif
+        #endif    
 
-#if MY_DEFAULT_PS_POLL == WF_ENABLED
-	WF_PsPollEnable(TRUE);
-	if (gRFModuleVer1209orLater)
-		WFEnableDeferredPowerSave();
-#elif defined (WF_USE_POWER_SAVE_FUNCTIONS)
-	WF_PsPollDisable();
-#endif
+    #endif /* MRF24WG */
 
-#ifdef WF_AGGRESSIVE_PS
-	if (gRFModuleVer1209orLater)
-		WFEnableAggressivePowerSave();
-#endif
+    #if defined(DERIVE_KEY_FROM_PASSPHRASE_IN_HOST)
+		if (AppConfig.SecurityMode == WF_SECURITY_WPA_WITH_PASS_PHRASE
+			|| AppConfig.SecurityMode == WF_SECURITY_WPA2_WITH_PASS_PHRASE
+			|| AppConfig.SecurityMode == WF_SECURITY_WPA_AUTO_WITH_PASS_PHRASE)
+		{
+			WF_ConvPassphrase2Key(AppConfig.SecurityKeyLength, AppConfig.SecurityKey,
+				AppConfig.SsidLength, AppConfig.MySSID);
+			AppConfig.SecurityMode--;
+			AppConfig.SecurityKeyLength = 32;
+		}
+		#if defined (MRF24WG)
+		else if (AppConfig.SecurityMode == WF_SECURITY_WPS_PUSH_BUTTON
+				|| AppConfig.SecurityMode == WF_SECURITY_WPS_PIN)
+		{
+			WF_YieldPassphrase2Host();	
+		}
+		#endif	/* defined (MRF24WG) */
+    #endif	/* defined(DERIVE_KEY_FROM_PASSPHRASE_IN_HOST) */
 
-#if defined(STACK_USE_UART)                     
-	putrsUART("Start WiFi Connect\r\n");        
-#endif
+    WF_CPSetSecurity(ConnectionProfileID,
+                     AppConfig.SecurityMode,
+                     AppConfig.WepKeyIndex,   /* only used if WEP enabled */
+                     AppConfig.SecurityKey,
+                     AppConfig.SecurityKeyLength);
 
-	WF_CMConnect(ConnectionProfileID);
+    #if MY_DEFAULT_PS_POLL == WF_ENABLED
+		WF_PsPollEnable(TRUE);
+		#if !defined(MRF24WG) 
+        if (gRFModuleVer1209orLater)
+            WFEnableDeferredPowerSave();
+		#endif	/* !defined(MRF24WG) */
+	#else	/* MY_DEFAULT_PS_POLL != WF_ENABLED */
+		WF_PsPollDisable();
+    #endif	/* MY_DEFAULT_PS_POLL == WF_ENABLED */
+
+    #ifdef WF_AGGRESSIVE_PS
+		#if !defined(MRF24WG)
+        if (gRFModuleVer1209orLater)
+			WFEnableAggressivePowerSave();
+		#endif
+    #endif
+	
+    #if defined(STACK_USE_UART)  
+        WF_OutputConnectionInfo(&AppConfig);
+    #endif
+
+	#if defined(DISABLE_MODULE_FW_CONNECT_MANAGER_IN_INFRASTRUCTURE)
+		WF_DisableModuleConnectionManager();
+	#endif
+	
+    #if defined(MRF24WG)
+        WFEnableDebugPrint(ENABLE_WPS_PRINTS | ENABLE_P2P_PRINTS);
+    #endif
+    WF_CMConnect(ConnectionProfileID);
 }
 #endif /* WF_CS_TRIS */
-
 
 // Writes an IP address to the LCD display and the UART as available
 void DisplayIPValue(IP_ADDR IPVal)
@@ -446,7 +439,7 @@ void DisplayIPValue(IP_ADDR IPVal)
 }
 
 // Processes A/D data from the potentiometer
-static void ProcessIO(void)
+void ProcessIO(void)
 {
 	// Convert 10-bit value into ASCII string
 	uitoa(12345, AN0String);
@@ -474,18 +467,11 @@ None
 Remarks:
 None
 ***************************************************************************/
-static void InitializeBoard(void)
+void InitializeBoard(void)
 {
 #if defined(STACK_USE_UART)
 	USART_InitTypeDef USART_InitStructure;
 #endif
-
-	RCC_APB2PeriphClockCmd(
-		RCC_APB2Periph_GPIOA	|
-		RCC_APB2Periph_GPIOB	|
-		RCC_APB2Periph_GPIOC	|
-		RCC_APB2Periph_AFIO, ENABLE
-	);
 
 	BOARD_INIT();
 
@@ -538,10 +524,10 @@ static void InitializeBoard(void)
 // that locate the MAC address at 0x1FFF0.  Syntax below is for MPLAB C 
 // Compiler for PIC18 MCUs. Syntax will vary for other compilers.
 //#pragma romdata MACROM=0x1FFF0
-static ROM BYTE SerializedMACAddress[6] = {MY_DEFAULT_MAC_BYTE1, MY_DEFAULT_MAC_BYTE2, MY_DEFAULT_MAC_BYTE3, MY_DEFAULT_MAC_BYTE4, MY_DEFAULT_MAC_BYTE5, MY_DEFAULT_MAC_BYTE6};
+ROM BYTE SerializedMACAddress[6] = {MY_DEFAULT_MAC_BYTE1, MY_DEFAULT_MAC_BYTE2, MY_DEFAULT_MAC_BYTE3, MY_DEFAULT_MAC_BYTE4, MY_DEFAULT_MAC_BYTE5, MY_DEFAULT_MAC_BYTE6};
 //#pragma romdata
 
-static void InitAppConfig(void)
+void InitAppConfig(void)
 {
 #if defined(EEPROM_CS_TRIS) || defined(SPIFLASH_CS_TRIS)
 	unsigned char vNeedToSaveDefaults = 0;
@@ -554,7 +540,7 @@ static void InitAppConfig(void)
 		memset((void*)&AppConfig, 0x00, sizeof(AppConfig));
 
 		AppConfig.Flags.bIsDHCPEnabled = FALSE; //! TRUE;
-		AppConfig.Flags.bInConfigMode = TRUE;
+		AppConfig.Flags.bInConfigMode = FALSE;
 		memcpypgm2ram((void*)&AppConfig.MyMACAddr, (ROM void*)SerializedMACAddress, sizeof(AppConfig.MyMACAddr));
 		//		{
 		//			_prog_addressT MACAddressAddress;
@@ -571,7 +557,7 @@ static void InitAppConfig(void)
 
 
 		// SNMP Community String configuration
-#if defined(STACK_USE_SNMP_SERVER)
+	#if defined(STACK_USE_SNMP_SERVER)
 		{
 			BYTE i;
 			static ROM char * ROM cReadCommunities[] = SNMP_READ_COMMUNITIES;
@@ -611,56 +597,64 @@ static void InitAppConfig(void)
 				strcpypgm2ram((char*)AppConfig.writeCommunity[i], strCommunity);
 			}
 		}
-#endif
+	#endif
 
 		// Load the default NetBIOS Host Name
 		memcpypgm2ram(AppConfig.NetBIOSName, (ROM void*)MY_DEFAULT_HOST_NAME, 16);
 		FormatNetBIOSName(AppConfig.NetBIOSName);
 
-#if defined(WF_CS_TRIS)
+	#if defined(WF_CS_TRIS)
 		// Load the default SSID Name
 		WF_ASSERT(sizeof(MY_DEFAULT_SSID_NAME) <= sizeof(AppConfig.MySSID));
 		memcpypgm2ram(AppConfig.MySSID, (ROM void*)MY_DEFAULT_SSID_NAME, sizeof(MY_DEFAULT_SSID_NAME));
 		AppConfig.SsidLength = sizeof(MY_DEFAULT_SSID_NAME) - 1;
-
+	
 		AppConfig.SecurityMode = MY_DEFAULT_WIFI_SECURITY_MODE;
-		AppConfig.WepKeyIndex  = MY_DEFAULT_WEP_KEY_INDEX;
+	        
+		#if (MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_OPEN)
+			memset(AppConfig.SecurityKey, 0x00, sizeof(AppConfig.SecurityKey));
+			AppConfig.SecurityKeyLength = 0;
+	
+		#elif MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_WEP_40
+			AppConfig.WepKeyIndex  = MY_DEFAULT_WEP_KEY_INDEX;
+			memcpypgm2ram(AppConfig.SecurityKey, (ROM void*)MY_DEFAULT_WEP_KEYS_40, sizeof(MY_DEFAULT_WEP_KEYS_40) - 1);
+			AppConfig.SecurityKeyLength = sizeof(MY_DEFAULT_WEP_KEYS_40) - 1;
+	
+		#elif MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_WEP_104
+			AppConfig.WepKeyIndex  = MY_DEFAULT_WEP_KEY_INDEX;
+			memcpypgm2ram(AppConfig.SecurityKey, (ROM void*)MY_DEFAULT_WEP_KEYS_104, sizeof(MY_DEFAULT_WEP_KEYS_104) - 1);
+			AppConfig.SecurityKeyLength = sizeof(MY_DEFAULT_WEP_KEYS_104) - 1;
+	
+		#elif (MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_WPA_WITH_KEY)       || \
+			  (MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_WPA2_WITH_KEY)      || \
+			  (MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_WPA_AUTO_WITH_KEY)
+			memcpypgm2ram(AppConfig.SecurityKey, (ROM void*)MY_DEFAULT_PSK, sizeof(MY_DEFAULT_PSK) - 1);
+			AppConfig.SecurityKeyLength = sizeof(MY_DEFAULT_PSK) - 1;
+	
+		#elif (MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_WPA_WITH_PASS_PHRASE)     || \
+			  (MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_WPA2_WITH_PASS_PHRASE)    || \
+			  (MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_WPA_AUTO_WITH_PASS_PHRASE)
+			memcpypgm2ram(AppConfig.SecurityKey, (ROM void*)MY_DEFAULT_PSK_PHRASE, sizeof(MY_DEFAULT_PSK_PHRASE) - 1);
+			AppConfig.SecurityKeyLength = sizeof(MY_DEFAULT_PSK_PHRASE) - 1;
+		#elif (MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_WPS_PUSH_BUTTON)
+			memset(AppConfig.SecurityKey, 0x00, sizeof(AppConfig.SecurityKey));
+			AppConfig.SecurityKeyLength = 0;
+		#elif (MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_WPS_PIN)
+			memcpypgm2ram(AppConfig.SecurityKey, (ROM void*)MY_DEFAULT_WPS_PIN, sizeof(MY_DEFAULT_WPS_PIN) - 1);
+			AppConfig.SecurityKeyLength = sizeof(MY_DEFAULT_WPS_PIN) - 1;
+		#elif (MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_EAP)
+			memset(AppConfig.SecurityKey, 0x00, sizeof(AppConfig.SecurityKey));
+			AppConfig.SecurityKeyLength = 0;
+		#else 
+			#error "No security defined"
+		#endif /* MY_DEFAULT_WIFI_SECURITY_MODE */
 
-#if (MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_OPEN)
-		memset(AppConfig.SecurityKey, 0x00, sizeof(AppConfig.SecurityKey));
-		AppConfig.SecurityKeyLength = 0;
-
-#elif MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_WEP_40
-		memcpypgm2ram(AppConfig.SecurityKey, (ROM void*)MY_DEFAULT_WEP_KEYS_40, sizeof(MY_DEFAULT_WEP_KEYS_40) - 1);
-		AppConfig.SecurityKeyLength = sizeof(MY_DEFAULT_WEP_KEYS_40) - 1;
-
-#elif MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_WEP_104
-		memcpypgm2ram(AppConfig.SecurityKey, (ROM void*)MY_DEFAULT_WEP_KEYS_104, sizeof(MY_DEFAULT_WEP_KEYS_104) - 1);
-		AppConfig.SecurityKeyLength = sizeof(MY_DEFAULT_WEP_KEYS_104) - 1;
-
-#elif (MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_WPA_WITH_KEY)	|| \
-	(MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_WPA2_WITH_KEY)	|| \
-	(MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_WPA_AUTO_WITH_KEY)
-		memcpypgm2ram(AppConfig.SecurityKey, (ROM void*)MY_DEFAULT_PSK, sizeof(MY_DEFAULT_PSK) - 1);
-		AppConfig.SecurityKeyLength = sizeof(MY_DEFAULT_PSK) - 1;
-
-#elif	(MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_WPA_WITH_PASS_PHRASE)		|| \
-		(MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_WPA2_WITH_PASS_PHRASE)	|| \
-		(MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_WPA_AUTO_WITH_PASS_PHRASE)
-		memcpypgm2ram(AppConfig.SecurityKey, (ROM void*)MY_DEFAULT_PSK_PHRASE, sizeof(MY_DEFAULT_PSK_PHRASE) - 1);
-		AppConfig.SecurityKeyLength = sizeof(MY_DEFAULT_PSK_PHRASE) - 1;
-
-#else 
-#error "No security defined"
-#endif /* MY_DEFAULT_WIFI_SECURITY_MODE */
-
-#endif
+	#endif
 
 		// Compute the checksum of the AppConfig defaults as loaded from ROM
-		//! wOriginalAppConfigChecksum = CalcIPChecksum((BYTE*)&AppConfig, sizeof(AppConfig));
 		CalcIPChecksum((BYTE*)&AppConfig, sizeof(AppConfig));
 
-#if defined(EEPROM_CS_TRIS) || defined(SPIFLASH_CS_TRIS)
+	#if defined(EEPROM_CS_TRIS) || defined(SPIFLASH_CS_TRIS)
 		{
 			NVM_VALIDATION_STRUCT NVMValidationStruct;
 
@@ -670,17 +664,17 @@ static void InitAppConfig(void)
 				SaveAppConfig(&AppConfig);
 
 			// Read the NVMValidation record and AppConfig struct out of EEPROM/Flash
-#if defined(EEPROM_CS_TRIS)
+		#if defined(EEPROM_CS_TRIS)
 			{
 				XEEReadArray(0x0000, (BYTE*)&NVMValidationStruct, sizeof(NVMValidationStruct));
 				XEEReadArray(sizeof(NVMValidationStruct), (BYTE*)&AppConfig, sizeof(AppConfig));
 			}
-#elif defined(SPIFLASH_CS_TRIS)
+		#elif defined(SPIFLASH_CS_TRIS)
 			{
 				SPIFlashReadArray(0x0000, (BYTE*)&NVMValidationStruct, sizeof(NVMValidationStruct));
 				SPIFlashReadArray(sizeof(NVMValidationStruct), (BYTE*)&AppConfig, sizeof(AppConfig));
 			}
-#endif
+		#endif
 
 			// Check EEPROM/Flash validitity.  If it isn't valid, set a flag so 
 			// that we will save the ROM default values on the next loop 
@@ -712,7 +706,7 @@ static void InitAppConfig(void)
 			// use the contents loaded from EEPROM/Flash.
 			break;
 		}
-#endif
+	#endif
 		break;
 	}
 }

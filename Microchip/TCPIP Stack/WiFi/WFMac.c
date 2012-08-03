@@ -1,9 +1,9 @@
 /******************************************************************************
 
- MRF24WB0M Driver Medium Access Control (MAC) Layer
+ MRF24W Driver Medium Access Control (MAC) Layer
  Module for Microchip TCP/IP Stack
-  -Provides access to MRF24WB0M WiFi controller
-  -Reference: MRF24WB0M Data sheet, IEEE 802.11 Standard
+  -Provides access to MRF24W WiFi controller
+  -Reference: MRF24W Data sheet, IEEE 802.11 Standard
 
 *******************************************************************************
  FileName:		WFMac.c
@@ -61,17 +61,17 @@
 
 #include "TCPIP Stack/TCPIP.h"
 
+#if defined( WF_CONSOLE )
+#include "TCPIP Stack/WFConsole.h"
+#include "IperfApp.h"
+#endif 
+
 
 /*
 *********************************************************************************************************
 *                                           DEFINES                               
 *********************************************************************************************************
 */
-
-#ifdef	WF_HOST_SCAN
-extern BOOL gHostScanNotAllowed;
-extern UINT8 hostScanProfileID;
-#endif
 
 /* used for assertions */
 #if defined(WF_DEBUG)
@@ -103,7 +103,7 @@ extern UINT8 hostScanProfileID;
 
 //============================================================================
 //                                  Rx/Tx Buffer Constants
-// Used to correlate former Ethernet packets to MRF24WB0M packets.
+// Used to correlate former Ethernet packets to MRF24W packets.
 //============================================================================
 #define ENC_RX_BUF_TO_RAW_RX_BUF_ADJUSTMENT          ((RXSTART + ENC_PREAMBLE_SIZE)   - (ENC_PREAMBLE_OFFSET   + WF_RX_PREAMBLE_SIZE))
 #define ENC_TX_BUF_TO_RAW_TX_BUF_ADJUSTMENT          ((TXSTART + WF_TX_PREAMBLE_SIZE) - (WF_TX_PREAMBLE_OFFSET + WF_TX_PREAMBLE_SIZE))
@@ -128,6 +128,9 @@ extern UINT8 hostScanProfileID;
 *                                           LOCAL DATA TYPES                               
 *********************************************************************************************************
 */
+#if defined( WF_CONSOLE_IFCFGUTIL )
+extern tWFHibernate WF_hibernate;
+#endif
 
 typedef struct
 {
@@ -158,6 +161,8 @@ typedef struct
 {
     UINT8  reserved[4];
 } tWFTxPreamble;
+
+
 
 
 /*
@@ -194,6 +199,12 @@ BOOL g_rxIndexSetBeyondBuffer;        // debug -- remove after test
 
 static BOOL isMgmtTxBufAvailable(void);
 static UINT16 MACIFService(void);
+
+#if defined ( WF_CONSOLE ) && defined ( EZ_CONFIG_SCAN ) && !defined(__18CXX)
+extern void WFDisplayScanMgr(void);
+#endif
+
+extern void WF_Connect(void);
 
 /*****************************************************************************
  * FUNCTION: SyncENCPtrRAWState
@@ -252,7 +263,7 @@ static void SyncENCPtrRAWState(UINT8 encPtrId)
                 maxAllowedTicks = TICKS_PER_SECOND * 6;  /* 2 second timeout, needed if data traffic and scanning occurring */
                 startTickCount = (UINT32)TickGet();
                 
-                /* Retry until MRF24WB0M has drained it's prior TX pkts -  multiple sockets & flows can load the MRF24W10 */
+                /* Retry until MRF24W has drained it's prior TX pkts -  multiple sockets & flows can load the MRF24W10 */
                 /* The AllocateDataTxBuffer call may not succeed immediately.                                              */
                 while ( !AllocateDataTxBuffer(MCHP_DATA_PACKET_SIZE) )
                 {
@@ -392,8 +403,9 @@ static void SyncENCPtrRAWState(UINT8 encPtrId)
 #if defined(STACK_CLIENT_MODE) && defined(USE_GRATUITOUS_ARP)
 //following is the workaround algorithm for the 11Mbps broadcast bugfix
 
-extern void ARPResolve(IP_ADDR* IPAddr);
+extern BOOL ARPSendPkt(DWORD SrcIPAddr, DWORD DestIPAddr, BYTE op_req );
 int WFArpBroadcastIntervalSec = 5; //interval in seconds, default to 5, can be changed
+
 /*****************************************************************************
  * FUNCTION: WFPeriodicGratuitousArp
  *
@@ -410,6 +422,7 @@ int WFArpBroadcastIntervalSec = 5; //interval in seconds, default to 5, can be c
 void WFPeriodicGratuitousArp(void)
 {
 	static DWORD oldTime = 0, currTime;
+	static BYTE op_req = ARP_OPERATION_REQ;
 
     if (!MACIsLinked())
     {
@@ -423,7 +436,8 @@ void WFPeriodicGratuitousArp(void)
 		 ((currTime - oldTime) > WFArpBroadcastIntervalSec*TICK_SECOND)
 		)
 	{
-		ARPResolve(&(AppConfig.MyIPAddr));	
+        op_req = op_req == ARP_OPERATION_REQ ? ARP_OPERATION_RESP : ARP_OPERATION_REQ;
+		ARPSendPkt(*(DWORD *)&AppConfig.MyIPAddr, *(DWORD *)&AppConfig.MyIPAddr, op_req );	
 		oldTime = currTime;
 	}
 }
@@ -442,11 +456,67 @@ void WFPeriodicGratuitousArp(void)
 void MACProcess(void)
 {
     
-	//UINT8	profileIDState;
-
     // Let 802.11 processes have a chance to run
     WFProcess();
     
+	#if defined( WF_CONSOLE_IFCFGUTIL )
+ 	  	if (WF_hibernate.wakeup_notice && WF_hibernate.state == WF_HB_WAIT_WAKEUP) 
+     	{
+		    DelayMs(200);
+	
+    		WF_hibernate.state = WF_HB_NO_SLEEP;
+    		StackInit();
+        	#if defined(WF_CONSOLE) && !defined(STACK_USE_EZ_CONFIG)
+    		    IperfAppInit();
+    		#endif
+    
+    		WF_Connect();
+		}
+	#endif
+	
+	
+    #if defined(WF_CONSOLE_DEMO)
+        IperfAppCall();
+    #endif
+
+#if !defined (WF_EASY_CONFIG_DEMO)
+    #if defined(WF_CONSOLE_IFCFGUTIL) 
+    wait_console_input:
+    #endif
+           
+    #if defined(WF_CONSOLE)
+		WFConsoleProcess();
+		#if defined( WF_CONSOLE_IFCFGUTIL )
+    		if (WF_hibernate.state == WF_HB_NO_SLEEP)
+    			IperfAppCall();
+    		#elif !defined(STACK_USE_EZ_CONFIG)
+    			IperfAppCall();
+    		#endif
+    		WFConsoleProcessEpilogue();
+	#endif
+    
+	#if defined( WF_CONSOLE_IFCFGUTIL )
+		if (WF_hibernate.state != WF_HB_NO_SLEEP) 
+    	{
+			if (WF_hibernate.state == WF_HB_ENTER_SLEEP) 
+    		{
+				SetLogicalConnectionState(FALSE);
+                #if defined(WF_USE_POWER_SAVE_FUNCTIONS)
+				    WF_HibernateEnable();
+                #endif
+				WF_hibernate.state = WF_HB_WAIT_WAKEUP;
+			}
+			if (WF_hibernate.wakeup_notice) 
+			{
+				//continue;
+			}	
+			else
+			{
+				goto wait_console_input;
+            }				
+		}
+	#endif 		    
+#endif /* !defined (WF_EASY_CONFIG_DEMO) */
 
     /* SG. Deadlock avoidance code when two applications contend for the one tx pipe                              */
     /* ApplicationA is a data plane application, and applicationB is a control plane application                  */
@@ -465,7 +535,7 @@ void MACProcess(void)
     {
         if ( GetRawWindowState(RAW_TX_ID) == WF_RAW_DATA_MOUNTED )
         {
-            /* deallocate the RAW on MRF24WB0M - return memory to pool */
+            /* deallocate the RAW on MRF24W - return memory to pool */
             DeallocateDataTxBuffer();
 
             if ( g_encPtrRAWId[ENC_RD_PTR_ID] == RAW_RX_ID )
@@ -493,25 +563,6 @@ void MACProcess(void)
 	//following is the workaround algorithm for the 11Mbps broadcast bugfix
 	WFPeriodicGratuitousArp();
 #endif 	
-
-/* Don't do this checking here to avoid inadversely clearing this gHostScanNotAllowed
- * flag.  This should be handled at a higher level.
-#ifdef	WF_HOST_SCAN
-	if (gHostScanNotAllowed) 
-	{
-	   	WF_CMCheckConnectionState(&profileIDState, &hostScanProfileID);
-		if (profileIDState == WF_CSTATE_CONNECTION_IN_PROGRESS || profileIDState == WF_CSTATE_RECONNECTION_IN_PROGRESS)
-		{
-			gHostScanNotAllowed = TRUE;
-		}	
-		else
-		{
-			gHostScanNotAllowed = FALSE;	
-		}	
-	}
-#endif
-*/
-
 }
 
 #if 0
@@ -552,7 +603,7 @@ UINT16 WFGetTCBSize(void)
  * Side Effects:    None
  *
  * Overview:        MACInit sets up the PIC's SPI module and all the
- *                  registers in the MRF24WB0M so that normal operation can
+ *                  registers in the MRF24W so that normal operation can
  *                  begin.
  *
  * Note:            None
@@ -648,10 +699,6 @@ BOOL MACIsTxReady(void)
 {
     BOOL result = TRUE;
 
-    /* Ensure the MRF24WB0M is awake (only applies if PS-Poll was enabled) */
-    EnsureWFisAwake();
-
-
     /* if waiting for a management response then block data tx until */
     /* mgmt response received                                        */
     if (isRawRxMgmtInProgress())
@@ -746,15 +793,13 @@ static BOOL isMgmtTxBufAvailable(void)
 
 }
 
-BOOL SendRAWManagementFrame(UINT16 bufLen)
+void SendRAWManagementFrame(UINT16 bufLen)
 {
     /* Instruct WF chip to transmit the packet data in the raw window */
     RawSendTxBuffer(bufLen);
 
     /* let tx buffer be reused (for either data or management tx) */
     WFFreeMgmtTx();
-
-    return TRUE;
 }
 
 
@@ -884,7 +929,7 @@ WORD MACGetFreeRxSize(void)
  * PARAMS:  None
  *
  *  NOTES: Called by MACGetHeader() to see if any data packets have been received.
- *         If the MRF24WB0M has received a data packet and the data packet is not
+ *         If the MRF24W has received a data packet and the data packet is not
  *         a management data packet, then this function returns the number of
  *         bytes in the data packet. Otherwise it returns 0.
  *****************************************************************************/
@@ -903,9 +948,6 @@ static UINT16 MACIFService(void)
     
     
     g_HostRAWDataPacketReceived = FALSE; /* clear flag for next data packet */
-
-    // made it here if RAW rx data packet to handle, so make sure MRF24WB0M is awake
-    EnsureWFisAwake();        
 
     /* Mount Read FIFO to RAW Rx window.  Allows use of RAW engine to read rx data packet. */
     /* Function call returns number of bytes in the data packet.                           */
@@ -955,7 +997,6 @@ BOOL MACGetHeader(MAC_ADDR *remote, BYTE* type)
     /* if we currently have a rx buffer mounted then we need to save it */
     if ( GetRawWindowState(RAW_RX_ID) == WF_RAW_DATA_MOUNTED )
     {
-        EnsureWFisAwake();
         /* save state of Rx RAW window */
         PushRawWindow(RAW_RX_ID);
     }
@@ -1132,6 +1173,8 @@ void MACFlush(void)
     /* can't send a tx packet of 0 bytes! */
     WF_ASSERT(g_txPacketLength != 0);
 
+     /* Ensure the MRF24W is awake (only applies if PS-Poll was enabled) */
+    EnsureWFisAwake();
     SendRAWDataFrame(g_txPacketLength);
     
     // make sure to de-sync any affected pointers
@@ -1314,6 +1357,9 @@ void MACMemCopyAsync(PTR_BASE destAddr, PTR_BASE sourceAddr, WORD len)
     UINT16 bytesLeft;
     UINT16 origRawIndex;
 
+
+    EnsureWFisAwake();   
+    
     if( ((WORD_VAL*)&destAddr)->bits.b15 )
     {
         updateWritePointer = TRUE;
@@ -1470,6 +1516,8 @@ void MACMemCopyAsync(PTR_BASE destAddr, PTR_BASE sourceAddr, WORD len)
         g_encIndex[ENC_WT_PTR_ID] = writeSave;
         SyncENCPtrRAWState(ENC_WT_PTR_ID);
     }
+    
+    
 } /* end MACMemCopyAsync */
 
 
@@ -1570,7 +1618,7 @@ WORD MACGetArray(BYTE *val, WORD len)
  * PreCondition:    SPI bus must be initialized (done in MACInit()).
  *                  EWRPT must point to the location to begin writing.
  *
- * Input:           Byte to write into the MRF24WB0M buffer memory
+ * Input:           Byte to write into the MRF24W buffer memory
  *
  * Output:          None
  *
@@ -1584,7 +1632,9 @@ WORD MACGetArray(BYTE *val, WORD len)
  *****************************************************************************/
 void MACPut(BYTE val)
 {
-    UINT8 byte = val;
+    UINT8 byte;
+    
+    byte = val;
 
     if ( g_encPtrRAWId[ENC_WT_PTR_ID] == RAW_INVALID_ID )
     {
@@ -1611,7 +1661,7 @@ void MACPut(BYTE val)
  * Side Effects:    None
  *
  * Overview:        MACPutArray writes several sequential bytes to the
- *                  MRF24WB0M RAM.  It performs faster than multiple MACPut()
+ *                  MRF24W RAM.  It performs faster than multiple MACPut()
  *                  calls.  EWRPT is incremented by len.
  *
  * Note:            None
@@ -1643,7 +1693,7 @@ void MACPutArray(BYTE *val, WORD len)
  * Side Effects:    None
  *
  * Overview:        MACPutArray writes several sequential bytes to the
- *                  MRF24WB0M RAM.  It performs faster than multiple MACPut()
+ *                  MRF24W RAM.  It performs faster than multiple MACPut()
  *                  calls.  EWRPT is incremented by len.
  *
  * Note:            None
@@ -1663,6 +1713,81 @@ void MACPutROMArray(ROM BYTE *val, WORD len)
 #endif
 
 
+/*****************************************************************************
+  Function:
+	WORD CalcIPBufferChecksum(WORD len)
+
+  Summary:
+	Calculates an IP checksum in the MAC buffer itself.
+
+  Description:
+	This function calculates an IP checksum over an array of input data 
+	existing in the MAC buffer.  The checksum is the 16-bit one's complement 
+	of one's complement sum of all words in the data (with zero-padding if 
+	an odd number of bytes are summed).  This checksum is defined in RFC 793.
+
+  Precondition:
+	TCP is initialized and the MAC buffer pointer is set to the start of
+	the buffer.
+
+  Parameters:
+	len - number of bytes to be checksummed
+
+  Returns:
+	The calculated checksum.
+
+  Remarks:
+	All Microchip MACs should perform this function in hardware.
+  ***************************************************************************/
+WORD CalcIPBufferChecksum(WORD len)
+{
+    DWORD_VAL Checksum;
+    
+    BYTE DataBuffer[20]; // Must be an even size
+    WORD ChunkLen;
+    WORD *DataPtr;
+
+    Checksum.w[0] = 0;  
+    Checksum.w[1] = 0;
+    while(len)
+    {
+        // Obtain a chunk of data (less SPI overhead compared 
+        // to requesting one byte at a time)
+        ChunkLen = len > sizeof(DataBuffer) ? sizeof(DataBuffer) : len;
+        MACGetArray(DataBuffer, ChunkLen);
+        len -= ChunkLen;
+
+        // Take care of a last odd numbered data byte
+        if(((WORD_VAL*)&ChunkLen)->bits.b0)
+        {
+            DataBuffer[ChunkLen] = 0x00;
+            ChunkLen++;
+        }
+
+        // Calculate the checksum over this chunk
+        DataPtr = (WORD*)&DataBuffer[0];
+        while(ChunkLen)
+        {
+            Checksum.Val += *DataPtr++;
+            ChunkLen -= 2;
+        }
+    }
+
+    // Do an end-around carry (one's complement arrithmatic)
+    Checksum.Val = (DWORD)Checksum.w[0] + (DWORD)Checksum.w[1];
+
+    // Do another end-around carry in case if the prior add 
+    // caused a carry out
+    Checksum.w[0] += Checksum.w[1];
+
+    // Return the resulting checksum
+    Checksum.w[0] = ~Checksum.w[0];
+
+    return Checksum.w[0];
+}
+
+
+
 /******************************************************************************
  * Function:        void MACPowerDown(void)
  *
@@ -1674,7 +1799,7 @@ void MACPutROMArray(ROM BYTE *val, WORD len)
  *
  * Side Effects:    None
  *
- * Overview:        MACPowerDown puts the MRF24WB0M in low power sleep mode. In
+ * Overview:        MACPowerDown puts the MRF24W in low power sleep mode. In
  *                  sleep mode, no packets can be transmitted or received.
  *                  All MAC and PHY registers should not be accessed.
  *
@@ -1698,7 +1823,7 @@ void MACPowerDown(void)
  *
  * Side Effects:    None
  *
- * Overview:        MACPowerUp returns the MRF24WB0M back to normal operation
+ * Overview:        MACPowerUp returns the MRF24W back to normal operation
  *                  after a previous call to MACPowerDown().  Calling this
  *                  function when already powered up will have no effect.
  *

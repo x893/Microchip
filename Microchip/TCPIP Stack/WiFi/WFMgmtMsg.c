@@ -1,9 +1,9 @@
 /******************************************************************************
 
- MRF24WB0M Driver Management Messages
+ MRF24W Driver Management Messages
  Module for Microchip TCP/IP Stack
-  -Provides access to MRF24WB0M WiFi controller
-  -Reference: MRF24WB0M Data sheet, IEEE 802.11 Standard
+  -Provides access to MRF24W WiFi controller
+  -Reference: MRF24W Data sheet, IEEE 802.11 Standard
 
 *******************************************************************************
  FileName:		WFMgmtMsg.c
@@ -44,7 +44,7 @@
 
  Author				Date		Comment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- KH                 27 Jan 2010 Created for MRF24WB0M
+ KH                 27 Jan 2010 Created for MRF24W
 ******************************************************************************/
 
 /*
@@ -78,13 +78,9 @@
 *********************************************************************************************************
 */
 
-BOOL gHostScanNotAllowed = FALSE;			// Flag for Host Scan
-
 static volatile BOOL gMgmtConfirmMsgReceived  = FALSE;
 static BOOL RestoreRxData = FALSE;
-static BOOL g_IgnoreNextMgmtResult = FALSE;
-
-BOOL g_WaitingForMgmtResponse = FALSE;
+UINT8 g_WaitingForMgmtResponse = FALSE;
 
 #if defined(WF_DEBUG)
    static UINT8 g_FuncFlags = 0x00;  
@@ -109,8 +105,14 @@ void SendMgmtMsg(UINT8 *p_header,
                  UINT8 *p_data,
                  UINT8 dataLength)
 {
+    #if defined(__18CXX)
+        static UINT32  startTickCount;   
+        static UINT32  maxAllowedTicks;  
+    #else
     UINT32  startTickCount;
     UINT32  maxAllowedTicks;
+    #endif
+
 
     /* cannot send management messages while in WF_ProcessEvent() */
     WF_ASSERT(!isInWFProcessEvent());
@@ -126,7 +128,7 @@ void SendMgmtMsg(UINT8 *p_header,
     }    
 
 
-    /* mounts a tx mgmt buffer on the MRF24WB0M when data tx is done */
+    /* mounts a tx mgmt buffer on the MRF24W when data tx is done */
     maxAllowedTicks = TICKS_PER_SECOND / 200;  /* 5 ms timeout */
     startTickCount = (UINT32)TickGet();
     while (!WFisTxMgmtReady() )
@@ -151,7 +153,7 @@ void SendMgmtMsg(UINT8 *p_header,
         RawSetByte(RAW_TX_ID, p_data, dataLength);         
     }  
 
-    /* send mgmt msg to MRF24WB0M */
+    /* send mgmt msg to MRF24W */
     SendRAWManagementFrame(headerLength + dataLength);
 }                           
 
@@ -171,12 +173,6 @@ void SignalMgmtConfirmReceivedEvent(void)
     gMgmtConfirmMsgReceived = TRUE;        
 }    
 
-
-void IgnoreNextMgmtResult()
-{
-    g_IgnoreNextMgmtResult = TRUE;
-}    
-
 /*****************************************************************************
  * FUNCTION: WaitForMgmtResponse
  *
@@ -192,7 +188,11 @@ void IgnoreNextMgmtResult()
  *****************************************************************************/
 void WaitForMgmtResponse(UINT8 expectedSubtype, UINT8 freeAction)
 {
+    #if defined(__18CXX)
+        static tMgmtMsgRxHdr  hdr; 
+    #else
     tMgmtMsgRxHdr  hdr;
+    #endif
     
     g_WaitingForMgmtResponse = TRUE;
         
@@ -204,18 +204,23 @@ void WaitForMgmtResponse(UINT8 expectedSubtype, UINT8 freeAction)
         /* if received a data packet while waiting for mgmt packet */
         if (g_HostRAWDataPacketReceived)
         {
-            /* loop until stack has processed the received data message */
-            while (g_HostRAWDataPacketReceived)      
-            {
-                StackTask(); 
-            }    
+            // We can't let the StackTask processs data messages that come in while waiting for mgmt 
+            // response because the application might send another mgmt message, which is illegal until the response
+            // is received for the first mgmt msg.  And, we can't prevent the race condition where a data message 
+            // comes in before a mgmt response is received.  Thus, the only solution is to throw away a data message
+            // that comes in while waiting for a mgmt response.  This should happen very infrequently.  If using TCP then the 
+            // stack takes care of retries.  If using UDP, the application has to deal with occasional data messages not being
+            // received.  Also, applications typically do not send a lot of management messages after connected.
+
+            // throw away the data rx 
+            RawMountRxBuffer();
+            DeallocateDataRxBuffer();
+            g_HostRAWDataPacketReceived = FALSE;
 
             /* ensure interrupts enabled */
             WF_EintEnable();
         }    
     }    
- 
-    g_WaitingForMgmtResponse = FALSE;    
  
     /* set this back to FALSE so the next mgmt send won't think he has a response before one is received */
     gMgmtConfirmMsgReceived = FALSE;
@@ -227,27 +232,21 @@ void WaitForMgmtResponse(UINT8 expectedSubtype, UINT8 freeAction)
         /* read and verify result before freeing up buffer to ensure our message send was successful */
         RawRead(RAW_RX_ID, 0, (UINT16)(sizeof(tMgmtMsgRxHdr)), (UINT8 *)&hdr);
                
-        /* Mgmt response 'result' field should always indicate success.  If this assert is hit the error codes are located */
-        /* WFApi.h.  Search for WF_SUCCESS for the list of error codes.                                                    */
-        if (g_IgnoreNextMgmtResult)
-        {    
-            g_IgnoreNextMgmtResult = FALSE;
-        }    
-        else
-        {
-            WF_ASSERT(hdr.result == WF_SUCCESS);
-        }    
-
         /* mgmt response subtype had better match subtype we were expecting */
         WF_ASSERT(hdr.subtype == expectedSubtype);
 
-
-#if defined(WF_HOST_SCAN)
-		if (hdr.result == WF_ERROR_HOST_SCAN_NOT_ALLOWED)
-		{
-		    gHostScanNotAllowed = TRUE;
+		if (hdr.result == WF_ERROR_DISCONNECT_FAILED 
+			|| hdr.result == WF_ERROR_NOT_CONNECTED) {
+			#if defined(STACK_USE_UART)
+			putrsUART("Disconnect failed. Disconnect is allowed only when module is in connected state\r\n");
+			#endif
+        } else if (hdr.result == WF_ERROR_NO_STORED_BSS_DESCRIPTOR) {
+        	#if defined(STACK_USE_UART)
+			putrsUART("No stored scan results\r\n");
+			#endif
+		} else {
+         	WF_ASSERT(hdr.result == WF_SUCCESS); 
 		}    
-#endif
 
         /* free mgmt buffer */
         DeallocateMgmtRxBuffer();  
@@ -318,7 +317,6 @@ void WaitForMgmtResponseAndReadData(UINT8 expectedSubtype,
     
     /* free the mgmt buffer */    
     DeallocateMgmtRxBuffer();
-    g_WaitingForMgmtResponse = FALSE;  
     
      /* if there was a mounted data packet prior to the mgmt tx/rx transaction, then restore it */    
     if (RestoreRxData == TRUE)
@@ -327,7 +325,6 @@ void WaitForMgmtResponseAndReadData(UINT8 expectedSubtype,
         PopRawWindow(RAW_RX_ID);
         SetRawWindowState(RAW_RX_ID, WF_RAW_DATA_MOUNTED); 
     }          
-        
 }
 
 

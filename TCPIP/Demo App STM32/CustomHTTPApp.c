@@ -217,6 +217,7 @@ HTTP_IO_RESULT HTTPExecuteGet(void)
 		curHTTP.hasArgs = 0x01;
 	}
 		
+	
 	// If it's the LED updater file
 	else if (!memcmppgm2ram(filename, "leds.cgi", 8))
 	{
@@ -478,7 +479,7 @@ static HTTP_IO_RESULT HTTPPostConfig(void)
 			
 		// Parse the value that was read
 		if (!strcmppgm2ram((char*)curHTTP.data, (ROM char*)"ip"))
-		{// Read new static IP Address
+		{	// Read new static IP Address
 			if (!StringToIPAddress(curHTTP.data+6, &newAppConfig.MyIPAddr))
 				goto ConfigFailure;
 				
@@ -497,12 +498,12 @@ static HTTP_IO_RESULT HTTPPostConfig(void)
 			newAppConfig.DefaultMask.Val = newAppConfig.MyMask.Val;
 		}
 		else if (!strcmppgm2ram((char*)curHTTP.data, (ROM char*)"dns1"))
-		{// Read new primary DNS server
+		{	// Read new primary DNS server
 			if (!StringToIPAddress(curHTTP.data+6, &newAppConfig.PrimaryDNSServer))
 				goto ConfigFailure;
 		}
 		else if (!strcmppgm2ram((char*)curHTTP.data, (ROM char*)"dns2"))
-		{// Read new secondary DNS server
+		{	// Read new secondary DNS server
 			if (!StringToIPAddress(curHTTP.data+6, &newAppConfig.SecondaryDNSServer))
 				goto ConfigFailure;
 		}
@@ -544,7 +545,7 @@ static HTTP_IO_RESULT HTTPPostConfig(void)
 		else if (!strcmppgm2ram((char*)curHTTP.data, (ROM char*)"host"))
 		{// Read new hostname
 			FormatNetBIOSName(&curHTTP.data[6]);
-			memcpy((void*)(newAppConfig.NetBIOSName), (void*)(curHTTP.data + 6), 16);
+			memcpy((void*)(&newAppConfig.NetBIOSName), (void*)(&curHTTP.data[6]), 16);
 		}
 		else if (!strcmppgm2ram((char*)curHTTP.data, (ROM char*)"dhcp"))
 		{// Read new DHCP Enabled flag
@@ -1352,6 +1353,9 @@ void HTTPPrint_version(void)
 	TCPPutROMString(sktHTTP, (ROM void*)TCPIP_STACK_VERSION);
 }
 
+
+
+
 ROM BYTE HTML_UP_ARROW[] = "up";
 ROM BYTE HTML_DOWN_ARROW[] = "dn";
 
@@ -1364,7 +1368,7 @@ void HTTPPrint_btn(WORD num)
 			num = BUTTON0_READ();
 			break;
 		default:
-			num = 0;
+			num = 1;
 	}
 
 	// Print the output
@@ -1388,7 +1392,7 @@ void HTTPPrint_led(WORD num)
 	}
 
 	// Print the output
-	TCPPut(sktHTTP, (num?'1':'0'));
+	TCPPut(sktHTTP, (num ? '1' : '0'));
 	return;
 }
 
@@ -1625,8 +1629,10 @@ void HTTPPrint_write_comm(WORD num)
 #endif
 }
 
+
 void HTTPPrint_reboot(void)
-{	// This is not so much a print function, but causes the board to reboot
+{
+	// This is not so much a print function, but causes the board to reboot
 	// when the configuration is changed.  If called via an AJAX call, this
 	// will gracefully reset the board and bring it back online immediately
 	Reset();

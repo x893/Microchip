@@ -57,6 +57,7 @@
 #include "TCPIP Stack/TCPIP.h"
 #include "MainDemo.h"
 
+
 #if (defined(MPFS_USE_EEPROM) || defined(MPFS_USE_SPI_FLASH)) && defined(STACK_USE_MPFS2)
 	static BOOL DownloadMPFS(void);
 #endif
@@ -110,11 +111,11 @@ void DoUARTConfig(void)
 				break;
 			}
 		}
+
+		putrsUART((ROM char*)"\r\n");
 		if (bQuit)
 			break;
 
-		putrsUART((ROM char*)"\r\n");
-	
 		// Execute the user selection
 	    switch(ReadUART())
 	    {

@@ -170,7 +170,7 @@
     /* SYMBOLS_TO_TICKS to only be used with input (a) as a constant, otherwise you will blow up the code */
     #define SYMBOLS_TO_TICKS(a) (((DWORD)(INSTR_FREQ/100000) * a) / (SYMBOL_TO_TICK_RATE / 100000))
     #define TICKS_TO_SYMBOLS(a) (((DWORD)SYMBOL_TO_TICK_RATE/100000) * a / ((DWORD)CLOCK_FREQ/100000))
-#elif defined(STM32F10X)
+#elif defined(__STM32F10X__)
     #define INSTR_FREQ  (CLOCK_FREQ / 2)
     #if(INSTR_FREQ <= 125000)
         #define CLOCK_DIVIDER			1

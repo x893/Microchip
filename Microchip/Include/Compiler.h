@@ -117,7 +117,7 @@
     #define COMPILER_MPLAB_C32
 	#include <p32xxxx.h>
 	#include <plib.h>
-#elif defined(STM32F10X)
+#elif defined(__STM32F10X__)
 	#include "stm32f10x.h"
 #else
 	#error Unknown processor or compiler.  See Compiler.h

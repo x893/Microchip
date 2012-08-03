@@ -4705,7 +4705,7 @@ EndOfSearchLoop:
 
         MiWiPROSeqNum = TMRL;
 
-	#ifdef STM32F10X
+	#if defined(__STM32F10X__)
         RFIF_LOW();
         RFIE_ENABLE();
 	#else

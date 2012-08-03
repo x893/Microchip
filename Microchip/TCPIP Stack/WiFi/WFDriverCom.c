@@ -1,9 +1,9 @@
 /******************************************************************************
 
- MRF24WB0M Driver Com Layer
+ MRF24W Driver Com Layer
  Module for Microchip TCP/IP Stack
-  -Provides access to MRF24WB0M WiFi controller
-  -Reference: MRF24WB0M Data sheet, IEEE 802.11 Standard
+  -Provides access to MRF24W WiFi controller
+  -Reference: MRF24W Data sheet, IEEE 802.11 Standard
 
 *******************************************************************************
  FileName:		WFDriverCom.c
@@ -44,7 +44,7 @@
 
  Author				Date		Comment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- KH                 27 Jan 2010 Updated for MRF24WB0M
+ KH                 27 Jan 2010 Updated for MRF24W
 ******************************************************************************/
 
 /*
@@ -56,7 +56,6 @@
 #include "TCPIP Stack/WFMac.h"
 #if defined(WF_CS_TRIS)
 #include "TCPIP Stack/TCPIP.h"  // need this to access STACK_USE_DHCP_CLIENT define
-
 /*
 *********************************************************************************************************
 *                                           DEFINES      
@@ -91,6 +90,10 @@ static UINT8  g_EintHostInt;
 static BOOL             g_MgmtReadMsgReady;                  /* TRUE if rx mgmt msg to process, else FALSE              */
 static volatile BOOL    g_ExIntNeedsServicing;               /* TRUE if external interrupt needs processing, else FALSE */
 
+#if defined(WF_USE_POWER_SAVE_FUNCTIONS) && defined(STACK_USE_DHCP_CLIENT)
+//!!!	static BOOL g_EnablePowerSaveMode = FALSE;
+#endif
+
 tRawMoveState RawMoveState;
 
 extern BOOL g_WaitingForMgmtResponse;
@@ -99,10 +102,7 @@ BOOL g_WiFiConnectionChanged = FALSE;
 BOOL g_WiFiConnection = FALSE;
 BOOL g_dhcpInProgress = FALSE;
 
-
 extern BOOL g_rxDtim;
-
-
 
 /*
 *********************************************************************************************************
@@ -114,12 +114,13 @@ static void ProcessMgmtRxMsg(void);
 static void ChipReset(void);
 static void ProcessInterruptServiceResult(void);
 
-BOOL isDhcpInProgress(void);
+static BOOL isDhcpInProgress(void);
 
 extern BOOL isSleepNeeded(void);
 extern void SetSleepNeeded(void);
 extern void ClearSleepNeeded(void);
 extern BOOL GetAppPowerSaveMode(void);
+
 
 
 void WiFiTask(void)
@@ -170,7 +171,8 @@ void WiFiTask(void)
 
 } 
  
-BOOL isDhcpInProgress(void)
+    
+static BOOL isDhcpInProgress(void)
 {
     return g_dhcpInProgress;
 }
@@ -202,17 +204,21 @@ void SignalWiFiConnectionChanged(BOOL state)
  * PARAMS:   None
  *
  *  NOTES:   This function is called from WFProcess.  It does the following:
- *             1) checks for and processes MRF24WB0M external interrupt events
- *             2) checks for and processes received management messages from the MRF24WB0M
+ *             1) checks for and processes MRF24W external interrupt events
+ *             2) checks for and processes received management messages from the MRF24W
  *             3) maintains the PS-Poll state (if applicable)
  *           
  *****************************************************************************/
 void WFProcess(void)
 {
+    #if defined(__18CXX)
+        static UINT16 len; 
+    #else
     UINT16 len;
+    #endif
 
     //----------------------------------------------------------
-    // if there is a MRF24WB0M External interrupt (EINT) to process
+    // if there is a MRF24W External interrupt (EINT) to process
     //----------------------------------------------------------
     if (g_ExIntNeedsServicing == TRUE)
     {
@@ -224,9 +230,6 @@ void WFProcess(void)
     //----------------------------------------
     else if (g_MgmtReadMsgReady == TRUE)
     {
-        /* Ensure the MRF24WB0M is awake (only applies if PS-Poll was enabled) */
-        EnsureWFisAwake();
-
         //-----------------------------
         // process management read
         //-----------------------------
@@ -244,7 +247,6 @@ void WFProcess(void)
             WF_EintEnable();
         }
     }
-  
 }
 
 
@@ -257,16 +259,13 @@ void WFProcess(void)
  *      N/A
  *
  *
- *  NOTES: Processes EXINT from MRF24WB0M.  Called by WFProcess().
+ *  NOTES: Processes EXINT from MRF24W.  Called by WFProcess().
  *****************************************************************************/
 static void ProcessInterruptServiceResult(void)
 {
     UINT8  hostIntRegValue;
     UINT8  hostIntMaskRegValue;
     UINT8  hostInt;
-
-    /* Ensure the MRF24WB0M stays awake (only applies if PS-Poll was enabled) */
-    EnsureWFisAwake();
 
     /* read hostInt register to determine cause of interrupt */
     hostIntRegValue = Read8BitWFRegister(WF_HOST_INTR_REG);
@@ -306,14 +305,6 @@ static void ProcessInterruptServiceResult(void)
         Write8BitWFRegister(WF_HOST_INTR_REG, WF_HOST_INT_MASK_FIFO_0_THRESHOLD);
 
         g_HostRAWDataPacketReceived = TRUE;  /* this global flag is used in MACGetHeader() to determine a received data packet */
-#if defined(WF_USE_DATA_TX_RX_FUNCTIONS)
-        {
-            UINT16 rxDataPacketLength;
-            /* determine length of packet and signal the rx data packet event */
-            rxDataPacketLength = Read16BitWFRegister(WF_HOST_RFIFO_BCNT0_REG) & 0x0fff; /* LS 12 bits are the data length */
-            WF_ProcessEvent(WF_EVENT_RX_PACKET_RECEIVED, rxDataPacketLength); 
-        }
-#endif
     }
     // else got a Host interrupt that we don't handle
     else if(hostInt)
@@ -347,23 +338,13 @@ UINT8 Read8BitWFRegister(UINT8 regId)
     g_txBuf[0] = regId | WF_READ_REGISTER_MASK;
     WF_SpiEnableChipSelect();
     
-    WFSpiTxRx(g_txBuf, 1, g_rxBuf, 2);
+    WFSpiTxRx(g_txBuf, 
+              1,
+              g_rxBuf,
+              2);
 
     WF_SpiDisableChipSelect();
     
-#if defined(OUTPUT_RAW_TX_RX)
-    {
-		char buf[8];
-		TICK_STOP();
-		putrsUART("  Read8[");
-        sprintf(buf,"%02X", regId);
-        putsUART(buf);
-		putrsUART("] ");
-        sprintf(buf,"%02X\r\n", g_rxBuf[1]);
-        putsUART(buf);
-		TICK_START();
-	}
-#endif
     return g_rxBuf[1];   /* register value returned in the second byte clocking */
 }
 
@@ -385,23 +366,12 @@ void Write8BitWFRegister(UINT8 regId, UINT8 value)
     
     WF_SpiEnableChipSelect();
 
-    WFSpiTxRx(g_txBuf, 2, g_rxBuf, 1);
+    WFSpiTxRx(g_txBuf, 
+              2,
+              g_rxBuf,
+              1);
 
     WF_SpiDisableChipSelect();
-
-	#if defined(OUTPUT_RAW_TX_RX)
-    {
-		char buf[8];
-		TICK_STOP();
-		putrsUART(" Write8[");
-        sprintf(buf,"%02X", regId);
-        putsUART(buf);
-		putrsUART("]=");
-        sprintf(buf,"%02X\r\n", value);
-        putsUART(buf);
-		TICK_START();
-	}
-#endif
 }
 
 /*****************************************************************************
@@ -419,24 +389,13 @@ UINT16 Read16BitWFRegister(UINT8 regId)
     g_txBuf[0] = regId | WF_READ_REGISTER_MASK;
     WF_SpiEnableChipSelect();
     
-    WFSpiTxRx(g_txBuf, 1, g_rxBuf, 3);
+    WFSpiTxRx(g_txBuf, 
+              1,
+              g_rxBuf,
+              3);
 
     WF_SpiDisableChipSelect();
     
-#if defined(OUTPUT_RAW_TX_RX)
-    {
-		char buf[8];
-		TICK_STOP();
-		putrsUART(" Read16[");
-        sprintf(buf,"%02X", regId);
-        putsUART(buf);
-		putrsUART("] ");
-        sprintf(buf,"%02X%02X\r\n", g_rxBuf[1], g_rxBuf[2]);
-        putsUART(buf);
-		TICK_START();
-	}
-#endif
-
     return (((UINT16)g_rxBuf[1]) << 8) | ((UINT16)(g_rxBuf[2]));
 }
 
@@ -459,25 +418,12 @@ void Write16BitWFRegister(UINT8 regId, UINT16 value)
     
     WF_SpiEnableChipSelect();
 
-    WFSpiTxRx(g_txBuf, 3, g_rxBuf, 1);
+    WFSpiTxRx(g_txBuf, 
+              3,
+              g_rxBuf,
+              1);
 
     WF_SpiDisableChipSelect();
-
-#if defined(OUTPUT_RAW_TX_RX)
-    {
-		char buf[8];
-		
-		TICK_STOP();
-		putrsUART("Write16[");
-        sprintf(buf,"%02X", regId);
-        putsUART(buf);
-		putrsUART("]=");
-        sprintf(buf,"%04X\r\n", value);
-        putsUART(buf);
-		TICK_START();
-	}
-#endif
-
 }
 
 /*****************************************************************************
@@ -499,10 +445,16 @@ void WriteWFArray(UINT8 regId, UINT8 *p_Buf, UINT16 length)
     WF_SpiEnableChipSelect();
 
     /* output cmd byte */
-    WFSpiTxRx(g_txBuf, 1, g_rxBuf, 1);
+    WFSpiTxRx(g_txBuf, 
+              1,
+              g_rxBuf,
+              1);
 
     /* output data array bytes */
-    WFSpiTxRx(p_Buf, length, g_rxBuf, 1);
+    WFSpiTxRx(p_Buf, 
+              length,
+              g_rxBuf,
+              1);
 
     WF_SpiDisableChipSelect();
 }
@@ -525,11 +477,16 @@ void ReadWFArray(UINT8  regId, UINT8 *p_Buf, UINT16 length)
     
     /* output command byte */
     g_txBuf[0] = regId | WF_READ_REGISTER_MASK;
-    WFSpiTxRx(g_txBuf, 1, g_rxBuf, 1);
+    WFSpiTxRx(g_txBuf, 
+              1,
+              g_rxBuf,
+              1);
 
     /* read data array */
-    WFSpiTxRx(g_txBuf, 1,   /* garbage tx byte */
-              p_Buf,   length);
+    WFSpiTxRx(g_txBuf, 
+              1,   /* garbage tx byte */
+              p_Buf,
+              length);
 
     WF_SpiDisableChipSelect();
 }
@@ -555,10 +512,18 @@ void WriteWFROMArray(UINT8 regId, ROM UINT8 *p_Buf, UINT16 length)
     WF_SpiEnableChipSelect();
 
     /* output cmd byte */
-    WFSpiTxRx(g_txBuf, 1, g_rxBuf, 1);
+    WFSpiTxRx(g_txBuf, 
+              1,
+              g_rxBuf,
+              1);
 
     /* output data array bytes */
-    WFSpiTxRx_Rom(p_Buf, length, g_rxBuf, 1);
+    WFSpiTxRx_Rom(p_Buf, 
+                  length,
+                  g_rxBuf,
+                  1);
+
+
     WF_SpiDisableChipSelect();
 }
 #endif 
@@ -575,7 +540,7 @@ void WriteWFROMArray(UINT8 regId, ROM UINT8 *p_Buf, UINT16 length)
  *      N/A
  *
  *
- *  NOTES: Performs the necessary SPI operations to cause the MRF24WB0M to reset.
+ *  NOTES: Performs the necessary SPI operations to cause the MRF24W to reset.
  *      This function also implements a delay so that it will not return until
  *      the WiFi device is ready to receive messages again.  The delay time will
  *      vary depending on the amount of code that must be loaded from serial
@@ -598,7 +563,7 @@ static void ChipReset(void)
     /* Let SPI lines settle before first SPI transaction */
     DelayMs(1);
     
-    /* clear the power bit to disable low power mode on the MRF24WB0M */
+    /* clear the power bit to disable low power mode on the MRF24W */
     Write16BitWFRegister(WF_PSPOLL_H_REG, 0x0000);
 
     /* Set HOST_RESET bit in register to put device in reset */
@@ -625,7 +590,7 @@ static void ChipReset(void)
     WF_ASSERT(value != 0xffff);
 
     /* now that chip has come out of HW reset, poll the FIFO byte count register */
-    /* which will be set to a non-zero value when the MRF24WB0M initialization is   */
+    /* which will be set to a non-zero value when the MRF24W initialization is   */
     /* complete.                                                                 */
     startTickCount = (UINT32)TickGet();
     do
@@ -651,7 +616,7 @@ static void ChipReset(void)
  *                             Disable implies clearing the bits and enable sets the bits.
  *
  *
- *  NOTES: Initializes the 16-bit Host Interrupt register on the MRF24WB0M with the
+ *  NOTES: Initializes the 16-bit Host Interrupt register on the MRF24W with the
  *      specified mask value either setting or clearing the mask register
  *      as determined by the input parameter state. 
  *****************************************************************************/
@@ -702,7 +667,7 @@ static void HostInterrupt2RegInit(UINT16 hostIntMaskRegMask,
  *                Disable implies clearing the bits and enable sets the bits.
  *
  *
- *  NOTES: Initializes the 8-bit Host Interrupt register on the MRF24WB0M with the
+ *  NOTES: Initializes the 8-bit Host Interrupt register on the MRF24W with the
  *      specified mask value either setting or clearing the mask register
  *      as determined by the input parameter state.  The process requires
  *      2 spi operations which are performed in a blocking fashion.  The
@@ -741,6 +706,7 @@ static void HostInterruptRegInit(UINT8 hostIntrMaskRegMask,
 
     /* ensure that pending interrupts from those updated interrupts are cleared */
     Write8BitWFRegister(WF_HOST_INTR_REG, hostIntrMaskRegMask);
+    
     
 }
 
@@ -822,6 +788,13 @@ void WFEintHandler(void)
     g_ExIntNeedsServicing = TRUE;
 }
 
+void ReenablePowerSaveMode(void)
+{
+#if defined(WF_USE_POWER_SAVE_FUNCTIONS) && defined(STACK_USE_DHCP_CLIENT)
+//!!!	g_EnablePowerSaveMode = TRUE;
+#endif    
+}  
+
 
 /*****************************************************************************
  * FUNCTION: WFHardwareInit
@@ -831,7 +804,7 @@ void WFEintHandler(void)
  * PARAMS:   None
  *
  *  NOTES:   Initializes CPU Host hardware interfaces (SPI, External Interrupt).
- *           Also resets the MRF24WB0M.
+ *           Also resets the MRF24W.
  *****************************************************************************/
 void WFHardwareInit(void)
 {
@@ -844,7 +817,7 @@ void WFHardwareInit(void)
     /* initialize the SPI interface */
     WF_SpiInit();
     
-    /* Reset the MRF24WB0M (using SPI bus to write/read MRF24WB0M registers */
+    /* Reset the MRF24W (using SPI bus to write/read MRF24W registers */
     ChipReset();
     
     /* disable the interrupts gated by the 16-bit host int register */
@@ -853,12 +826,12 @@ void WFHardwareInit(void)
     /* disable the interrupts gated the by main 8-bit host int register */
     HostInterruptRegInit(WF_HOST_INT_MASK_ALL_INT, WF_INT_DISABLE);
     
-    /* Initialize the External Interrupt for the MRF24WB0M allowing the MRF24WB0M to interrupt
+    /* Initialize the External Interrupt for the MRF24W allowing the MRF24W to interrupt
      * the Host from this point forward. */
     WF_EintInit();
     WF_EintEnable();
     
-    /* enable the following MRF24WB0M interrupts */
+    /* enable the following MRF24W interrupts */
     HostInterruptRegInit((WF_HOST_INT_MASK_FIFO_1_THRESHOLD |     /* Mgmt Rx Msg interrupt        */
                           WF_HOST_INT_MASK_FIFO_0_THRESHOLD |     /* Data Rx Msg interrupt        */
                           WF_HOST_INT_MASK_RAW_0_INT_0      |     /* RAW0 Move Complete interrupt */
