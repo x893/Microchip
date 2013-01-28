@@ -51,9 +51,9 @@
 #include "WirelessProtocols/MSPI.h"
 #include "WirelessProtocols/Console.h"
 #include "ConfigApp.h"
-    
+
 extern void MacroNop(void);
-            
+
 #if defined(USE_EXTERNAL_EEPROM) || defined(USE_DATA_EEPROM)
     
 	WORD        nvmMyPANID;
@@ -141,6 +141,8 @@ extern void MacroNop(void);
 	#endif
 #endif
 
+    
+
 #if defined(USE_EXTERNAL_EEPROM)
 
 	/*********************************************************************
@@ -168,12 +170,13 @@ extern void MacroNop(void);
 		BYTE oldGIEH = INTCONbits.GIEH;
 
 		INTCONbits.GIEH = 0;
-	#elif defined(__STM32F10X__)
-		BYTE oldRFIE = RFIE_GET();
-		RFIE_DISABLE();
 	#else
 		BYTE oldRFIE = RFIE;
-		RFIE = 0;
+		#if defined(__STM32F10X__)
+			RFIE_DISABLE();
+		#else
+			RFIE = 0;
+		#endif
 	#endif
             
 	#if defined(__STM32F10X__)
@@ -224,12 +227,13 @@ extern void MacroNop(void);
 	void NVMWrite(BYTE *source, WORD addr, WORD count)
 	{
 		BYTE PageCounter = 0;
+		//BYTE i;
 	#if defined(__18CXX)
 		BYTE oldGIEH = INTCONbits.GIEH;   
 		INTCONbits.GIEH = 0;
 	#else
+		BYTE oldRFIE = RFIE;
 		#if defined(__STM32F10X__)
-		BYTE oldRFIE = RFIE_GET();
 		RFIE_DISABLE();
 		#else
 		BYTE oldRFIE = RFIE;
@@ -326,9 +330,14 @@ EEPROM_NEXT_PAGE:
 	}
 #endif
 
+ 
 #if defined(USE_PROGRAMMING_SPACE)
 	void NVMWrite(BYTE *src, ROM BYTE* dest, WORD count)
 	{
+        
+#if defined(__STM32F10X__)
+	#warning "Not implemented: NVMWrite"
+#else
 		ROM char *pEraseBlock;
 		static BYTE memBlock[ERASE_BLOCK_SIZE];
 		BYTE *pMemBlock;
@@ -337,109 +346,111 @@ EEPROM_NEXT_PAGE:
 		BYTE writeCount;
 		BYTE oldGIEH;
 		DWORD oldTBLPTR;
-        
+
 	#if defined(VERIFY_WRITE)
 		while( memcmppgm2ram( src, (MEM_MODEL ROM void *)dest, count))
 	#elif defined(CHECK_BEFORE_WRITE)
-			if (memcmppgm2ram( src, (MEM_MODEL ROM void *)dest, count ))
+		if (memcmppgm2ram( src, (MEM_MODEL ROM void *)dest, count ))
 	#endif
-			{
-				// First of all get nearest "left" erase block boundary
-				pEraseBlock = (ROM char*)((long)dest & (long)(~(ERASE_BLOCK_SIZE-1)));
-				writeStart = (BYTE)((BYTE)dest & (BYTE)(ERASE_BLOCK_SIZE-1));
+		{
+			// First of all get nearest "left" erase block boundary
+			pEraseBlock = (ROM char*)((long)dest & (long)(~(ERASE_BLOCK_SIZE-1)));
+			writeStart = (BYTE)((BYTE)dest & (BYTE)(ERASE_BLOCK_SIZE-1));
 
-				while( count )
-				{
-					// Now read the entire erase block size into RAM.
-					NVMRead(memBlock, (far ROM void*)pEraseBlock, ERASE_BLOCK_SIZE);
+			while( count )
+			{
+				// Now read the entire erase block size into RAM.
+				NVMRead(memBlock, (far ROM void*)pEraseBlock, ERASE_BLOCK_SIZE);
                                 
-					// Erase the block.
-					// Erase flash memory, enable write control.
-					EECON1 = 0x94;
+				// Erase the block.
+				// Erase flash memory, enable write control.
+				EECON1 = 0x94;
                     
+				oldGIEH = INTCONbits.GIEH;
+				INTCONbits.GIEH = 0;
+                    
+			#if defined(__18CXX) 
+				TBLPTR = (unsigned short long)pEraseBlock;
+			#endif
+
+				EECON2 = 0x55;
+				EECON2 = 0xaa;
+				EECON1bits.WR = 1;
+				MacroNop();
+        
+				EECON1bits.WREN = 0;
+        
+				oldTBLPTR = TBLPTR;
+
+				INTCONbits.GIEH = oldGIEH;
+        
+				// Modify 64-byte block of RAM buffer as per what is required.
+				pMemBlock = &memBlock[writeStart];
+				while( writeStart < ERASE_BLOCK_SIZE && count )
+				{
+					*pMemBlock++ = *src++;
+
+					count--;
+					writeStart++;
+				}
+
+				// After first block write, next start would start from 0.
+				writeStart = 0;
+        
+				// Now write entire 64 byte block in one write block at a time.
+				writeIndex = ERASE_BLOCK_SIZE / WRITE_BLOCK_SIZE;
+				pMemBlock = memBlock;
+				while( writeIndex )
+				{
+        
 					oldGIEH = INTCONbits.GIEH;
 					INTCONbits.GIEH = 0;
-                    
+
+					TBLPTR = oldTBLPTR;
+
+					// Load individual block
+					writeCount = WRITE_BLOCK_SIZE;
+					while( writeCount-- )
+					{
+						TABLAT = *pMemBlock++;
+        
+						//TBLWTPOSTINC();
+						_asm tblwtpostinc _endasm
+					}
+        
+				// Start the write process: reposition tblptr back into memory block that we want to write to.
 				#if defined(__18CXX) 
-					TBLPTR = (unsigned short long)pEraseBlock;
+					_asm tblrdpostdec _endasm
 				#endif
+        
+					// Write flash memory, enable write control.
+					EECON1 = 0x84;
 
 					EECON2 = 0x55;
 					EECON2 = 0xaa;
 					EECON1bits.WR = 1;
 					MacroNop();
-        
 					EECON1bits.WREN = 0;
-        
+
+					// One less block to write
+					writeIndex--;
+
+					TBLPTR++;
+
 					oldTBLPTR = TBLPTR;
 
 					INTCONbits.GIEH = oldGIEH;
-        
-					// Modify 64-byte block of RAM buffer as per what is required.
-					pMemBlock = &memBlock[writeStart];
-					while( writeStart < ERASE_BLOCK_SIZE && count )
-					{
-						*pMemBlock++ = *src++;
-
-						count--;
-						writeStart++;
-					}
-
-					// After first block write, next start would start from 0.
-					writeStart = 0;
-        
-					// Now write entire 64 byte block in one write block at a time.
-					writeIndex = ERASE_BLOCK_SIZE / WRITE_BLOCK_SIZE;
-					pMemBlock = memBlock;
-					while( writeIndex )
-					{
-						oldGIEH = INTCONbits.GIEH;
-						INTCONbits.GIEH = 0;
-
-						TBLPTR = oldTBLPTR;
-
-						// Load individual block
-						writeCount = WRITE_BLOCK_SIZE;
-						while( writeCount-- )
-						{
-							TABLAT = *pMemBlock++;
-        
-							//TBLWTPOSTINC();
-							_asm tblwtpostinc _endasm
-						}
-        
-					// Start the write process: reposition tblptr back into memory block that we want to write to.
-					#if defined(__18CXX) 
-						_asm tblrdpostdec _endasm
-					#endif
-        
-						// Write flash memory, enable write control.
-						EECON1 = 0x84;
-
-						EECON2 = 0x55;
-						EECON2 = 0xaa;
-						EECON1bits.WR = 1;
-						MacroNop();
-						EECON1bits.WREN = 0;
-
-						// One less block to write
-						writeIndex--;
-
-						TBLPTR++;
-
-						oldTBLPTR = TBLPTR;
-
-						INTCONbits.GIEH = oldGIEH;
-					}
+				}
         
 				// Go back and do it all over again until we write all
 				// data bytes - this time the next block.
-				#if !defined(WIN32)
-					pEraseBlock += ERASE_BLOCK_SIZE;
-				#endif
+			#if !defined(WIN32)
+				pEraseBlock += ERASE_BLOCK_SIZE;
+			#endif
 
-				}
 			}
+		}
+#endif
 	}
 #endif
  
@@ -487,6 +498,7 @@ EEPROM_NEXT_PAGE:
 	}
 #endif
  
+    
 #if defined(USE_DATA_EEPROM) || defined(USE_EXTERNAL_EEPROM)
         
 	WORD nextEEPosition;
@@ -504,6 +516,7 @@ EEPROM_NEXT_PAGE:
 		return TRUE;
 	}
         
+    
 	BOOL NVMInit(void)
 	{
 		BOOL result = TRUE;
@@ -543,7 +556,13 @@ EEPROM_NEXT_PAGE:
 		
 		return result;
 	}
+        
 #endif
+ 
+ 
+ 
+ 
 #else
     extern char bogusVar;
+
 #endif   

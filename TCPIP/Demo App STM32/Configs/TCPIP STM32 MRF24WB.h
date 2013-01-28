@@ -49,6 +49,7 @@
 #ifndef __TCPIPCONFIG_H
 #define __TCPIPCONFIG_H
 
+#include "HardwareProfile.h"
 #include "GenericTypeDefs.h"
 #include "Compiler.h"
 

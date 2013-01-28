@@ -320,7 +320,7 @@ void WF_RxDataReadPacket(UINT8  *p_rxData,
     if (!g_HostRAWDataPacketReceived)
     {
         WF_ASSERT(FALSE);
-    }  
+    }
     
     g_HostRAWDataPacketReceived = FALSE;     /* clear flag for next data packet */
     

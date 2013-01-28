@@ -67,26 +67,26 @@
 
     // Scan Duration formula 
     //  60 * (2 ^ n + 1) symbols, where one symbol equals 16us
-    #define SCAN_DURATION_0 SYMBOLS_TO_TICKS(120)
-    #define SCAN_DURATION_1 SYMBOLS_TO_TICKS(180)
-    #define SCAN_DURATION_2 SYMBOLS_TO_TICKS(300)
-    #define SCAN_DURATION_3 SYMBOLS_TO_TICKS(540)
-    #define SCAN_DURATION_4 SYMBOLS_TO_TICKS(1020)
-    #define SCAN_DURATION_5 SYMBOLS_TO_TICKS(1980)
-    #define SCAN_DURATION_6 SYMBOLS_TO_TICKS(3900)
-    #define SCAN_DURATION_7 SYMBOLS_TO_TICKS(7740)
-    #define SCAN_DURATION_8 SYMBOLS_TO_TICKS(15420)
-    #define SCAN_DURATION_9 SYMBOLS_TO_TICKS(30780)
-    #define SCAN_DURATION_10 SYMBOLS_TO_TICKS(61500)
-    #define SCAN_DURATION_11 SYMBOLS_TO_TICKS(122940)
-    #define SCAN_DURATION_12 SYMBOLS_TO_TICKS(245820)
-    #define SCAN_DURATION_13 SYMBOLS_TO_TICKS(491580)
-    #define SCAN_DURATION_14 SYMBOLS_TO_TICKS(983100)
+    #define SCAN_DURATION_0		SYMBOLS_TO_TICKS(120)
+    #define SCAN_DURATION_1		SYMBOLS_TO_TICKS(180)
+    #define SCAN_DURATION_2		SYMBOLS_TO_TICKS(300)
+    #define SCAN_DURATION_3		SYMBOLS_TO_TICKS(540)
+    #define SCAN_DURATION_4		SYMBOLS_TO_TICKS(1020)
+    #define SCAN_DURATION_5		SYMBOLS_TO_TICKS(1980)
+    #define SCAN_DURATION_6		SYMBOLS_TO_TICKS(3900)
+    #define SCAN_DURATION_7		SYMBOLS_TO_TICKS(7740)
+    #define SCAN_DURATION_8		SYMBOLS_TO_TICKS(15420)
+    #define SCAN_DURATION_9		SYMBOLS_TO_TICKS(30780)
+    #define SCAN_DURATION_10	SYMBOLS_TO_TICKS(61500)
+    #define SCAN_DURATION_11	SYMBOLS_TO_TICKS(122940)
+    #define SCAN_DURATION_12	SYMBOLS_TO_TICKS(245820)
+    #define SCAN_DURATION_13	SYMBOLS_TO_TICKS(491580)
+    #define SCAN_DURATION_14	SYMBOLS_TO_TICKS(983100)
     ROM DWORD ScanTime[15] = {SCAN_DURATION_0,SCAN_DURATION_1,SCAN_DURATION_2,SCAN_DURATION_3,
         SCAN_DURATION_4,SCAN_DURATION_5,SCAN_DURATION_6,SCAN_DURATION_7,SCAN_DURATION_8,SCAN_DURATION_9,
         SCAN_DURATION_10, SCAN_DURATION_11, SCAN_DURATION_12, SCAN_DURATION_13,SCAN_DURATION_14
     };
-    
+
     // permanent address definition
     #if MY_ADDRESS_LENGTH == 8
         BYTE myLongAddress[MY_ADDRESS_LENGTH] = {EUI_0,EUI_1,EUI_2,EUI_3, EUI_4, EUI_5,EUI_6,EUI_7};
@@ -187,79 +187,79 @@
         } bits;        
     } MiWiPRONVMStatus;
     
-    #ifdef NWK_ROLE_COORDINATOR
-        MIWI_PRO_STATUS MiWiPROStatus; 
+#ifdef NWK_ROLE_COORDINATOR
+	MIWI_PRO_STATUS MiWiPROStatus; 
     
-        MIWI_TICK backgroundTaskTick;
+	MIWI_TICK backgroundTaskTick;
         
-        #if defined(ENABLE_INDIRECT_MESSAGE)
-            #if defined(__18CXX)
-                #pragma udata INDIRECT_BUFFER
-            #endif
-            INDIRECT_MESSAGE indirectMessages[INDIRECT_MESSAGE_SIZE];
-            #if defined(__18CXX)
-                #pragma udata
-            #endif
-        #endif
+	#if defined(ENABLE_INDIRECT_MESSAGE)
+		#if defined(__18CXX)
+			#pragma udata INDIRECT_BUFFER
+		#endif
+		INDIRECT_MESSAGE indirectMessages[INDIRECT_MESSAGE_SIZE];
+		#if defined(__18CXX)
+			#pragma udata
+		#endif
+	#endif
 
-        // Random send buffer for broadcast
-        #if defined(__18CXX)
-            #pragma udata RANDOM_SEND_BUFFER
-        #endif
-        struct
-        {
-            MIWI_TICK StartTick;
-            MAC_TRANS_PARAM MTP;
-            BYTE RandomDelayInMilliSecond;
-            BYTE RandomSendTxData;
-            #if (TX_BUFFER_SIZE + MIWI_PRO_HEADER_LEN) > 112
-                BYTE RandomSendTxBuffer[112];
-            #else
-                BYTE RandomSendTxBuffer[TX_BUFFER_SIZE+MIWI_PRO_HEADER_LEN];
-            #endif
-        } RandomSendInfo;        
+	// Random send buffer for broadcast
+	#if defined(__18CXX)
+		#pragma udata RANDOM_SEND_BUFFER
+	#endif
+	struct
+	{
+		MIWI_TICK StartTick;
+		MAC_TRANS_PARAM MTP;
+		BYTE RandomDelayInMilliSecond;
+		BYTE RandomSendTxData;
+		#if (TX_BUFFER_SIZE + MIWI_PRO_HEADER_LEN) > 112
+			BYTE RandomSendTxBuffer[112];
+		#else
+			BYTE RandomSendTxBuffer[TX_BUFFER_SIZE+MIWI_PRO_HEADER_LEN];
+		#endif
+	} RandomSendInfo;        
         
-        #if defined(ENABLE_FREQUENCY_AGILITY)
-            BYTE EnergyScanResults[32];
-        #endif
+	#if defined(ENABLE_FREQUENCY_AGILITY)
+		BYTE EnergyScanResults[32];
+	#endif
         
-        // Routing related information
-        BYTE RoutingTable[NUM_COORDINATOR/8];
-        BYTE RouterFailures[NUM_COORDINATOR];
-        BYTE FamilyTree[NUM_COORDINATOR];
-        BYTE NeighborRoutingTable[NUM_COORDINATOR][NUM_COORDINATOR/8];
-        #if defined(__18CXX)
-            #pragma udata
-        #endif
-        
-        #if defined(ENABLE_ROUTING_UPDATE)
-            MIWI_TICK RoutingUpdateTick;
-            BYTE RoutingUpdateCounter[NUM_COORDINATOR];
-        #endif
-        
-        BYTE role;
-        
-    #endif
+	// Routing related information
+	BYTE RoutingTable[NUM_COORDINATOR/8];
+	BYTE RouterFailures[NUM_COORDINATOR];
+	BYTE FamilyTree[NUM_COORDINATOR];
+	BYTE NeighborRoutingTable[NUM_COORDINATOR][NUM_COORDINATOR/8];
+	#if defined(__18CXX)
+		#pragma udata
+	#endif
+	
+	#if defined(ENABLE_ROUTING_UPDATE)
+		MIWI_TICK RoutingUpdateTick;
+		BYTE RoutingUpdateCounter[NUM_COORDINATOR];
+	#endif
+	
+	BYTE role;
+	
+#endif
     
     
-    #if defined(ENABLE_FREQUENCY_AGILITY) 
-        struct
-        {
-            union
-            {
-                BYTE Val;
-                struct
-                {
-                    BYTE EnergyScan         :1;
-                    BYTE ChangeChannel      :1;
-                    BYTE DisputeChannel     :1;
-                    BYTE SuggestChannel     :5;
-                } bits;    
-            } status;    
-            DWORD_VAL   ChannelMap;
-            MIWI_TICK FA_StatTick;
-        } FrequencyAgilityInfo;    
-    #endif
+#if defined(ENABLE_FREQUENCY_AGILITY) 
+	struct
+	{
+		union
+		{
+			BYTE Val;
+			struct
+			{
+				BYTE EnergyScan         :1;
+				BYTE ChangeChannel      :1;
+				BYTE DisputeChannel     :1;
+				BYTE SuggestChannel     :5;
+			} bits;    
+		} status;    
+		DWORD_VAL   ChannelMap;
+		MIWI_TICK FA_StatTick;
+	} FrequencyAgilityInfo;    
+#endif
     
     
     OPEN_SOCKET openSocketInfo;
@@ -360,7 +360,7 @@
         /******************************************************************/
         void BroadcastJitter(BYTE range)
         {
-            BYTE jitter = TMRL % range;
+			BYTE jitter = TMRL % range;
             MIWI_TICK t1, t2;
 
             while( jitter > 0 )
@@ -413,11 +413,11 @@
             rxMessage.flags.bits.srcPrsnt = MACRxPacket.flags.bits.sourcePrsnt;
             if( MACRxPacket.flags.bits.sourcePrsnt )
             {
-                #if defined(IEEE_802_15_4)
-                    rxMessage.flags.bits.altSrcAddr = MACRxPacket.altSourceAddress;
-                #else
-                    rxMessage.flags.bits.altSrcAddr = 1;
-                #endif
+			#if defined(IEEE_802_15_4)
+				rxMessage.flags.bits.altSrcAddr = MACRxPacket.altSourceAddress;
+			#else
+				rxMessage.flags.bits.altSrcAddr = 1;
+			#endif
                 rxMessage.SourceAddress = MACRxPacket.SourceAddress;
             }
             #if defined(IEEE_802_15_4) 
@@ -439,24 +439,27 @@
                         WORD_VAL sourcePANID;
                         WORD_VAL sourceShortAddress;
                         WORD_VAL destShortAddress;
-HANDLE_DATA_PACKET:  
-                        #if defined(ENABLE_SLEEP)
-                            #if defined(ENABLE_BROADCAST_TO_SLEEP_DEVICE)
-                                for(i = 0; i < PACKET_RECORD_SIZE; i++)
-                                {
-                                    if( PacketRecords[i].RxCounter > 0)
-                                    {
-                                        PacketRecords[i].RxCounter--;
-                                    }
-                                }
-                            #endif
+#if defined(ENABLE_ENHANCED_DATA_REQUEST) || \
+	(defined(ENABLE_TIME_SYNC) && defined(ENABLE_SLEEP))
+HANDLE_DATA_PACKET:
+#endif
+				#if defined(ENABLE_SLEEP)
+					#if defined(ENABLE_BROADCAST_TO_SLEEP_DEVICE)
+						for(i = 0; i < PACKET_RECORD_SIZE; i++)
+						{
+							if( PacketRecords[i].RxCounter > 0)
+							{
+								PacketRecords[i].RxCounter--;
+							}
+						}
+					#endif
                             
-                            // If it is just an empty packet, ignore here.
-                            if( MACRxPacket.PayloadLen == 0 )
-                            {
-                                MiWiPROStateMachine.bits.DataRequesting = 0;                                break;
-                            }
-                        #endif
+						// If it is just an empty packet, ignore here.
+						if( MACRxPacket.PayloadLen == 0 )
+						{
+							MiWiPROStateMachine.bits.DataRequesting = 0;							break;
+						}
+				#endif
                         
                         if( MACRxPacket.PayloadLen < 10 )
                         {
@@ -600,7 +603,7 @@ HANDLE_DATA_PACKET:
                                                     TxBuffer[j] = MACRxPacket.Payload[j];
                                                 }
                                                 #if defined(IEEE_802_15_4)
-                                                    SaveIndirectMessage(TRUE, destPANID, NULL, FALSE, MACRxPacket.flags.bits.secEn);   
+                                                    SaveIndirectMessage(TRUE, destPANID, NULL, FALSE, (BOOL)MACRxPacket.flags.bits.secEn);
                                                 #else
                                                     SaveIndirectMessage(TRUE, NULL, FALSE, (BOOL)MACRxPacket.flags.bits.secEn);
                                                 #endif
@@ -636,49 +639,49 @@ HANDLE_DATA_PACKET:
                                 TxBuffer[12] = ACK_REPORT_TYPE;
                                 TxData = 13;
                                 
-                                #if defined(NWK_ROLE_COORDINATOR)
-                                    if( sourceShortAddress.v[1] != myShortAddress.v[1] )
-                                    {
-                                        RouteMessage(sourcePANID, sourceShortAddress, FALSE);
-                                    }
-                                    else 
-                                    {
-                                        MTP.flags.Val = 0;
-                                        MTP.flags.bits.ackReq = 1;
-                                            
-                                        #if defined(IEEE_802_15_4)
-                                            MTP.altDestAddr = TRUE;
-                                            MTP.altSrcAddr = TRUE;
-                                            MTP.DestAddress = sourceShortAddress.v;
-                                            MTP.DestPANID.Val = sourcePANID.Val;
-                                        #else
-                                            tempShortAddress.Val = sourceShortAddress.Val;
-                                            tempPANID.Val = sourcePANID.Val;
-                                            if( (i = SearchForShortAddress()) != 0xFF )
-                                            {
-                                                MTP.DestAddress = ConnectionTable[i].Address;
-                                            }    
-                                        #endif
-                                       
-                                        MiMAC_SendPacket(MTP, TxBuffer, TxData);
-                                    }   
-                                #else
-                                
-                                    // for end device, always send the message to its parent
-                                    MTP.flags.Val = 0;
-                                    MTP.flags.bits.ackReq = 1;
-                                        
-                                    #if defined(IEEE_802_15_4)
-                                        MTP.altDestAddr = TRUE;
-                                        MTP.altSrcAddr = TRUE;
-                                        MTP.DestAddress = ConnectionTable[myParent].AltAddress.v;
-                                        MTP.DestPANID.Val = myPANID.Val;
-                                    #else
-                                        MTP.DestAddress = ConnectionTable[myParent].Address;
-                                    #endif
-                                   
-                                    MiMAC_SendPacket(MTP, TxBuffer, TxData);
-                                #endif
+						#if defined(NWK_ROLE_COORDINATOR)
+								if( sourceShortAddress.v[1] != myShortAddress.v[1] )
+								{
+									RouteMessage(sourcePANID, sourceShortAddress, FALSE);
+								}
+								else 
+								{
+									MTP.flags.Val = 0;
+									MTP.flags.bits.ackReq = 1;
+										
+								#if defined(IEEE_802_15_4)
+									MTP.altDestAddr = TRUE;
+									MTP.altSrcAddr = TRUE;
+									MTP.DestAddress = sourceShortAddress.v;
+									MTP.DestPANID.Val = sourcePANID.Val;
+								#else
+									tempShortAddress.Val = sourceShortAddress.Val;
+									tempPANID.Val = sourcePANID.Val;
+									if( (i = SearchForShortAddress()) != 0xFF )
+									{
+										MTP.DestAddress = ConnectionTable[i].Address;
+									}    
+								#endif
+								   
+									MiMAC_SendPacket(MTP, TxBuffer, TxData);
+								}   
+						#else
+							
+								// for end device, always send the message to its parent
+								MTP.flags.Val = 0;
+								MTP.flags.bits.ackReq = 1;
+									
+							#if defined(IEEE_802_15_4)
+								MTP.altDestAddr = TRUE;
+								MTP.altSrcAddr = TRUE;
+								MTP.DestAddress = ConnectionTable[myParent].AltAddress.v;
+								MTP.DestPANID.Val = myPANID.Val;
+							#else
+								MTP.DestAddress = ConnectionTable[myParent].Address;
+							#endif
+							   
+								MiMAC_SendPacket(MTP, TxBuffer, TxData);
+						#endif
 
                                 rxMessage.flags.bits.ackReq = 1;
                             }
@@ -692,922 +695,922 @@ ThisPacketIsForMe:
                                     //determine which stack report it was
                                     switch(MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+1])
                                     {                                
-                                        #if defined(SUPPORT_EUI_ADDRESS_SEARCH)
-                                        #if defined(NWK_ROLE_COORDINATOR)       
-                                        case EUI_ADDRESS_SEARCH_REQUEST:
-                                            {
-                                                BYTE handle,j;
-                                                BOOL ItsMe;
+							#if defined(SUPPORT_EUI_ADDRESS_SEARCH)
+								#if defined(NWK_ROLE_COORDINATOR)       
+									case EUI_ADDRESS_SEARCH_REQUEST:
+									{
+										BYTE handle,j;
+										BOOL ItsMe;
             
-                                                if(sourceShortAddress.Val == myShortAddress.Val)
-                                                {
-                                                    if(sourcePANID.Val == myPANID.Val)
-                                                    {
-                                                        //I started this message.  I don't need to re-broadcast it.
-                                                        break;
-                                                    }
-                                                }
+										if(sourceShortAddress.Val == myShortAddress.Val)
+										{
+											if(sourcePANID.Val == myPANID.Val)
+											{
+												//I started this message.  I don't need to re-broadcast it.
+												break;
+											}
+										}
                                                 
-                                                //copy the address into tempLongAddress
-                                                ConsolePutROMString((ROM char*)"\r\nEUI address search request\r\n");
-                                                for(j = 0; j < MY_ADDRESS_LENGTH; j++)
-                                                {
-                                                    tempLongAddress[j] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+2+j];
-                                                }
+										//copy the address into tempLongAddress
+										ConsolePutROMString((ROM char*)"\r\nEUI address search request\r\n");
+										for(j = 0; j < MY_ADDRESS_LENGTH; j++)
+										{
+											tempLongAddress[j] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+2+j];
+										}
             
                                                 
-                                                ItsMe = TRUE;
-                                                for(j=0;j<MY_ADDRESS_LENGTH;j++)
-                                                {
-                                                    //see if the address in question is my own
-                                                    if(tempLongAddress[j] != myLongAddress[j])
-                                                    {
-                                                        ItsMe = FALSE;
-                                                        break;
-                                                    }
-                                                }
+										ItsMe = TRUE;
+										for(j=0;j<MY_ADDRESS_LENGTH;j++)
+										{
+											//see if the address in question is my own
+											if(tempLongAddress[j] != myLongAddress[j])
+											{
+												ItsMe = FALSE;
+												break;
+											}
+										}
                                                 
-                                                //load up the TX Buffer with the results
-                                                MiApp_FlushTx();
-                                                MiApp_WriteData(MIWI_PRO_STACK_REPORT_TYPE);      //Report Type
-                                                MiApp_WriteData(EUI_ADDRESS_SEARCH_RESPONSE);      //Report ID
-                                                for(j = 0; j < MY_ADDRESS_LENGTH; j++)
-                                                {
-                                                    MiApp_WriteData(tempLongAddress[j]);      //Data byte 0
-                                                }
+										//load up the TX Buffer with the results
+										MiApp_FlushTx();
+										MiApp_WriteData(MIWI_PRO_STACK_REPORT_TYPE);      //Report Type
+										MiApp_WriteData(EUI_ADDRESS_SEARCH_RESPONSE);      //Report ID
+										for(j = 0; j < MY_ADDRESS_LENGTH; j++)
+										{
+											MiApp_WriteData(tempLongAddress[j]);      //Data byte 0
+										}
                                                 
-                                                //if it wasn't me
-                                                if(ItsMe == FALSE)
-                                                {
-                                                    //search the network table for the device
-                                                    handle = SearchForLongAddress();
-                                                    
-                                                    //if we found the device
-                                                    if(handle!=0xFF)
-                                                    {
-                                                        //check to see if the short address is valid for that device
-                                                        if(networkStatus[handle].bits.shortAddressValid)
-                                                        {
-                                                            //I know the device in question so I will send back a response
-                                                            MiApp_WriteData(networkTable[handle].PANID.v[0]);
-                                                            MiApp_WriteData(networkTable[handle].PANID.v[1]);
-                                                            MiApp_WriteData(networkTable[handle].AltAddress.v[0]);
-                                                            MiApp_WriteData(networkTable[handle].AltAddress.v[1]);
-                                                             
-                                                            //if everything is cool then send the response back
-                                                            RouteMessage(sourcePANID, sourceShortAddress, FALSE);   
-                                                            //SendReportByShortAddress(sourcePANID,sourceShortAddress,FALSE);
-                                                        }
-                                                        else
-                                                        {
-                                                            //if we didn't have the short address then we can't
-                                                            //respond to this packet even though we know the long address
-                                                            ConsolePutROMString((ROM char*)"found long address but short address not valid\r\n");
-                                                            //clear out the data I already wrote
-                                                            TxData = 0;     
-                                                        }
-                
-                                                    }
-                                                    else
-                                                    {
-                                                        //if we couldn't find the long address of the device then forget it
-                                                        ConsolePutROMString((ROM char*)"couldn't find the device");
-                                                        TxData = 0;     
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    //The node in question is me
-                                                    TxBuffer[TxData++] = myPANID.v[0];
-                                                    TxBuffer[TxData++] = myPANID.v[1];
-                                                    TxBuffer[TxData++] = myShortAddress.v[0];
-                                                    TxBuffer[TxData++] = myShortAddress.v[1];
-                                                       
-                                                    //send a response back with my own information
-                                                    RouteMessage(sourcePANID, sourceShortAddress, FALSE);
-                                                }
-                                            }
-                                            break;
-                                        #endif //COORDINATOR_CAPABLE
-                                        #endif //SUPPORT_EUI_ADDRESS_SEARCH
+										//if it wasn't me
+										if(ItsMe == FALSE)
+										{
+											//search the network table for the device
+											handle = SearchForLongAddress();
+											
+											//if we found the device
+											if(handle!=0xFF)
+											{
+												//check to see if the short address is valid for that device
+												if(networkStatus[handle].bits.shortAddressValid)
+												{
+													//I know the device in question so I will send back a response
+													MiApp_WriteData(networkTable[handle].PANID.v[0]);
+													MiApp_WriteData(networkTable[handle].PANID.v[1]);
+													MiApp_WriteData(networkTable[handle].AltAddress.v[0]);
+													MiApp_WriteData(networkTable[handle].AltAddress.v[1]);
+													 
+													//if everything is cool then send the response back
+													RouteMessage(sourcePANID, sourceShortAddress, FALSE);   
+													//SendReportByShortAddress(sourcePANID,sourceShortAddress,FALSE);
+												}
+												else
+												{
+													//if we didn't have the short address then we can't
+													//respond to this packet even though we know the long address
+													ConsolePutROMString((ROM char*)"found long address but short address not valid\r\n");
+													//clear out the data I already wrote
+													TxData = 0;     
+												}
+		
+											}
+											else
+											{
+												//if we couldn't find the long address of the device then forget it
+												ConsolePutROMString((ROM char*)"couldn't find the device");
+												TxData = 0;     
+											}
+										}
+										else
+										{
+											//The node in question is me
+											TxBuffer[TxData++] = myPANID.v[0];
+											TxBuffer[TxData++] = myPANID.v[1];
+											TxBuffer[TxData++] = myShortAddress.v[0];
+											TxBuffer[TxData++] = myShortAddress.v[1];
+											   
+											//send a response back with my own information
+											RouteMessage(sourcePANID, sourceShortAddress, FALSE);
+										}
+									}
+									break;
+								#endif //COORDINATOR_CAPABLE
+							#endif //SUPPORT_EUI_ADDRESS_SEARCH
                                         
                                         
-                                        #if defined(SUPPORT_EUI_ADDRESS_SEARCH)
-                                        case EUI_ADDRESS_SEARCH_RESPONSE:
-                                            {
-                                                //got a response back from the IEEE address search
-                                                //record all of the information in the packet
-                                                //long address
-                                                
-                                                MiWiPROStateMachine.bits.EUISearching = 0;
-                                                for(i = 0; i < MY_ADDRESS_LENGTH; i++)
-                                                {
-                                                    tempLongAddress[i] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+2+i];
-                                                }
-                                                //PANID and short address
-                                                tempPANID.v[0] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+2+MY_ADDRESS_LENGTH];
-                                                tempPANID.v[1] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+3+MY_ADDRESS_LENGTH];
-                                                tempShortAddress.v[0] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+4+MY_ADDRESS_LENGTH];
-                                                tempShortAddress.v[1] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+5+MY_ADDRESS_LENGTH];
-                                                
-                                                if( (SearchForLongAddress() == 0xFF) && (SearchForShortAddress() == 0xFF ) )
-                                                {
-                                                    //create a new Status entry for the network table
-                                                    tempNodeStatus.Val = 0x8D;
-                                                    if( tempShortAddress.v[0] & 0x80 )
-                                                    {
-                                                        tempNodeStatus.bits.RXOnWhenIdle = 0;
-                                                    }
-                                                    if((tempShortAddress.Val == sourceShortAddress.Val) 
-                                                        #if defined(IEEE_802_15_4)
-                                                            && (tempPANID.Val == sourcePANID.Val)
-                                                        #endif
-                                                       )
-                                                    {
-                                                        tempNodeStatus.bits.directConnection = 1;
-                                                    }
-                                                    //add the node to the network table
-                                                    i = AddNodeToNetworkTable();
-                                                    #if defined(ENABLE_NETWORK_FREEZER)
-                                                        if( i < 0xFF )
-                                                        {
-                                                            nvmPutConnectionTableIndex(&(ConnectionTable[i]), i);
-                                                        }    
-                                                    #endif
-                                                }    
-                                            }    
-                                            break;
-                                        #endif
+								#if defined(SUPPORT_EUI_ADDRESS_SEARCH)
+									case EUI_ADDRESS_SEARCH_RESPONSE:
+									{
+										//got a response back from the IEEE address search
+										//record all of the information in the packet
+										//long address
+										
+										MiWiPROStateMachine.bits.EUISearching = 0;
+										for(i = 0; i < MY_ADDRESS_LENGTH; i++)
+										{
+											tempLongAddress[i] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+2+i];
+										}
+										//PANID and short address
+										tempPANID.v[0] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+2+MY_ADDRESS_LENGTH];
+										tempPANID.v[1] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+3+MY_ADDRESS_LENGTH];
+										tempShortAddress.v[0] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+4+MY_ADDRESS_LENGTH];
+										tempShortAddress.v[1] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+5+MY_ADDRESS_LENGTH];
+										
+										if( (SearchForLongAddress() == 0xFF) && (SearchForShortAddress() == 0xFF ) )
+										{
+											//create a new Status entry for the network table
+											tempNodeStatus.Val = 0x8D;
+											if( tempShortAddress.v[0] & 0x80 )
+											{
+												tempNodeStatus.bits.RXOnWhenIdle = 0;
+											}
+											if ((tempShortAddress.Val == sourceShortAddress.Val) 
+											#if defined(IEEE_802_15_4)
+												&& (tempPANID.Val == sourcePANID.Val)
+											#endif
+											   )
+											{
+												tempNodeStatus.bits.directConnection = 1;
+											}
+											//add the node to the network table
+											i = AddNodeToNetworkTable();
+										#if defined(ENABLE_NETWORK_FREEZER)
+											if ( i < 0xFF )
+											{
+												nvmPutConnectionTableIndex(&(ConnectionTable[i]), i);
+											}    
+										#endif
+										}    
+									}    
+									break;
+								#endif
         
-                                        #ifdef NWK_ROLE_COORDINATOR
-                                            case OPEN_SOCKET_REQUEST:
-                                                {
-                                                    BYTE j;
-                                                    
-                                                    //if we have a socket request open
-                                                    if(openSocketInfo.status.bits.requestIsOpen == 0)
-                                                    {
-                                                        //if there isn't a request already open
-                                                        //get the current time and the source address
-                                                        openSocketInfo.socketStart = MiWi_TickGet();
-                                                        openSocketInfo.ShortAddress1.v[0] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN-3];
-                                                        openSocketInfo.ShortAddress1.v[1] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN-2];
-            
-                                                        //copy the long address
-                                                        for(j=0;j<MY_ADDRESS_LENGTH;j++)
-                                                        {
-                                                            openSocketInfo.LongAddress1[j] = MACRxPacket.Payload[j+2+MIWI_PRO_HEADER_LEN];
-                                                        }
-                                                        //mark a request as open
-                                                        openSocketInfo.status.bits.requestIsOpen = 1;
-                                                        openSocketInfo.status.bits.matchFound = 0;
-                                                        
-                                                        #if ADDITIONAL_NODE_ID_SIZE > 0
-                                                            for(j = 0; j < ADDITIONAL_NODE_ID_SIZE; j++)
-                                                            {
-                                                                openSocketInfo.AdditionalNodeID1[j] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+2+MY_ADDRESS_LENGTH+j];
-                                                            }
-                                                        #endif
-                                                    }
-                                                    else
-                                                    {
-                                                        //if there was already a request open
-    
-                                                        if( (MACRxPacket.Payload[MIWI_PRO_HEADER_LEN-3] == openSocketInfo.ShortAddress1.v[0]) && 
-                                                            (MACRxPacket.Payload[MIWI_PRO_HEADER_LEN-2] == openSocketInfo.ShortAddress1.v[1]))
-                                                        {
-                                                            //if we get a request from the same guy twice,
-                                                            //just throw away the second request
-                                                            //ConsolePutROMString((ROM char*)"got request from same guy twice\r\n");
-                                                        }
-                                                        else if(openSocketInfo.ShortAddress1.Val == 0x0000)
-                                                        {                                                
-                                                            //I am the PAN coordinator and I initiated the request so don't send back a response to myself
-                                                            //copy the long and short address from the Rx Buffer
-                                                            for(j=0;j<MY_ADDRESS_LENGTH;j++)
-                                                            {
-                                                                openSocketInfo.LongAddress2[j] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+2+j];      //Data byte
-                                                                tempLongAddress[j] = openSocketInfo.LongAddress2[j];
-                                                            }
-                                                            
-                                                            //save the important information about the node sending 
-                                                            //the request
-                                                            openSocketInfo.ShortAddress2.v[0] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN-3];
-                                                            openSocketInfo.ShortAddress2.v[1] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN-2];
-    
-                                                            tempShortAddress.v[0] = openSocketInfo.ShortAddress2.v[0];
-                                                            tempShortAddress.v[1] = openSocketInfo.ShortAddress2.v[1];
-                                                            tempPANID.Val = myPANID.Val;
-                                                            
-                                                            //look to see if that device exists in our network table
-                                                            openSocketInfo.socketHandle = SearchForShortAddress();
-                                                            
-                                                            if(openSocketInfo.socketHandle == 0xFF)
-                                                            {
-                                                                //otherwise create it
-                                                                //Family, RxOnWHenIdle, Neighbor/Network, P2P, ShortVal, LongVal, Direct, Valid
-                                                                tempNodeStatus.Val = 0x8D;
-                                                                if(tempShortAddress.v[0] & 0x80)
-                                                                {
-                                                                    tempNodeStatus.bits.RXOnWhenIdle = 0;
-                                                                }
-                                                                  
-                                                                openSocketInfo.socketHandle = AddNodeToNetworkTable();
-                                                                if( openSocketInfo.socketHandle < 0xFF )
-                                                                {
-                                                                    #if ADDITIONAL_NODE_ID_SIZE > 0 
-                                                                        for(j = 0; j < ADDITIONAL_NODE_ID_SIZE; j++)
-                                                                        {
-                                                                            ConnectionTable[openSocketInfo.socketHandle].PeerInfo[j] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+2+MY_ADDRESS_LENGTH+j];
-                                                                        }    
-                                                                    #endif
-                                                                    #if defined(ENABLE_NETWORK_FREEZER)
-                                                                        nvmPutConnectionTableIndex(&(ConnectionTable[openSocketInfo.socketHandle]), openSocketInfo.socketHandle);
-                                                                    #endif
-                                                                }    
-                                                            }
-    
-                                                                                              
-                                                            openSocketInfo.status.bits.requestIsOpen = 1;
-                                                            openSocketInfo.status.bits.matchFound = 1; 
-                                                        }
-                                                        else
-                                                        {                                            
-                                                            ConsolePutROMString((ROM char*)"sending out response\r\n");
-                                                            
-                                                            //we got a match so let's send out the response
-                                                            
-                                                            MiApp_FlushTx();
-                                                            MiApp_WriteData(MIWI_PRO_STACK_REPORT_TYPE);          //Report Type
-                                                            MiApp_WriteData(OPEN_SOCKET_RESPONSE);    //Report ID
-            
-                                                            //copy the long and short address from the Rx Buffer
-                                                            for(j=0;j<MY_ADDRESS_LENGTH;j++)
-                                                            {
-                                                                openSocketInfo.LongAddress2[j] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+2+j];      //Data byte
-                                                                MiApp_WriteData(openSocketInfo.LongAddress2[j]); 
-                                                            }
-    
-                                                            openSocketInfo.ShortAddress2.v[0] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN-3];
-                                                            openSocketInfo.ShortAddress2.v[1] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN-2];
-                                                            /*#if ADDITIONAL_NODE_ID_SIZE > 0
-                                                                for(j = 0; j < ADDITIONAL_NODE_ID_SIZE; j++)
-                                                                {
-                                                                    openSocketInfo.AdditionalNodeID2[j] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+10+j];
-                                                                }    
-                                                            #endif
-                                                            */
-                                                            
-                                                            MiApp_WriteData(openSocketInfo.ShortAddress2.v[0]);
-                                                            MiApp_WriteData(openSocketInfo.ShortAddress2.v[1]);
-                                                            #if ADDITIONAL_NODE_ID_SIZE > 0
-                                                                for(j = 0; j < ADDITIONAL_NODE_ID_SIZE; j++)
-                                                                {
-                                                                    MiApp_WriteData(MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+2+MY_ADDRESS_LENGTH+j]);
-                                                                }
-                                                            #endif
-                                                            
-                                                            
-                                                            MiApp_UnicastAddress(openSocketInfo.ShortAddress1.v, FALSE, FALSE);
-                                                            openSocketInfo.status.bits.requestIsOpen = 1;
-                                                            openSocketInfo.status.bits.matchFound = 1;    
-                                                        }
-    
-                                                    }
-                                                }
-                                                break;
-                                                
-                                                
-                                            case COORDINATOR_REPORT:
-                                                {
-                                                    if( role == ROLE_PAN_COORDINATOR )
-                                                    {          
-                                                        BYTE entry;
-                                                        
-                                                        if(MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+2] == COORDINATOR_REPORT_STATUS_JOIN )
-                                                        {                                          
-                                                            //load up the TX Buffer with the results
-                                                            MiApp_FlushTx();
-                                                            MiApp_WriteData(MIWI_PRO_STACK_REPORT_TYPE);        //Report Type
-                                                            MiApp_WriteData(COORDINATOR_RESPONSE);          //Report ID
-                                                            for(i = 0; i < MY_ADDRESS_LENGTH; i++)
-                                                            {
-                                                                tempLongAddress[i] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+3+i];
-                                                                MiApp_WriteData(MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+3+i]);
-                                                            }
-                                                            if( (entry = SearchForLongAddress()) == 0xFF )
-                                                            {
+								#ifdef NWK_ROLE_COORDINATOR
+									case OPEN_SOCKET_REQUEST:
+									{
+										BYTE j;
+										
+										//if we have a socket request open
+										if(openSocketInfo.status.bits.requestIsOpen == 0)
+										{
+											//if there isn't a request already open
+											//get the current time and the source address
+											openSocketInfo.socketStart = MiWi_TickGet();
+											openSocketInfo.ShortAddress1.v[0] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN-3];
+											openSocketInfo.ShortAddress1.v[1] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN-2];
+
+											//copy the long address
+											for(j=0;j<MY_ADDRESS_LENGTH;j++)
+											{
+												openSocketInfo.LongAddress1[j] = MACRxPacket.Payload[j+2+MIWI_PRO_HEADER_LEN];
+											}
+											//mark a request as open
+											openSocketInfo.status.bits.requestIsOpen = 1;
+											openSocketInfo.status.bits.matchFound = 0;
+											
+										#if ADDITIONAL_NODE_ID_SIZE > 0
+											for(j = 0; j < ADDITIONAL_NODE_ID_SIZE; j++)
+											{
+												openSocketInfo.AdditionalNodeID1[j] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+2+MY_ADDRESS_LENGTH+j];
+											}
+										#endif
+										}
+										else
+										{
+											//if there was already a request open
+
+											if( (MACRxPacket.Payload[MIWI_PRO_HEADER_LEN-3] == openSocketInfo.ShortAddress1.v[0]) && 
+												(MACRxPacket.Payload[MIWI_PRO_HEADER_LEN-2] == openSocketInfo.ShortAddress1.v[1]))
+											{
+												//if we get a request from the same guy twice,
+												//just throw away the second request
+												//ConsolePutROMString((ROM char*)"got request from same guy twice\r\n");
+											}
+											else if(openSocketInfo.ShortAddress1.Val == 0x0000)
+											{                                                
+												//I am the PAN coordinator and I initiated the request so don't send back a response to myself
+												//copy the long and short address from the Rx Buffer
+												for(j=0;j<MY_ADDRESS_LENGTH;j++)
+												{
+													openSocketInfo.LongAddress2[j] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+2+j];      //Data byte
+													tempLongAddress[j] = openSocketInfo.LongAddress2[j];
+												}
+												
+												//save the important information about the node sending 
+												//the request
+												openSocketInfo.ShortAddress2.v[0] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN-3];
+												openSocketInfo.ShortAddress2.v[1] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN-2];
+
+												tempShortAddress.v[0] = openSocketInfo.ShortAddress2.v[0];
+												tempShortAddress.v[1] = openSocketInfo.ShortAddress2.v[1];
+												tempPANID.Val = myPANID.Val;
+												
+												//look to see if that device exists in our network table
+												openSocketInfo.socketHandle = SearchForShortAddress();
+												
+												if(openSocketInfo.socketHandle == 0xFF)
+												{
+													//otherwise create it
+													//Family, RxOnWHenIdle, Neighbor/Network, P2P, ShortVal, LongVal, Direct, Valid
+													tempNodeStatus.Val = 0x8D;
+													if(tempShortAddress.v[0] & 0x80)
+													{
+														tempNodeStatus.bits.RXOnWhenIdle = 0;
+													}
+													  
+													openSocketInfo.socketHandle = AddNodeToNetworkTable();
+													if( openSocketInfo.socketHandle < 0xFF )
+													{
+													#if ADDITIONAL_NODE_ID_SIZE > 0 
+														for(j = 0; j < ADDITIONAL_NODE_ID_SIZE; j++)
+														{
+															ConnectionTable[openSocketInfo.socketHandle].PeerInfo[j] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+2+MY_ADDRESS_LENGTH+j];
+														}    
+													#endif
+													#if defined(ENABLE_NETWORK_FREEZER)
+														nvmPutConnectionTableIndex(&(ConnectionTable[openSocketInfo.socketHandle]), openSocketInfo.socketHandle);
+													#endif
+													}    
+												}
+
+																				  
+												openSocketInfo.status.bits.requestIsOpen = 1;
+												openSocketInfo.status.bits.matchFound = 1; 
+											}
+											else
+											{                                            
+												ConsolePutROMString((ROM char*)"sending out response\r\n");
+												
+												//we got a match so let's send out the response
+												
+												MiApp_FlushTx();
+												MiApp_WriteData(MIWI_PRO_STACK_REPORT_TYPE);          //Report Type
+												MiApp_WriteData(OPEN_SOCKET_RESPONSE);    //Report ID
+
+												//copy the long and short address from the Rx Buffer
+												for(j=0;j<MY_ADDRESS_LENGTH;j++)
+												{
+													openSocketInfo.LongAddress2[j] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+2+j];      //Data byte
+													MiApp_WriteData(openSocketInfo.LongAddress2[j]); 
+												}
+
+												openSocketInfo.ShortAddress2.v[0] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN-3];
+												openSocketInfo.ShortAddress2.v[1] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN-2];
+												/*#if ADDITIONAL_NODE_ID_SIZE > 0
+													for(j = 0; j < ADDITIONAL_NODE_ID_SIZE; j++)
+													{
+														openSocketInfo.AdditionalNodeID2[j] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+10+j];
+													}    
+												#endif
+												*/
+												
+												MiApp_WriteData(openSocketInfo.ShortAddress2.v[0]);
+												MiApp_WriteData(openSocketInfo.ShortAddress2.v[1]);
+											#if ADDITIONAL_NODE_ID_SIZE > 0
+												for(j = 0; j < ADDITIONAL_NODE_ID_SIZE; j++)
+												{
+													MiApp_WriteData(MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+2+MY_ADDRESS_LENGTH+j]);
+												}
+											#endif
+												
+												
+												MiApp_UnicastAddress(openSocketInfo.ShortAddress1.v, FALSE, FALSE);
+												openSocketInfo.status.bits.requestIsOpen = 1;
+												openSocketInfo.status.bits.matchFound = 1;    
+											}
+
+										}
+									}
+									break;
+
+
+									case COORDINATOR_REPORT:
+									{
+										if( role == ROLE_PAN_COORDINATOR )
+										{          
+											BYTE entry;
+											
+											if(MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+2] == COORDINATOR_REPORT_STATUS_JOIN )
+											{                                          
+												//load up the TX Buffer with the results
+												MiApp_FlushTx();
+												MiApp_WriteData(MIWI_PRO_STACK_REPORT_TYPE);        //Report Type
+												MiApp_WriteData(COORDINATOR_RESPONSE);          //Report ID
+												for(i = 0; i < MY_ADDRESS_LENGTH; i++)
+												{
+													tempLongAddress[i] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+3+i];
+													MiApp_WriteData(MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+3+i]);
+												}
+												if( (entry = SearchForLongAddress()) == 0xFF )
+												{
 ASSIGN_COORDINATOR_SHORT_ADDRESS:                                                            
-                                                                tempShortAddress.v[0] = 0;
-                                                                for(i = 1; i < NUM_COORDINATOR; i++)
-                                                                {
-                                                                    tempShortAddress.v[1] = i;
-                                                                    if( (entry = SearchForShortAddress()) == 0xFF )
-                                                                    {
-                                                                        break;
-                                                                    }    
-                                                                }    
-                                                                
-                                                                if( i < NUM_COORDINATOR )
-                                                                {
-                                                                    // update family tree
-                                                                    FamilyTree[i] = sourceShortAddress.v[1];
-                                                                    MiApp_WriteData(i);
-                                                                    
-                                                                    tempNodeStatus.Val = 0x9D;
-                                                                    tempPANID.Val = myPANID.Val;
-                                                                    entry = AddNodeToNetworkTable();
-                                                                    
-                                                                    if( entry < CONNECTION_SIZE )
-                                                                    {
-                                                                        #if ADDITIONAL_NODE_ID_SIZE > 0
-                                                                            for(i = 0; i < ADDITIONAL_NODE_ID_SIZE; i++)
-                                                                            {
-                                                                                ConnectionTable[entry].PeerInfo[i] = MACRxPacket.Payload[14+MY_ADDRESS_LENGTH+i];
-                                                                            }
-                                                                        #endif
-                                                                        #if defined(ENABLE_NETWORK_FREEZER)
-                                                                            if( entry < CONNECTION_SIZE )
-                                                                            {
-                                                                                nvmPutConnectionTableIndex(&(ConnectionTable[entry]), entry);
-                                                                            }    
-                                                                        #endif
-                                                                    }
-                                                                    else
-                                                                    {
-                                                                        FamilyTree[i] = 0xFF;
-                                                                        MiApp_WriteData(0xFF);
-                                                                    }
+													tempShortAddress.v[0] = 0;
+													for(i = 1; i < NUM_COORDINATOR; i++)
+													{
+														tempShortAddress.v[1] = i;
+														if( (entry = SearchForShortAddress()) == 0xFF )
+														{
+															break;
+														}    
+													}    
+													
+													if( i < NUM_COORDINATOR )
+													{
+														// update family tree
+														FamilyTree[i] = sourceShortAddress.v[1];
+														MiApp_WriteData(i);
+														
+														tempNodeStatus.Val = 0x9D;
+														tempPANID.Val = myPANID.Val;
+														entry = AddNodeToNetworkTable();
+														
+														if( entry < CONNECTION_SIZE )
+														{
+														#if ADDITIONAL_NODE_ID_SIZE > 0
+															for(i = 0; i < ADDITIONAL_NODE_ID_SIZE; i++)
+															{
+																ConnectionTable[entry].PeerInfo[i] = MACRxPacket.Payload[14+MY_ADDRESS_LENGTH+i];
+															}
+														#endif
+														#if defined(ENABLE_NETWORK_FREEZER)
+															if( entry < CONNECTION_SIZE )
+															{
+																nvmPutConnectionTableIndex(&(ConnectionTable[entry]), entry);
+															}    
+														#endif
+														}
+														else
+														{
+															FamilyTree[i] = 0xFF;
+															MiApp_WriteData(0xFF);
+														}
 
-                                                                }
-                                                                else
-                                                                {
-                                                                    // no more Coordinator available. Use 0xFF
-                                                                    // to indicate that the joining device must
-                                                                    // be an end device
-                                                                    MiApp_WriteData(0xFF);
-                                                                }
-                                                            }
-                                                            else
-                                                            {
-                                                                if( ConnectionTable[entry].AltAddress.v[0] == 0 )
-                                                                {
-                                                                    // check the loop in family tree
-                                                                    BYTE loopCheckTarget = sourceShortAddress.v[1];
-                                                                    
-                                                                    while( loopCheckTarget )
-                                                                    {
-                                                                        if( FamilyTree[loopCheckTarget] == ConnectionTable[entry].AltAddress.v[1] )
-                                                                        {
-                                                                            // potential parent is the children of joining coordinator 
-                                                                            // under current topology 
-                                                                            break;
-                                                                        }
-                                                                        loopCheckTarget = FamilyTree[loopCheckTarget];
-                                                                    }
-                                                                    
-                                                                    if( loopCheckTarget == 0 )
-                                                                    {
-                                                                        FamilyTree[ConnectionTable[entry].AltAddress.v[1]] = sourceShortAddress.v[1];
-                                                                    }    
-                                                                    MiApp_WriteData( ConnectionTable[entry].AltAddress.v[1] );
-                                                                }
-                                                                else
-                                                                {
-                                                                    ConnectionTable[entry].status.Val = 0;
-                                                                    goto ASSIGN_COORDINATOR_SHORT_ADDRESS;
-                                                                }        
-                                                            }        
-                                                            
-                                                            MiApp_UnicastAddress(sourceShortAddress.v, FALSE, FALSE);
-                                                            
-                                                            MiWiPROStatus.bits.COMM_FAMILY_TREE = FAMILY_TREE_BROADCAST;
-                                                            backgroundTaskTick = MiWi_TickGet();
-                                                            backgroundTaskTick.Val -= (ONE_SECOND/2);
-                                                            
-                                                            MiWiPRONVMStatus.bits.saveFamilyTree = 1;
-                                                        }
-                                                        else
-                                                        {
-                                                            // Coordinator report status leave
-                                                            for(i = 0; i < MY_ADDRESS_LENGTH; i++)
-                                                            {
-                                                                tempLongAddress[i] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+3+i];
-                                                            }
-                                                            if( (entry = SearchForLongAddress()) != 0xFF )
-                                                            {
-                                                                // remove all its children coordinators
-                                                                for(i = (NUM_COORDINATOR-1); i > 0; i--)
-                                                                {
-                                                                    BYTE index;
-                                                                    BYTE loopCheck;
-                                                                    
-                                                                    index = i;
-                                                                    loopCheck = 0;
-                                                                    while(index > 0)
-                                                                    {
-                                                                        if( FamilyTree[index] == 0xFF )
-                                                                        {
-                                                                            break;
-                                                                        }
-                                                                        
-                                                                        if( FamilyTree[index] == ConnectionTable[entry].AltAddress.v[1] )
-                                                                        {
-                                                                            BYTE entry2;
-                                                                            
-                                                                            FamilyTree[i] = 0xFF;
-                                                                            tempShortAddress.v[0] = 0;
-                                                                            tempShortAddress.v[1] = i;
-                                                                            if( (entry2 = SearchForShortAddress()) != 0xFF )
-                                                                            {
-                                                                                ConnectionTable[entry2].status.Val = 0;
-                                                                            }
-                                                                            break;
-                                                                        }
-                                                                        
-                                                                        index = FamilyTree[index];
-                                                                        if( loopCheck++ > NUM_COORDINATOR )
-                                                                        {
-                                                                            break;
-                                                                        }
-                                                                    }
-                                                                }
+													}
+													else
+													{
+														// no more Coordinator available. Use 0xFF
+														// to indicate that the joining device must
+														// be an end device
+														MiApp_WriteData(0xFF);
+													}
+												}
+												else
+												{
+													if( ConnectionTable[entry].AltAddress.v[0] == 0 )
+													{
+														// check the loop in family tree
+														BYTE loopCheckTarget = sourceShortAddress.v[1];
+														
+														while( loopCheckTarget )
+														{
+															if( FamilyTree[loopCheckTarget] == ConnectionTable[entry].AltAddress.v[1] )
+															{
+																// potential parent is the children of joining coordinator 
+																// under current topology 
+																break;
+															}
+															loopCheckTarget = FamilyTree[loopCheckTarget];
+														}
+														
+														if( loopCheckTarget == 0 )
+														{
+															FamilyTree[ConnectionTable[entry].AltAddress.v[1]] = sourceShortAddress.v[1];
+														}    
+														MiApp_WriteData( ConnectionTable[entry].AltAddress.v[1] );
+													}
+													else
+													{
+														ConnectionTable[entry].status.Val = 0;
+														goto ASSIGN_COORDINATOR_SHORT_ADDRESS;
+													}        
+												}        
+												
+												MiApp_UnicastAddress(sourceShortAddress.v, FALSE, FALSE);
+												
+												MiWiPROStatus.bits.COMM_FAMILY_TREE = FAMILY_TREE_BROADCAST;
+												backgroundTaskTick = MiWi_TickGet();
+												backgroundTaskTick.Val -= (ONE_SECOND/2);
+												
+												MiWiPRONVMStatus.bits.saveFamilyTree = 1;
+											}
+											else
+											{
+												// Coordinator report status leave
+												for(i = 0; i < MY_ADDRESS_LENGTH; i++)
+												{
+													tempLongAddress[i] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+3+i];
+												}
+												if( (entry = SearchForLongAddress()) != 0xFF )
+												{
+													// remove all its children coordinators
+													for(i = (NUM_COORDINATOR-1); i > 0; i--)
+													{
+														BYTE index;
+														BYTE loopCheck;
+														
+														index = i;
+														loopCheck = 0;
+														while(index > 0)
+														{
+															if( FamilyTree[index] == 0xFF )
+															{
+																break;
+															}
+															
+															if( FamilyTree[index] == ConnectionTable[entry].AltAddress.v[1] )
+															{
+																BYTE entry2;
+																
+																FamilyTree[i] = 0xFF;
+																tempShortAddress.v[0] = 0;
+																tempShortAddress.v[1] = i;
+																if( (entry2 = SearchForShortAddress()) != 0xFF )
+																{
+																	ConnectionTable[entry2].status.Val = 0;
+																}
+																break;
+															}
+															
+															index = FamilyTree[index];
+															if( loopCheck++ > NUM_COORDINATOR )
+															{
+																break;
+															}
+														}
+													}
 
-                                                                FamilyTree[ConnectionTable[entry].AltAddress.v[1]] = 0xFF;
-                                                                ConnectionTable[entry].status.Val = 0;
-                                                                #if defined(ENABLE_NETWORK_FREEZER)
-                                                                    nvmPutConnectionTableIndex(&(ConnectionTable[entry]), entry);  
-                                                                #endif
-                                                                
-                                                                MiWiPROStatus.bits.COMM_FAMILY_TREE = FAMILY_TREE_BROADCAST;
-                                                                backgroundTaskTick = MiWi_TickGet();
-                                                                backgroundTaskTick.Val -= (ONE_SECOND/2);
-                                                            }
-                                                                  
-                                                        }        
-                                                    }
-                                                }
-                                                break;
+													FamilyTree[ConnectionTable[entry].AltAddress.v[1]] = 0xFF;
+													ConnectionTable[entry].status.Val = 0;
+												#if defined(ENABLE_NETWORK_FREEZER)
+													nvmPutConnectionTableIndex(&(ConnectionTable[entry]), entry);  
+												#endif
+													
+													MiWiPROStatus.bits.COMM_FAMILY_TREE = FAMILY_TREE_BROADCAST;
+													backgroundTaskTick = MiWi_TickGet();
+													backgroundTaskTick.Val -= (ONE_SECOND/2);
+												}
+													  
+											}        
+										}
+									}
+									break;
                                                 
                                                 
-                                            case COORDINATOR_RESPONSE:
-                                                {
-                                                    BYTE handle;
-                                                    BYTE entry;
-                                                    BYTE associateStatus = ASSOCIATION_SUCCESSFUL;
-                                                    
-                                                    for(i = 0; i < MY_ADDRESS_LENGTH; i++)
-                                                    {
-                                                        tempLongAddress[i] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+2+i];
-                                                    }
-                                                    tempNodeStatus.Val = 0xBF;
-                                                    
-                                                    if( MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+2+MY_ADDRESS_LENGTH] == 0xFF )
-                                                    {
-                                                        // PAN Coord has run out of Coordinators, assign
-                                                        // this device as end device
-                                                        handle = SearchForLongAddress();
-                                                        if( handle < CONNECTION_SIZE )
-                                                        {
-                                                            tempShortAddress.v[1] = myShortAddress.v[1];
-                                                            entry = 1;
-                                                            for(i = 0; i < CONNECTION_SIZE; i++)
-                                                            {
-                                                                tempShortAddress.v[0] = entry;
-                                                                if( SearchForShortAddress() == 0xFF )
-                                                                {
-                                                                    tempShortAddress.v[0] = entry + 0x80;
-                                                                    if( SearchForShortAddress() == 0xFF )
-                                                                    {
-                                                                        break;
-                                                                    }
-                                                                } 
-                                                                entry++;       
-                                                            }
-                                                            if( i < CONNECTION_SIZE )
-                                                            {
-                                                                if( entry < 128 )
-                                                                {
-                                                                    tempShortAddress.v[0] = entry;
-                                                                }
-                                                                else
-                                                                {
-                                                                    associateStatus = ASSOCIATION_PAN_FULL;
-                                                                }        
-                                                            } 
-                                                        } 
-                                                        else
-                                                        {
-                                                            break;
-                                                        }       
-                                                    }
-                                                    else
-                                                    {
-                                                        tempShortAddress.v[0] = 0;
-                                                        tempShortAddress.v[1] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+2+MY_ADDRESS_LENGTH];
-                                                    }    
-                                                    
-                                                    tempPANID.Val = myPANID.Val;
-                                                    handle = AddNodeToNetworkTable();
-                                                    
-                                                    // send back the association response
-                                                    TxBuffer[0] = MAC_COMMAND_ASSOCIATION_RESPONSE;
-                                                    TxBuffer[1] = tempShortAddress.v[0];
-                                                    TxBuffer[2] = tempShortAddress.v[1];
-                                                    TxBuffer[3] = associateStatus;
-                                                    #if ADDITIONAL_NODE_ID_SIZE > 0
-                                                        for(i = 0; i < ADDITIONAL_NODE_ID_SIZE; i++)
-                                                        {
-                                                            TxBuffer[4+i] = AdditionalNodeID[i];
-                                                        }
-                                                    #endif
-                                                    #if defined(IEEE_802_15_4)
-                                                        TxData = 4+ADDITIONAL_NODE_ID_SIZE;
-                                                    #else
-                                                        TxBuffer[4+ADDITIONAL_NODE_ID_SIZE] = myShortAddress.v[1];
-                                                        TxData = 5 + ADDITIONAL_NODE_ID_SIZE;
-                                                    #endif
-                                                    
-                                                    #if defined(ENABLE_SECURITY)
-                                                        IncomingFrameCounter[handle].Val = 0;
-                        					        #endif        
-                                                    
-                                                    #if defined(IEEE_802_15_4)
-                                                        SendMACPacket(myPANID.v, ConnectionTable[handle].Address, PACKET_TYPE_COMMAND, 0);
-                                                    #else
-                                                        SendMACPacket(ConnectionTable[handle].Address, PACKET_TYPE_COMMAND);
-                                                    #endif
-                                                    
-                                                    #if defined(ENABLE_NETWORK_FREEZER)
-                                                        if( handle < CONNECTION_SIZE )
-                                                        {
-                                                            nvmPutConnectionTableIndex(&(ConnectionTable[handle]), handle);
-                                                        }    
-                                                    #endif
-                                                }
-                                                break;
-                                                
-                                                        
-                                            case FAMILY_TREE_REQUEST:
-                                                {
-                                                    MiApp_FlushTx();
-                                                    MiApp_WriteData(MIWI_PRO_STACK_REPORT_TYPE);
-                                                    MiApp_WriteData(FAMILY_TREE_REPORT);
-                                                    for(i = 0; i < NUM_COORDINATOR; i++)
-                                                    {
-                                                        MiApp_WriteData(FamilyTree[i]);
-                                                    }    
-                                                    MiApp_UnicastAddress(sourceShortAddress.v, FALSE, FALSE);
-                                                }
-                                                break;
-                                                
-                                                
-                                            case FAMILY_TREE_REPORT:
-                                                {
-                                                    for(i = 0; i < NUM_COORDINATOR; i++)
-                                                    {
-                                                        FamilyTree[i] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+2+i];
-                                                    } 
-                                                    
-                                                    backgroundTaskTick = MiWi_TickGet();
-                                                    #if defined(ENABLE_NETWORK_FREEZER)
-                                                        MiWiPRONVMStatus.bits.saveFamilyTree = 1;
-                                                    #endif   
-                                                }
-                                                break;
-                                                
-                                                
-                                            case ROUTING_TABLE_REPORT:
-                                                {
-                                                    if( MACRxPacket.RSSIValue > COMM_RSSI_THRESHOLD )
-                                                    {
-                                                        #if defined(IEEE_802_15_4)
-                                                            BYTE index = MIWI_PRO_HEADER_LEN+2;
-                                                        #else
-                                                            BYTE index = MIWI_PRO_HEADER_LEN+3;
-                                                        #endif
-                                                        BYTE initiator = MACRxPacket.Payload[index];
-                                                        
-                                                        for(i = 0; i < NUM_COORDINATOR/8; i++)
-                                                        {
-                                                            #if defined(ENABLE_ROUTING_UPDATE)
-                                                                if( NeighborRoutingTable[sourceShortAddress.v[1]][i] != MACRxPacket.Payload[index+1+i] )
-                                                                {
-                                                                    NeighborRoutingTable[sourceShortAddress.v[1]][i] = MACRxPacket.Payload[index+1+i];
-                                                                    MiWiPRONVMStatus.bits.saveNeighborTable = 1; 
-                                                                } 
-                                                            #else
-                                                                NeighborRoutingTable[sourceShortAddress.v[1]][i] = MACRxPacket.Payload[index+1+i];
-                                                            #endif   
-                                                        }    
-                                                        #if defined(IEEE_802_15_4)
-                                                            #if defined(ENABLE_ROUTING_UPDATE)
-                                                                if( (RoutingTable[ MACRxPacket.SourceAddress[1]/8] & (0x01 << (MACRxPacket.SourceAddress[1]%8))) == 0 )
-                                                                {
-                                                                    RoutingTable[ MACRxPacket.SourceAddress[1]/8] |= (0x01 << (MACRxPacket.SourceAddress[1]%8));
-                                                                    MiWiPRONVMStatus.bits.saveRoutingTable = 1;
-                                                                }   
-                                                            #else
-                                                                RoutingTable[ MACRxPacket.SourceAddress[1]/8] |= (0x01 << (MACRxPacket.SourceAddress[1]%8));
-                                                            #endif 
-                                                            
-                                                            if( initiator == MACRxPacket.SourceAddress[1] ) 
-                                                        #else
-                                                            #if defined(ENABLE_ROUTING_UPDATE)
-                                                                if( (RoutingTable[sourceShortAddress.v[1]/8] & (0x01 << (MACRxPacket.Payload[index-1]%8))) == 0 )
-                                                                {
-                                                                    RoutingTable[sourceShortAddress.v[1]/8] |= (0x01 << (MACRxPacket.Payload[index-1]%8));
-                                                                    MiWiPRONVMStatus.bits.saveRoutingTable = 1;
-                                                                }
-                                                            #else
-                                                                RoutingTable[sourceShortAddress.v[1]/8] |= (0x01 << (MACRxPacket.Payload[index-1]%8));
-                                                            #endif
-                                                            
-                                                            for(i = 0; i < MY_ADDRESS_LENGTH; i++)
-                                                            {
-                                                                tempLongAddress[i] = MACRxPacket.SourceAddress[i];
-                                                            }    
-                                                            tempShortAddress.v[0] = 0;
-                                                            tempShortAddress.v[1] = MACRxPacket.Payload[index-1];
-                                                            tempNodeStatus.Val = 0x8F;
-                                                            tempPANID.Val = myPANID.Val;
-                                                            
-                                                            if( (i = SearchForLongAddress()) < CONNECTION_SIZE )
-                                                            {
-                                                                if( ConnectionTable[i].AltAddress.Val != tempShortAddress.Val )
-                                                                {
-                                                                    ConnectionTable[i].AltAddress.Val = tempShortAddress.Val;
-                                                                    ConnectionTable[i].status.bits.shortAddressValid = 1;
-                                                                    MiWiPRONVMStatus.bits.saveConnectionTable = 1;
-                                                                }
-                                                                ConnectionTable[i].status.bits.directConnection = 1;
-                                                            }
-                                                            else
-                                                            {
-                                                                if( AddNodeToNetworkTable() < CONNECTION_SIZE )
-                                                                {
-                                                                    MiWiPRONVMStatus.bits.saveConnectionTable = 1;
-                                                                }    
-                                                            }
-  
-                                                            if( initiator == MACRxPacket.Payload[index-1] )
-                                                        #endif
-                                                        {
-                                                            // broadcast my routing table
-                                                            if( MiWiPROStatus.bits.COMM_RANDOM_SEND )
-                                                            {
-                                                                MiMAC_SendPacket(RandomSendInfo.MTP, RandomSendInfo.RandomSendTxBuffer, RandomSendInfo.RandomSendTxData);
-                                                                MiWiPROStatus.bits.COMM_RANDOM_SEND = 0;    
-                                                            }   
-                                                            
-                                                            RandomSendInfo.RandomSendTxBuffer[0] = 1;
-                                                            RandomSendInfo.RandomSendTxBuffer[1] = 0x02;
-                                                            RandomSendInfo.RandomSendTxBuffer[2] = myPANID.v[0];
-                                                            RandomSendInfo.RandomSendTxBuffer[3] = myPANID.v[1];
-                                                            RandomSendInfo.RandomSendTxBuffer[4] = 0xFD; 
-                                                            RandomSendInfo.RandomSendTxBuffer[5] = 0xFF;
-                                                            RandomSendInfo.RandomSendTxBuffer[6] = myPANID.v[0];
-                                                            RandomSendInfo.RandomSendTxBuffer[7] = myPANID.v[1];
-                                                            RandomSendInfo.RandomSendTxBuffer[8] = myShortAddress.v[0];
-                                                            RandomSendInfo.RandomSendTxBuffer[9] = myShortAddress.v[1];
-                                                            RandomSendInfo.RandomSendTxBuffer[10] = MiWiPROSeqNum++;
-                                                            RandomSendInfo.RandomSendTxBuffer[11] = MIWI_PRO_STACK_REPORT_TYPE;
-                                                            RandomSendInfo.RandomSendTxBuffer[12] = ROUTING_TABLE_REPORT;
-                                                            RandomSendInfo.RandomSendTxData = 13;
-                                                            #if !defined(IEEE_802_15_4)
-                                                                RandomSendInfo.RandomSendTxBuffer[RandomSendInfo.RandomSendTxData++] = myShortAddress.v[1];
-                                                            #endif
-                                                            RandomSendInfo.RandomSendTxBuffer[RandomSendInfo.RandomSendTxData++] = initiator;
-                                                            for(i = 0; i < NUM_COORDINATOR/8; i++)
-                                                            {
-                                                                RandomSendInfo.RandomSendTxBuffer[RandomSendInfo.RandomSendTxData++] = RoutingTable[i];
-                                                            }
-                                                            RandomSendInfo.MTP.flags.Val = 0;
-                                                            RandomSendInfo.MTP.flags.bits.broadcast = 1;
-                                                            #if defined(IEEE_802_15_4)
-                                                                RandomSendInfo.MTP.altSrcAddr = TRUE;
-                                                                RandomSendInfo.MTP.DestPANID.Val = myPANID.Val;
-                                                            #else
-                                                                RandomSendInfo.MTP.flags.bits.sourcePrsnt = 1;
-                                                            #endif    
-                                                            RandomSendInfo.RandomDelayInMilliSecond = (TMRL % RANDOM_DELAY_RANGE);
-                                                            RandomSendInfo.StartTick = MiWi_TickGet();
-                                                            MiWiPROStatus.bits.COMM_RANDOM_SEND = 1;
-                                                        } 
-                                                        
-                                                        #if defined(ENABLE_ROUTING_UPDATE)
-                                                            if( RoutingUpdateCounter[sourceShortAddress.v[1]] == 0 )
-                                                            {
-                                                        #endif
-                                                                MiWiPRONVMStatus.bits.saveRoutingTable = 1;
-                                                                MiWiPRONVMStatus.bits.saveNeighborTable = 1; 
-                                                        
-                                                        #if defined(ENABLE_ROUTING_UPDATE)
-                                                            }
-                                                            RoutingUpdateCounter[sourceShortAddress.v[1]] = ROUTING_UPDATE_EXPIRATION;
-                                                        #endif
-                                                        backgroundTaskTick = MiWi_TickGet();
-                                                    }    
-                                                }
-                                                break;                
-                                                
-                                                
-                                                
-                                        #endif
+									case COORDINATOR_RESPONSE:
+									{
+										BYTE handle;
+										BYTE entry;
+										BYTE associateStatus = ASSOCIATION_SUCCESSFUL;
+										
+										for(i = 0; i < MY_ADDRESS_LENGTH; i++)
+										{
+											tempLongAddress[i] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+2+i];
+										}
+										tempNodeStatus.Val = 0xBF;
+										
+										if( MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+2+MY_ADDRESS_LENGTH] == 0xFF )
+										{
+											// PAN Coord has run out of Coordinators, assign
+											// this device as end device
+											handle = SearchForLongAddress();
+											if( handle < CONNECTION_SIZE )
+											{
+												tempShortAddress.v[1] = myShortAddress.v[1];
+												entry = 1;
+												for(i = 0; i < CONNECTION_SIZE; i++)
+												{
+													tempShortAddress.v[0] = entry;
+													if( SearchForShortAddress() == 0xFF )
+													{
+														tempShortAddress.v[0] = entry + 0x80;
+														if( SearchForShortAddress() == 0xFF )
+														{
+															break;
+														}
+													} 
+													entry++;       
+												}
+												if( i < CONNECTION_SIZE )
+												{
+													if( entry < 128 )
+													{
+														tempShortAddress.v[0] = entry;
+													}
+													else
+													{
+														associateStatus = ASSOCIATION_PAN_FULL;
+													}        
+												} 
+											} 
+											else
+											{
+												break;
+											}       
+										}
+										else
+										{
+											tempShortAddress.v[0] = 0;
+											tempShortAddress.v[1] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+2+MY_ADDRESS_LENGTH];
+										}    
+										
+										tempPANID.Val = myPANID.Val;
+										handle = AddNodeToNetworkTable();
+										
+										// send back the association response
+										TxBuffer[0] = MAC_COMMAND_ASSOCIATION_RESPONSE;
+										TxBuffer[1] = tempShortAddress.v[0];
+										TxBuffer[2] = tempShortAddress.v[1];
+										TxBuffer[3] = associateStatus;
+									#if ADDITIONAL_NODE_ID_SIZE > 0
+										for(i = 0; i < ADDITIONAL_NODE_ID_SIZE; i++)
+										{
+											TxBuffer[4+i] = AdditionalNodeID[i];
+										}
+									#endif
+									#if defined(IEEE_802_15_4)
+										TxData = 4+ADDITIONAL_NODE_ID_SIZE;
+									#else
+										TxBuffer[4+ADDITIONAL_NODE_ID_SIZE] = myShortAddress.v[1];
+										TxData = 5 + ADDITIONAL_NODE_ID_SIZE;
+									#endif
+										
+									#if defined(ENABLE_SECURITY)
+										IncomingFrameCounter[handle].Val = 0;
+									#endif        
+										
+									#if defined(IEEE_802_15_4)
+										SendMACPacket(myPANID.v, ConnectionTable[handle].Address, PACKET_TYPE_COMMAND, 0);
+									#else
+										SendMACPacket(ConnectionTable[handle].Address, PACKET_TYPE_COMMAND);
+									#endif
+										
+									#if defined(ENABLE_NETWORK_FREEZER)
+										if( handle < CONNECTION_SIZE )
+										{
+											nvmPutConnectionTableIndex(&(ConnectionTable[handle]), handle);
+										}    
+									#endif
+									}
+									break;
+									
+											
+									case FAMILY_TREE_REQUEST:
+									{
+										MiApp_FlushTx();
+										MiApp_WriteData(MIWI_PRO_STACK_REPORT_TYPE);
+										MiApp_WriteData(FAMILY_TREE_REPORT);
+										for(i = 0; i < NUM_COORDINATOR; i++)
+										{
+											MiApp_WriteData(FamilyTree[i]);
+										}    
+										MiApp_UnicastAddress(sourceShortAddress.v, FALSE, FALSE);
+									}
+									break;
+									
+									
+									case FAMILY_TREE_REPORT:
+									{
+										for(i = 0; i < NUM_COORDINATOR; i++)
+										{
+											FamilyTree[i] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+2+i];
+										} 
+										
+										backgroundTaskTick = MiWi_TickGet();
+										#if defined(ENABLE_NETWORK_FREEZER)
+											MiWiPRONVMStatus.bits.saveFamilyTree = 1;
+										#endif   
+									}
+									break;
+									
+									
+									case ROUTING_TABLE_REPORT:
+									{
+										if( MACRxPacket.RSSIValue > COMM_RSSI_THRESHOLD )
+										{
+										#if defined(IEEE_802_15_4)
+											BYTE index = MIWI_PRO_HEADER_LEN+2;
+										#else
+											BYTE index = MIWI_PRO_HEADER_LEN+3;
+										#endif
+											BYTE initiator = MACRxPacket.Payload[index];
+											
+											for(i = 0; i < NUM_COORDINATOR/8; i++)
+											{
+											#if defined(ENABLE_ROUTING_UPDATE)
+												if( NeighborRoutingTable[sourceShortAddress.v[1]][i] != MACRxPacket.Payload[index+1+i] )
+												{
+													NeighborRoutingTable[sourceShortAddress.v[1]][i] = MACRxPacket.Payload[index+1+i];
+													MiWiPRONVMStatus.bits.saveNeighborTable = 1; 
+												} 
+											#else
+												NeighborRoutingTable[sourceShortAddress.v[1]][i] = MACRxPacket.Payload[index+1+i];
+											#endif   
+											}    
+									#if defined(IEEE_802_15_4)
+										#if defined(ENABLE_ROUTING_UPDATE)
+											if( (RoutingTable[ MACRxPacket.SourceAddress[1]/8] & (0x01 << (MACRxPacket.SourceAddress[1]%8))) == 0 )
+											{
+												RoutingTable[ MACRxPacket.SourceAddress[1]/8] |= (0x01 << (MACRxPacket.SourceAddress[1]%8));
+												MiWiPRONVMStatus.bits.saveRoutingTable = 1;
+											}   
+										#else
+											RoutingTable[ MACRxPacket.SourceAddress[1]/8] |= (0x01 << (MACRxPacket.SourceAddress[1]%8));
+										#endif 
+										
+											if( initiator == MACRxPacket.SourceAddress[1] ) 
+									#else
+										#if defined(ENABLE_ROUTING_UPDATE)
+											if( (RoutingTable[sourceShortAddress.v[1]/8] & (0x01 << (MACRxPacket.Payload[index-1]%8))) == 0 )
+											{
+												RoutingTable[sourceShortAddress.v[1]/8] |= (0x01 << (MACRxPacket.Payload[index-1]%8));
+												MiWiPRONVMStatus.bits.saveRoutingTable = 1;
+											}
+										#else
+											RoutingTable[sourceShortAddress.v[1]/8] |= (0x01 << (MACRxPacket.Payload[index-1]%8));
+										#endif
+												
+											for(i = 0; i < MY_ADDRESS_LENGTH; i++)
+											{
+												tempLongAddress[i] = MACRxPacket.SourceAddress[i];
+											}
+											tempShortAddress.v[0] = 0;
+											tempShortAddress.v[1] = MACRxPacket.Payload[index-1];
+											tempNodeStatus.Val = 0x8F;
+											tempPANID.Val = myPANID.Val;
+												
+											if( (i = SearchForLongAddress()) < CONNECTION_SIZE )
+											{
+												if( ConnectionTable[i].AltAddress.Val != tempShortAddress.Val )
+												{
+													ConnectionTable[i].AltAddress.Val = tempShortAddress.Val;
+													ConnectionTable[i].status.bits.shortAddressValid = 1;
+													MiWiPRONVMStatus.bits.saveConnectionTable = 1;
+												}
+												ConnectionTable[i].status.bits.directConnection = 1;
+											}
+											else
+											{
+												if( AddNodeToNetworkTable() < CONNECTION_SIZE )
+												{
+													MiWiPRONVMStatus.bits.saveConnectionTable = 1;
+												}    
+											}
+
+											if( initiator == MACRxPacket.Payload[index-1] )
+									#endif
+											{
+												// broadcast my routing table
+												if( MiWiPROStatus.bits.COMM_RANDOM_SEND )
+												{
+													MiMAC_SendPacket(RandomSendInfo.MTP, RandomSendInfo.RandomSendTxBuffer, RandomSendInfo.RandomSendTxData);
+													MiWiPROStatus.bits.COMM_RANDOM_SEND = 0;    
+												}   
+												
+												RandomSendInfo.RandomSendTxBuffer[0] = 1;
+												RandomSendInfo.RandomSendTxBuffer[1] = 0x02;
+												RandomSendInfo.RandomSendTxBuffer[2] = myPANID.v[0];
+												RandomSendInfo.RandomSendTxBuffer[3] = myPANID.v[1];
+												RandomSendInfo.RandomSendTxBuffer[4] = 0xFD; 
+												RandomSendInfo.RandomSendTxBuffer[5] = 0xFF;
+												RandomSendInfo.RandomSendTxBuffer[6] = myPANID.v[0];
+												RandomSendInfo.RandomSendTxBuffer[7] = myPANID.v[1];
+												RandomSendInfo.RandomSendTxBuffer[8] = myShortAddress.v[0];
+												RandomSendInfo.RandomSendTxBuffer[9] = myShortAddress.v[1];
+												RandomSendInfo.RandomSendTxBuffer[10] = MiWiPROSeqNum++;
+												RandomSendInfo.RandomSendTxBuffer[11] = MIWI_PRO_STACK_REPORT_TYPE;
+												RandomSendInfo.RandomSendTxBuffer[12] = ROUTING_TABLE_REPORT;
+												RandomSendInfo.RandomSendTxData = 13;
+											#if !defined(IEEE_802_15_4)
+												RandomSendInfo.RandomSendTxBuffer[RandomSendInfo.RandomSendTxData++] = myShortAddress.v[1];
+											#endif
+												RandomSendInfo.RandomSendTxBuffer[RandomSendInfo.RandomSendTxData++] = initiator;
+												for(i = 0; i < NUM_COORDINATOR/8; i++)
+												{
+													RandomSendInfo.RandomSendTxBuffer[RandomSendInfo.RandomSendTxData++] = RoutingTable[i];
+												}
+												RandomSendInfo.MTP.flags.Val = 0;
+												RandomSendInfo.MTP.flags.bits.broadcast = 1;
+											#if defined(IEEE_802_15_4)
+												RandomSendInfo.MTP.altSrcAddr = TRUE;
+												RandomSendInfo.MTP.DestPANID.Val = myPANID.Val;
+											#else
+												RandomSendInfo.MTP.flags.bits.sourcePrsnt = 1;
+											#endif    
+												RandomSendInfo.RandomDelayInMilliSecond = (TMRL % RANDOM_DELAY_RANGE);
+												RandomSendInfo.StartTick = MiWi_TickGet();
+												MiWiPROStatus.bits.COMM_RANDOM_SEND = 1;
+											}
+											
+										#if defined(ENABLE_ROUTING_UPDATE)
+											if( RoutingUpdateCounter[sourceShortAddress.v[1]] == 0 )
+											{
+										#endif
+												MiWiPRONVMStatus.bits.saveRoutingTable = 1;
+												MiWiPRONVMStatus.bits.saveNeighborTable = 1; 
+											
+										#if defined(ENABLE_ROUTING_UPDATE)
+											}
+											RoutingUpdateCounter[sourceShortAddress.v[1]] = ROUTING_UPDATE_EXPIRATION;
+										#endif
+											backgroundTaskTick = MiWi_TickGet();
+										}
+									}
+									break;                
+
+
+
+								#endif
                                         
-                                        case OPEN_SOCKET_RESPONSE:
-                                            {
-                                                BYTE j;
+									case OPEN_SOCKET_RESPONSE:
+									{
+										BYTE j;
+										
+										//save the long address of the device
+										for(j=0;j<MY_ADDRESS_LENGTH;j++)
+										{
+											tempLongAddress[j] = MACRxPacket.Payload[j+MIWI_PRO_HEADER_LEN+2];
+										}
                                                 
-                                                //save the long address of the device
-                                                for(j=0;j<MY_ADDRESS_LENGTH;j++)
-                                                {
-                                                    tempLongAddress[j] = MACRxPacket.Payload[j+MIWI_PRO_HEADER_LEN+2];
-                                                }
+										//create a new status for the device
+										tempNodeStatus.Val = 0x8D;
+										//check the RxOnWhenIdle bit
+										if(MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+2+MY_ADDRESS_LENGTH] & 0x80)
+										{
+											tempNodeStatus.bits.RXOnWhenIdle = 0;
+										}
                                                 
-                                                //create a new status for the device
-                                                tempNodeStatus.Val = 0x8D;
-                                                //check the RxOnWhenIdle bit
-                                                if(MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+2+MY_ADDRESS_LENGTH] & 0x80)
-                                                {
-                                                    tempNodeStatus.bits.RXOnWhenIdle = 0;
-                                                }
+										//copy the short address
+										tempShortAddress.v[0] = MACRxPacket.Payload[MY_ADDRESS_LENGTH+MIWI_PRO_HEADER_LEN+2];
+										tempShortAddress.v[1] = MACRxPacket.Payload[MY_ADDRESS_LENGTH+MIWI_PRO_HEADER_LEN+3];
                                                 
-                                                //copy the short address
-                                                tempShortAddress.v[0] = MACRxPacket.Payload[MY_ADDRESS_LENGTH+MIWI_PRO_HEADER_LEN+2];
-                                                tempShortAddress.v[1] = MACRxPacket.Payload[MY_ADDRESS_LENGTH+MIWI_PRO_HEADER_LEN+3];
+										//use my PANID since this version of MiWi PRO only supports single PANIDs
+										tempPANID.Val = myPANID.Val;
                                                 
-                                                //use my PANID since this version of MiWi PRO only supports single PANIDs
-                                                tempPANID.Val = myPANID.Val;
-                                                
-                                                //see if this node already exists in my table
-                                                openSocketInfo.socketHandle = SearchForShortAddress();
+										//see if this node already exists in my table
+										openSocketInfo.socketHandle = SearchForShortAddress();
                                                
-                                                if(openSocketInfo.socketHandle != 0xFF)
-                                                {
-                                                    //if it does then get the status of the node already in the table
-                                                    tempNodeStatus.Val = ConnectionTable[openSocketInfo.socketHandle].status.Val;
-                                                    tempNodeStatus.bits.longAddressValid = 1;
-                                                    tempNodeStatus.bits.shortAddressValid = 1;
-                                                }
-                                                else
-                                                {
-                                                    //Family, RxOnWHenIdle, Neighbor/Network, P2P, ShortVal, LongVal, Direct, Valid
-                                                    tempNodeStatus.Val = 0x8D;
-                                                    if(tempShortAddress.v[0] & 0x80)
-                                                    {
-                                                        tempNodeStatus.bits.RXOnWhenIdle = 0;
-                                                    }
-                                                }
-                                                //update the network information
-                                                openSocketInfo.socketHandle = AddNodeToNetworkTable();
-                                                if( openSocketInfo.socketHandle < 0xFF )
-                                                {
-                                                    #if ADDITIONAL_NODE_ID_SIZE > 0
-                                                        for(j = 0; j < ADDITIONAL_NODE_ID_SIZE; j++)
-                                                        {
-                                                            ConnectionTable[openSocketInfo.socketHandle].PeerInfo[j] = MACRxPacket.Payload[MY_ADDRESS_LENGTH+4+MIWI_PRO_HEADER_LEN+j];
-                                                        }
-                                                    #endif
-                                                    #if defined(ENABLE_NETWORK_FREEZER)
-                                                        nvmPutConnectionTableIndex(&(ConnectionTable[openSocketInfo.socketHandle]), openSocketInfo.socketHandle);
-                                                    #endif
-                                                    openSocketInfo.status.bits.matchFound = 1;
-                                                }  
-                                                else
-                                                {
-                                                    openSocketInfo.status.bits.matchFound = 0;
-                                                }      
+										if(openSocketInfo.socketHandle != 0xFF)
+										{
+											//if it does then get the status of the node already in the table
+											tempNodeStatus.Val = ConnectionTable[openSocketInfo.socketHandle].status.Val;
+											tempNodeStatus.bits.longAddressValid = 1;
+											tempNodeStatus.bits.shortAddressValid = 1;
+										}
+										else
+										{
+											//Family, RxOnWHenIdle, Neighbor/Network, P2P, ShortVal, LongVal, Direct, Valid
+											tempNodeStatus.Val = 0x8D;
+											if(tempShortAddress.v[0] & 0x80)
+											{
+												tempNodeStatus.bits.RXOnWhenIdle = 0;
+											}
+										}
+										//update the network information
+										openSocketInfo.socketHandle = AddNodeToNetworkTable();
+										if( openSocketInfo.socketHandle < 0xFF )
+										{
+										#if ADDITIONAL_NODE_ID_SIZE > 0
+											for(j = 0; j < ADDITIONAL_NODE_ID_SIZE; j++)
+											{
+												ConnectionTable[openSocketInfo.socketHandle].PeerInfo[j] = MACRxPacket.Payload[MY_ADDRESS_LENGTH+4+MIWI_PRO_HEADER_LEN+j];
+											}
+										#endif
+										#if defined(ENABLE_NETWORK_FREEZER)
+											nvmPutConnectionTableIndex(&(ConnectionTable[openSocketInfo.socketHandle]), openSocketInfo.socketHandle);
+										#endif
+											openSocketInfo.status.bits.matchFound = 1;
+										}
+										else
+										{
+											openSocketInfo.status.bits.matchFound = 0;
+										}      
                                                 
-                                                //clear out out request
-                                                openSocketInfo.status.bits.requestIsOpen = 0;
+										//clear out out request
+										openSocketInfo.status.bits.requestIsOpen = 0;
                                                 
-                                            }
-                                            break;
+									}
+									break;
 
 
-                                        #if defined(ENABLE_FREQUENCY_AGILITY)
-                                        
-                                            #if defined(NWK_ROLE_COORDINATOR)
+							#if defined(ENABLE_FREQUENCY_AGILITY)
+							
+								#if defined(NWK_ROLE_COORDINATOR)
+								
+									case FA_COORDINATOR_REQUEST:
+									{
+										DWORD_VAL ChannelMap;
+										
+										ChannelMap.v[0] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+2];
+										ChannelMap.v[1] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+3];
+										ChannelMap.v[2] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+4];
+										ChannelMap.v[3] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+5];
+										MiApp_InitChannelHopping(ChannelMap.Val);
+									}
+									break;
                                             
-                                                case FA_COORDINATOR_REQUEST:
-                                                    {
-                                                        DWORD_VAL ChannelMap;
-                                                        
-                                                        ChannelMap.v[0] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+2];
-                                                        ChannelMap.v[1] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+3];
-                                                        ChannelMap.v[2] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+4];
-                                                        ChannelMap.v[3] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+5];
-                                                        MiApp_InitChannelHopping(ChannelMap.Val);
-                                                    }
-                                                    break;    
                                             
-                                            
-                                                case FA_ENERGY_SCAN_REQUEST:
-                                                    {  
-                                                        FrequencyAgilityInfo.ChannelMap.v[0] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+2];
-                                                        FrequencyAgilityInfo.ChannelMap.v[1] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+3];
-                                                        FrequencyAgilityInfo.ChannelMap.v[2] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+4];
-                                                        FrequencyAgilityInfo.ChannelMap.v[3] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+5];
-                                                        FrequencyAgilityInfo.status.Val = 0;
-                                                        FrequencyAgilityInfo.status.bits.EnergyScan = 1;
-                                                        FrequencyAgilityInfo.FA_StatTick = MiWi_TickGet();
-                                                    }
-                                                    break;
+									case FA_ENERGY_SCAN_REQUEST:
+									{  
+										FrequencyAgilityInfo.ChannelMap.v[0] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+2];
+										FrequencyAgilityInfo.ChannelMap.v[1] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+3];
+										FrequencyAgilityInfo.ChannelMap.v[2] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+4];
+										FrequencyAgilityInfo.ChannelMap.v[3] = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+5];
+										FrequencyAgilityInfo.status.Val = 0;
+										FrequencyAgilityInfo.status.bits.EnergyScan = 1;
+										FrequencyAgilityInfo.FA_StatTick = MiWi_TickGet();
+									}
+									break;
                                                     
                                                     
-                                                case FA_SUGGEST_CHANNEL:
-                                                    {
-                                                        if( FA_MAX_NOISE_THRESHOLD < EnergyScanResults[MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+2]] )
-                                                        {
-                                                            MiApp_FlushTx();
-                                                            MiApp_WriteData(MIWI_PRO_STACK_REPORT_TYPE);
-                                                            MiApp_WriteData(FA_DISPUTE_CHANNEL);
-                                                            MiApp_WriteData(MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+2]);
-                                                            tempShortAddress.Val = 0;
-                                                            MiApp_UnicastAddress(tempShortAddress.v, FALSE, FALSE);
-                                                        } 
-                                                    }
-                                                    break;
+									case FA_SUGGEST_CHANNEL:
+									{
+										if( FA_MAX_NOISE_THRESHOLD < EnergyScanResults[MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+2]] )
+										{
+											MiApp_FlushTx();
+											MiApp_WriteData(MIWI_PRO_STACK_REPORT_TYPE);
+											MiApp_WriteData(FA_DISPUTE_CHANNEL);
+											MiApp_WriteData(MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+2]);
+											tempShortAddress.Val = 0;
+											MiApp_UnicastAddress(tempShortAddress.v, FALSE, FALSE);
+										} 
+									}
+									break;
                                                     
                                                     
-                                                case FA_DISPUTE_CHANNEL:
-                                                    {
-                                                        if( MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+2] == FrequencyAgilityInfo.status.bits.SuggestChannel )
-                                                        {
-                                                            FrequencyAgilityInfo.status.bits.DisputeChannel = 1;
-                                                        }    
-                                                    }
-                                                    break;            
+									case FA_DISPUTE_CHANNEL:
+									{
+										if( MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+2] == FrequencyAgilityInfo.status.bits.SuggestChannel )
+										{
+											FrequencyAgilityInfo.status.bits.DisputeChannel = 1;
+										}    
+									}
+									break;            
                                                 
-                                                case RESYNCHRONIZATION_REQUEST:
-                                                    {
-                                                        if( MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+2] != currentChannel )
-                                                        {
-                                                            break;
-                                                        }
-                                                        MAC_FlushTx();
-                                                        TxBuffer[0] = defaultHops;
-                                                        TxBuffer[1] = 0x02;
-                                                        TxBuffer[2] = myPANID.v[0];
-                                                        TxBuffer[3] = myPANID.v[1];
-                                                        TxBuffer[4] = MACRxPacket.Payload[8];
-                                                        TxBuffer[5] = MACRxPacket.Payload[9];
-                                                        TxBuffer[6] = myPANID.v[0];
-                                                        TxBuffer[7] = myPANID.v[1];
-                                                        TxBuffer[8] = myShortAddress.v[0];
-                                                        TxBuffer[9] = myShortAddress.v[1];
-                                                        TxBuffer[10] = MiWiPROSeqNum++;
-                                                        TxBuffer[11] = MIWI_PRO_STACK_REPORT_TYPE;
-                                                        TxBuffer[12] = RESYNCHRONIZATION_RESPONSE;
-                                                        
-                                                        MTP.flags.Val = 0;
-                                                        MTP.flags.bits.ackReq = 1;
-                                                        #if defined(IEEE_802_15_4)
-                                                            MTP.altDestAddr = TRUE;
-                                                            MTP.altSrcAddr = TRUE;
-                                                            MTP.DestPANID.Val = myPANID.Val;
-                                                            MTP.DestAddress = &(MACRxPacket.Payload[8]);
-                                                        #else
-                                                            tempShortAddress.v[0] = MACRxPacket.Payload[8];
-                                                            tempShortAddress.v[1] = MACRxPacket.Payload[9];
-                                                            i = SearchForShortAddress();
-                                                            if( i == 0xFF )
-                                                            {
-                                                                break;
-                                                            }
-                                                            MTP.DestAddress = ConnectionTable[i].Address;
-                                                        #endif
-                                                        
-                                                        MiMAC_SendPacket(MTP, TxBuffer, 13);
-                                                    }
-                                                    break;
-                                            #endif
+									case RESYNCHRONIZATION_REQUEST:
+									{
+										if( MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+2] != currentChannel )
+										{
+											break;
+										}
+										MAC_FlushTx();
+										TxBuffer[0] = defaultHops;
+										TxBuffer[1] = 0x02;
+										TxBuffer[2] = myPANID.v[0];
+										TxBuffer[3] = myPANID.v[1];
+										TxBuffer[4] = MACRxPacket.Payload[8];
+										TxBuffer[5] = MACRxPacket.Payload[9];
+										TxBuffer[6] = myPANID.v[0];
+										TxBuffer[7] = myPANID.v[1];
+										TxBuffer[8] = myShortAddress.v[0];
+										TxBuffer[9] = myShortAddress.v[1];
+										TxBuffer[10] = MiWiPROSeqNum++;
+										TxBuffer[11] = MIWI_PRO_STACK_REPORT_TYPE;
+										TxBuffer[12] = RESYNCHRONIZATION_RESPONSE;
+										
+										MTP.flags.Val = 0;
+										MTP.flags.bits.ackReq = 1;
+										#if defined(IEEE_802_15_4)
+											MTP.altDestAddr = TRUE;
+											MTP.altSrcAddr = TRUE;
+											MTP.DestPANID.Val = myPANID.Val;
+											MTP.DestAddress = &(MACRxPacket.Payload[8]);
+										#else
+											tempShortAddress.v[0] = MACRxPacket.Payload[8];
+											tempShortAddress.v[1] = MACRxPacket.Payload[9];
+											i = SearchForShortAddress();
+											if( i == 0xFF )
+											{
+												break;
+											}
+											MTP.DestAddress = ConnectionTable[i].Address;
+										#endif
+										
+										MiMAC_SendPacket(MTP, TxBuffer, 13);
+									}
+									break;
+								#endif
                                         
-                                            case CHANNEL_HOPPING_REQUEST:
-                                                {
-                                                    if( MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+2] == currentChannel )
-                                                    {
-                                                        FrequencyAgilityInfo.FA_StatTick = MiWi_TickGet();
-                                                        FrequencyAgilityInfo.status.bits.ChangeChannel = 1;
-                                                        FrequencyAgilityInfo.status.bits.SuggestChannel = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+3];
-                                                    }    
-                                                }
-                                                break;
+									case CHANNEL_HOPPING_REQUEST:
+									{
+										if( MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+2] == currentChannel )
+										{
+											FrequencyAgilityInfo.FA_StatTick = MiWi_TickGet();
+											FrequencyAgilityInfo.status.bits.ChangeChannel = 1;
+											FrequencyAgilityInfo.status.bits.SuggestChannel = MACRxPacket.Payload[MIWI_PRO_HEADER_LEN+3];
+										}    
+									}
+									break;
                                                     
-                                            case RESYNCHRONIZATION_RESPONSE:
-                                                {
-                                                    MiWiPROStateMachine.bits.Resynning = 0;
-                                                }
-                                                break;
+									case RESYNCHRONIZATION_RESPONSE:
+									{
+										MiWiPROStateMachine.bits.Resynning = 0;
+									}
+									break;
                                         
                                         
-                                        #endif
+							#endif
 
-                                        default:
-                                            //unknown stack request.  don't do anything
-                                            //just let this packet die
-                                            break;
+									default:
+										//unknown stack request.  don't do anything
+										//just let this packet die
+										break;
                                     }
                                 }
                                 else
@@ -1628,28 +1631,28 @@ ASSIGN_COORDINATOR_SHORT_ADDRESS:
                             else
                             {
                                 //This data is for the user, pass it up to them
-                                #if defined(ENABLE_SLEEP)
-                                    MiWiPROStateMachine.bits.DataRequesting = 0;
-                                #endif
+							#if defined(ENABLE_SLEEP)
+								MiWiPROStateMachine.bits.DataRequesting = 0;
+							#endif
                                 rxMessage.PayloadSize = MACRxPacket.PayloadLen - 11;
                                 rxMessage.Payload = &MACRxPacket.Payload[11];
                                 rxMessage.SourcePANID.Val = sourcePANID.Val;
                                 if( MACRxPacket.Payload[8] == 0xFF && MACRxPacket.Payload[9] == 0xFF )
                                 {
-                                    #if defined(IEEE_802_15_4)
-                                        rxMessage.flags.bits.altSrcAddr = MACRxPacket.altSourceAddress;
-                                        rxMessage.SourceAddress = MACRxPacket.SourceAddress; 
-                                    #else
-                                        if( MACRxPacket.flags.bits.sourcePrsnt )
-                                        {
-                                            rxMessage.SourceAddress = MACRxPacket.SourceAddress; 
-                                        }
-                                        else
-                                        {
-                                            rxMessage.flags.bits.altSrcAddr = 1;
-                                            rxMessage.SourceAddress = &(MACRxPacket.Payload[8]);
-                                        }
-                                    #endif  
+								#if defined(IEEE_802_15_4)
+									rxMessage.flags.bits.altSrcAddr = MACRxPacket.altSourceAddress;
+									rxMessage.SourceAddress = MACRxPacket.SourceAddress; 
+								#else
+									if( MACRxPacket.flags.bits.sourcePrsnt )
+									{
+										rxMessage.SourceAddress = MACRxPacket.SourceAddress; 
+									}
+									else
+									{
+										rxMessage.flags.bits.altSrcAddr = 1;
+										rxMessage.SourceAddress = &(MACRxPacket.Payload[8]);
+									}
+								#endif  
                                 }
                                 else
                                 {
@@ -1668,46 +1671,46 @@ ASSIGN_COORDINATOR_SHORT_ADDRESS:
                         else
                         {
                             //if this packet wasn't for me
-                            #ifdef NWK_ROLE_COORDINATOR
-                                //then if I am a coordinator pass it along to the
-                                //next hop, decrementing the number of hops available
-                                if( MACRxPacket.Payload[0] > 0 )
-                                {
-                                    MACRxPacket.Payload[0]--;      //decrement the hops counter
-                                    MAC_FlushTx();
-                                    for(i = 0; i < MACRxPacket.PayloadLen; i++)
-                                    {
-                                        MiApp_WriteData(MACRxPacket.Payload[i]);
-                                    }
-                                    
-                                    if( (destShortAddress.v[1] == myShortAddress.v[1]) &&
-                                        (TxBuffer[11] == MIWI_PRO_STACK_REPORT_TYPE) &&
-                                        (TxBuffer[12] == ACK_REPORT_TYPE) )
-                                    {
-                                        MTP.flags.Val = 0;
-                                        MTP.flags.bits.ackReq = 1;
-                                            
-                                        #if defined(IEEE_802_15_4)
-                                            MTP.altDestAddr = TRUE;
-                                            MTP.altSrcAddr = TRUE;
-                                            MTP.DestAddress = destShortAddress.v;
-                                            MTP.DestPANID.Val = destPANID.Val;
-                                            MiMAC_SendPacket(MTP, TxBuffer, TxData);
-                                        #else
-                                            tempShortAddress.Val = destShortAddress.Val;
-                                            if( (i = SearchForShortAddress()) != 0xFF )
-                                            {
-                                                MTP.DestAddress = ConnectionTable[i].Address;
-                                                MiMAC_SendPacket(MTP, TxBuffer, TxData);
-                                            }    
-                                        #endif
-                                    }
-                                    else
-                                    {
-                                        RouteMessage(destPANID, destShortAddress, (BOOL)MACRxPacket.flags.bits.secEn);
-                                    }   
-                                }
-                            #endif    
+						#ifdef NWK_ROLE_COORDINATOR
+							//then if I am a coordinator pass it along to the
+							//next hop, decrementing the number of hops available
+							if( MACRxPacket.Payload[0] > 0 )
+							{
+								MACRxPacket.Payload[0]--;      //decrement the hops counter
+								MAC_FlushTx();
+								for(i = 0; i < MACRxPacket.PayloadLen; i++)
+								{
+									MiApp_WriteData(MACRxPacket.Payload[i]);
+								}
+								
+								if( (destShortAddress.v[1] == myShortAddress.v[1]) &&
+									(TxBuffer[11] == MIWI_PRO_STACK_REPORT_TYPE) &&
+									(TxBuffer[12] == ACK_REPORT_TYPE) )
+								{
+									MTP.flags.Val = 0;
+									MTP.flags.bits.ackReq = 1;
+										
+									#if defined(IEEE_802_15_4)
+										MTP.altDestAddr = TRUE;
+										MTP.altSrcAddr = TRUE;
+										MTP.DestAddress = destShortAddress.v;
+										MTP.DestPANID.Val = destPANID.Val;
+										MiMAC_SendPacket(MTP, TxBuffer, TxData);
+									#else
+										tempShortAddress.Val = destShortAddress.Val;
+										if( (i = SearchForShortAddress()) != 0xFF )
+										{
+											MTP.DestAddress = ConnectionTable[i].Address;
+											MiMAC_SendPacket(MTP, TxBuffer, TxData);
+										}    
+									#endif
+								}
+								else
+								{
+									RouteMessage(destPANID, destShortAddress, (BOOL)MACRxPacket.flags.bits.secEn);
+								}   
+							}
+						#endif    
                         }
     
                     }
@@ -1718,18 +1721,18 @@ ASSIGN_COORDINATOR_SHORT_ADDRESS:
                     {
                         BYTE rxIndex;
                         
-                        #if defined(IEEE_802_15_4)
-                            rxIndex = 0;
-                        #else
-                            rxIndex = 4;
-                        #endif
+					#if defined(IEEE_802_15_4)
+						rxIndex = 0;
+					#else
+						rxIndex = 4;
+					#endif
 
 
                         if(MACRxPacket.Payload[rxIndex+4] != MIWI_PRO_PROTOCOL_ID)
                         {
-                            #if defined(NWK_ROLE_END_DEVICE)
-                                if(MACRxPacket.Payload[rxIndex+4] != MIWI_PROTOCOL_ID)
-                            #endif
+						#if defined(NWK_ROLE_END_DEVICE)
+							if(MACRxPacket.Payload[rxIndex+4] != MIWI_PROTOCOL_ID)
+						#endif
                             {
                                 break;
                             }    
@@ -1738,16 +1741,16 @@ ASSIGN_COORDINATOR_SHORT_ADDRESS:
                         //if we are looking for a network
                         if(MiWiPROStateMachine.bits.searchingForNetwork)
                         {
-                            #if defined(IEEE_802_15_4)
-                                tempPANID.Val = MACRxPacket.SourcePANID.Val;
-                                tempShortAddress.v[0] = MACRxPacket.SourceAddress[0];
-                                tempShortAddress.v[1] = MACRxPacket.SourceAddress[1];
-                            #else
-                                tempPANID.v[0] = MACRxPacket.Payload[0];
-                                tempPANID.v[1] = MACRxPacket.Payload[1];
-                                tempShortAddress.v[0] = MACRxPacket.Payload[2];
-                                tempShortAddress.v[1] = MACRxPacket.Payload[3]; 
-                            #endif                   
+						#if defined(IEEE_802_15_4)
+							tempPANID.Val = MACRxPacket.SourcePANID.Val;
+							tempShortAddress.v[0] = MACRxPacket.SourceAddress[0];
+							tempShortAddress.v[1] = MACRxPacket.SourceAddress[1];
+						#else
+							tempPANID.v[0] = MACRxPacket.Payload[0];
+							tempPANID.v[1] = MACRxPacket.Payload[1];
+							tempShortAddress.v[0] = MACRxPacket.Payload[2];
+							tempShortAddress.v[1] = MACRxPacket.Payload[3]; 
+						#endif                   
                    
                             //ignore all beacon networks
                             if(MACRxPacket.Payload[rxIndex] == 0xFF)
@@ -1774,22 +1777,22 @@ ASSIGN_COORDINATOR_SHORT_ADDRESS:
                                         ActiveScanResults[ActiveScanResultIndex].Capability.bits.AllowJoin = 1;
                                     }    
 
-                                    #if defined(IEEE_802_15_4)
-                                        ActiveScanResults[ActiveScanResultIndex].Capability.bits.altSrcAddr = 1;
-                                        ActiveScanResults[ActiveScanResultIndex].Address[0] = rxMessage.SourceAddress[0];
-                                        ActiveScanResults[ActiveScanResultIndex].Address[1] = rxMessage.SourceAddress[1];
-                                    #else
-                                        for(i = 0; i < MY_ADDRESS_LENGTH; i++)
-                                        {
-                                            ActiveScanResults[ActiveScanResultIndex].Address[i] = rxMessage.SourceAddress[i];
-                                        }
-                                    #endif
-                                    #if ADDITIONAL_NODE_ID_SIZE > 0
-                                        for(i = 0; i < ADDITIONAL_NODE_ID_SIZE; i++)
-                                        {
-                                            ActiveScanResults[ActiveScanResultIndex].PeerInfo[i] = MACRxPacket.Payload[rxIndex+6+i];
-                                        }
-                                    #endif
+								#if defined(IEEE_802_15_4)
+									ActiveScanResults[ActiveScanResultIndex].Capability.bits.altSrcAddr = 1;
+									ActiveScanResults[ActiveScanResultIndex].Address[0] = rxMessage.SourceAddress[0];
+									ActiveScanResults[ActiveScanResultIndex].Address[1] = rxMessage.SourceAddress[1];
+								#else
+									for(i = 0; i < MY_ADDRESS_LENGTH; i++)
+									{
+										ActiveScanResults[ActiveScanResultIndex].Address[i] = rxMessage.SourceAddress[i];
+									}
+								#endif
+								#if ADDITIONAL_NODE_ID_SIZE > 0
+									for(i = 0; i < ADDITIONAL_NODE_ID_SIZE; i++)
+									{
+										ActiveScanResults[ActiveScanResultIndex].PeerInfo[i] = MACRxPacket.Payload[rxIndex+6+i];
+									}
+								#endif
                                     ActiveScanResultIndex++;
                                 }
                             }
@@ -1800,8 +1803,9 @@ ASSIGN_COORDINATOR_SHORT_ADDRESS:
                 
                 //if it is a command packet
                 case PACKET_TYPE_COMMAND:
-
+#if defined(ENABLE_TIME_SYNC) && defined(ENABLE_SLEEP)
 HANDLE_COMMAND_PACKET:
+#endif
                     //figure out which command packet it is
                     switch(MACRxPacket.Payload[0])
                     {
@@ -2342,7 +2346,7 @@ START_ASSOCIATION_RESPONSE:
                         #if defined(NWK_ROLE_COORDINATOR) && defined(ENABLE_INDIRECT_MESSAGE)
                         case MAC_COMMAND_DATA_REQUEST:
                         {
-                            //!BYTE handle;
+                            //! BYTE handle;
                             
                             #if defined(IEEE_802_15_4)                              
                                 
@@ -2470,288 +2474,288 @@ START_ASSOCIATION_RESPONSE:
             if ( MiWiPROStateMachine.bits.RxHasUserData == 0 )
             {
                 MiMAC_DiscardPacket();
-            }   
-        }   
+            }
+        }
 
         t1 = MiWi_TickGet();
         
         //if there really isn't anything going on 
-        #if defined(NWK_ROLE_COORDINATOR) && defined(ENABLE_INDIRECT_MESSAGE)
-            // check indirect message periodically. If an indirect message is not acquired within
-            // time of INDIRECT_MESSAGE_TIMEOUT
-            for(i = 0; i < INDIRECT_MESSAGE_SIZE; i++)
-            {
-                if( indirectMessages[i].flags.bits.isValid )
-                {
-                    if( MiWi_TickGetDiff(t1, indirectMessages[i].TickStart) > INDIRECT_MESSAGE_TIMEOUT )
-                    {
-                        indirectMessages[i].flags.Val = 0x00;   
-                    }    
-                }    
-            }
-        #endif //COORDINATOR_CAPABLE
+	#if defined(NWK_ROLE_COORDINATOR) && defined(ENABLE_INDIRECT_MESSAGE)
+		// check indirect message periodically. If an indirect message is not acquired within
+		// time of INDIRECT_MESSAGE_TIMEOUT
+		for(i = 0; i < INDIRECT_MESSAGE_SIZE; i++)
+		{
+			if( indirectMessages[i].flags.bits.isValid )
+			{
+				if( MiWi_TickGetDiff(t1, indirectMessages[i].TickStart) > INDIRECT_MESSAGE_TIMEOUT )
+				{
+					indirectMessages[i].flags.Val = 0x00;   
+				}    
+			}    
+		}
+	#endif //COORDINATOR_CAPABLE
 
-        #if !defined(ENABLE_SLEEP)
-            for(i = 0; i < PACKET_RECORD_SIZE; i++)
-            {
-                if( PacketRecords[i].RxCounter > 0 )
-                {
-                    if( MiWi_TickGetDiff(t1, PacketRecords[i].StartTick) > PACKET_RECORD_TIMEOUT )
-                    {
-                        PacketRecords[i].RxCounter = 0;
-                    }    
-                }
-            }
-            
-        #else
+	#if !defined(ENABLE_SLEEP)
+		for(i = 0; i < PACKET_RECORD_SIZE; i++)
+		{
+			if( PacketRecords[i].RxCounter > 0 )
+			{
+				if( MiWi_TickGetDiff(t1, PacketRecords[i].StartTick) > PACKET_RECORD_TIMEOUT )
+				{
+					PacketRecords[i].RxCounter = 0;
+				}    
+			}
+		}
+		
+	#else
         
-            //if we are an RFD and a member of the network
-            if(MiWiPROStateMachine.bits.memberOfNetwork)
-            {
-                if(MiWiPROStateMachine.bits.DataRequesting)
-                {
-                    t2.Val = MiWi_TickGetDiff(t1, DataRequestTimer);
-                    if(t2.Val > RFD_DATA_WAIT)
-                    {
-                        MiWiPROStateMachine.bits.DataRequesting = 0;
-                        #if defined(ENABLE_TIME_SYNC)
-                            WakeupTimes.Val = RFD_WAKEUP_INTERVAL / 16;
-                            CounterValue.Val = 0xFFFF - ((WORD)4000*(RFD_WAKEUP_INTERVAL % 16));
-                        #endif
-                    }
-                }
-            }
-        #endif
+		//if we are an RFD and a member of the network
+		if(MiWiPROStateMachine.bits.memberOfNetwork)
+		{
+			if(MiWiPROStateMachine.bits.DataRequesting)
+			{
+				t2.Val = MiWi_TickGetDiff(t1, DataRequestTimer);
+				if(t2.Val > RFD_DATA_WAIT)
+				{
+					MiWiPROStateMachine.bits.DataRequesting = 0;
+					#if defined(ENABLE_TIME_SYNC)
+						WakeupTimes.Val = RFD_WAKEUP_INTERVAL / 16;
+						CounterValue.Val = 0xFFFF - ((WORD)4000*(RFD_WAKEUP_INTERVAL % 16));
+					#endif
+				}
+			}
+		}
+	#endif
         
-        #if defined(ENABLE_TIME_SYNC) && !defined(ENABLE_SLEEP) && defined(ENABLE_INDIRECT_MESSAGE)
-            if( MiWi_TickGetDiff(t1, TimeSyncTick) > ((ONE_SECOND) * RFD_WAKEUP_INTERVAL) )
-            {
-                TimeSyncTick.Val += ((DWORD)(ONE_SECOND) * RFD_WAKEUP_INTERVAL);
-                if( TimeSyncTick.Val > t1.Val )
-                {
-                    //Printf("   avoid waterfall");
-                    TimeSyncTick.Val = t1.Val;
-                }    
-                TimeSyncSlot = 0;
-            }    
-        #endif
+	#if defined(ENABLE_TIME_SYNC) && !defined(ENABLE_SLEEP) && defined(ENABLE_INDIRECT_MESSAGE)
+		if( MiWi_TickGetDiff(t1, TimeSyncTick) > ((ONE_SECOND) * RFD_WAKEUP_INTERVAL) )
+		{
+			TimeSyncTick.Val += ((DWORD)(ONE_SECOND) * RFD_WAKEUP_INTERVAL);
+			if( TimeSyncTick.Val > t1.Val )
+			{
+				//Printf("   avoid waterfall");
+				TimeSyncTick.Val = t1.Val;
+			}    
+			TimeSyncSlot = 0;
+		}    
+	#endif
         
         
-        #if defined(NWK_ROLE_COORDINATOR)
-            t2.Val = t1.Val - backgroundTaskTick.Val;
- 
-            if( MiWiPROStatus.bits.COMM_FAMILY_TREE > 0 )
-            {
+#if defined(NWK_ROLE_COORDINATOR)
+		t2.Val = t1.Val - backgroundTaskTick.Val;
 
-                if( t2.Val > COMM_INTERVAL )
-                {
-                    MiWiPROStatus.bits.COMM_FAMILY_TREE--;
-                    MiApp_FlushTx();
-                    MiApp_WriteData(MIWI_PRO_STACK_REPORT_TYPE);
-                    MiApp_WriteData(FAMILY_TREE_REPORT);
-                    for(i = 0; i < NUM_COORDINATOR; i++)
-                    {
-                        MiApp_WriteData(FamilyTree[i]);
-                    }
-                    MultiCast(MULTICAST_TO_COORDINATORS, FALSE);
-                    backgroundTaskTick.Val = t1.Val;
-                }  
-            }       
-            else if( MiWiPROStatus.bits.COMM_ROUTING_TABLE > 0 )
-            {
-                if( t2.Val > COMM_INTERVAL )
-                {
-                    MiWiPROStatus.bits.COMM_ROUTING_TABLE--;
-                    
-                    MiApp_FlushTx();
-                    MiApp_WriteData(MIWI_PRO_STACK_REPORT_TYPE);
-                    MiApp_WriteData(ROUTING_TABLE_REPORT);
-                    #if !defined(IEEE_802_15_4)
-                        MiApp_WriteData(myShortAddress.v[1]);
-                    #endif
-                    MiApp_WriteData(myShortAddress.v[1]);
-                    for(i = 0; i < NUM_COORDINATOR/8; i++)
-                    {
-                        MiApp_WriteData(RoutingTable[i]);
-                    }
-                    defaultHops = 1;
-                    MultiCast(MULTICAST_TO_COORDINATORS, FALSE);
-                    defaultHops = MAX_HOPS;
-                    backgroundTaskTick.Val = t1.Val;
-                }      
-            }
-            else if( (FamilyTree[0] == 0xFF) && (role == ROLE_COORDINATOR) && 
-                    MiWiPROStateMachine.bits.memberOfNetwork )
-            {
-                if( t2.Val > COMM_INTERVAL )
-                {
-                    MiApp_FlushTx();
-                    MiApp_WriteData(MIWI_PRO_STACK_REPORT_TYPE);
-                    MiApp_WriteData(FAMILY_TREE_REQUEST);
-                    MiApp_UnicastConnection(myParent, FALSE);
-                    backgroundTaskTick.Val = t1.Val;
-                }    
-            }      
+		if( MiWiPROStatus.bits.COMM_FAMILY_TREE > 0 )
+		{
+
+			if( t2.Val > COMM_INTERVAL )
+			{
+				MiWiPROStatus.bits.COMM_FAMILY_TREE--;
+				MiApp_FlushTx();
+				MiApp_WriteData(MIWI_PRO_STACK_REPORT_TYPE);
+				MiApp_WriteData(FAMILY_TREE_REPORT);
+				for(i = 0; i < NUM_COORDINATOR; i++)
+				{
+					MiApp_WriteData(FamilyTree[i]);
+				}
+				MultiCast(MULTICAST_TO_COORDINATORS, FALSE);
+				backgroundTaskTick.Val = t1.Val;
+			}  
+		}       
+		else if( MiWiPROStatus.bits.COMM_ROUTING_TABLE > 0 )
+		{
+			if( t2.Val > COMM_INTERVAL )
+			{
+				MiWiPROStatus.bits.COMM_ROUTING_TABLE--;
+				
+				MiApp_FlushTx();
+				MiApp_WriteData(MIWI_PRO_STACK_REPORT_TYPE);
+				MiApp_WriteData(ROUTING_TABLE_REPORT);
+			#if !defined(IEEE_802_15_4)
+				MiApp_WriteData(myShortAddress.v[1]);
+			#endif
+				MiApp_WriteData(myShortAddress.v[1]);
+				for(i = 0; i < NUM_COORDINATOR/8; i++)
+				{
+					MiApp_WriteData(RoutingTable[i]);
+				}
+				defaultHops = 1;
+				MultiCast(MULTICAST_TO_COORDINATORS, FALSE);
+				defaultHops = MAX_HOPS;
+				backgroundTaskTick.Val = t1.Val;
+			}      
+		}
+		else if( (FamilyTree[0] == 0xFF) && (role == ROLE_COORDINATOR) && 
+				MiWiPROStateMachine.bits.memberOfNetwork )
+		{
+			if( t2.Val > COMM_INTERVAL )
+			{
+				MiApp_FlushTx();
+				MiApp_WriteData(MIWI_PRO_STACK_REPORT_TYPE);
+				MiApp_WriteData(FAMILY_TREE_REQUEST);
+				MiApp_UnicastConnection(myParent, FALSE);
+				backgroundTaskTick.Val = t1.Val;
+			}    
+		}      
    
              
-            #if defined(ENABLE_NETWORK_FREEZER)
+	#if defined(ENABLE_NETWORK_FREEZER)
 
-                else if( MiWiPRONVMStatus.bits.saveFamilyTree )
-                {
-                    if( t2.Val > COMM_INTERVAL * (FAMILY_TREE_BROADCAST+1))
-                    {
-                        MiWiPRONVMStatus.bits.saveFamilyTree = 0;
-                        
-                        // verify the family relationship
-                        if( role != ROLE_PAN_COORDINATOR && FamilyTree[ myShortAddress.v[1] ] != ConnectionTable[myParent].AltAddress.v[1] )
-                        {
-                            tempShortAddress.v[0] = 0;
-                            tempShortAddress.v[1] = FamilyTree[ myShortAddress.v[1] ];
-                            if( (i = SearchForShortAddress()) < CONNECTION_SIZE )
-                            {
-                                myParent = i;
-                            }
-                            else
-                            {
-                                tempNodeStatus.Val = 0xBB;
-                                tempPANID.Val = myPANID.Val;
-                                myParent = AddNodeToNetworkTable();
-                            }   
-                        }
-                        
-                        nvmPutFamilyTree(FamilyTree); 
-                    }    
-                }
-                else if( MiWiPRONVMStatus.bits.saveRoutingTable )
-                {
-                    if( t2.Val > COMM_INTERVAL * (FAMILY_TREE_BROADCAST+1))
-                    {
-                        MiWiPRONVMStatus.bits.saveRoutingTable = 0;
-                        nvmPutRoutingTable(RoutingTable);
-                    }    
-                }
-                else if( MiWiPRONVMStatus.bits.saveNeighborTable )
-                {
-                    if( t2.Val > COMM_INTERVAL * (FAMILY_TREE_BROADCAST+1))
-                    {
-                        MiWiPRONVMStatus.bits.saveNeighborTable = 0;
-                        nvmPutNeighborRoutingTable(NeighborRoutingTable);
-                    }    
-                } 
-                else if( MiWiPRONVMStatus.bits.saveConnectionTable )
-                {
-                    if( t2.Val > COMM_INTERVAL * (FAMILY_TREE_BROADCAST+1))
-                    {
-                        MiWiPRONVMStatus.bits.saveConnectionTable = 0;
-                        nvmPutConnectionTable(ConnectionTable);
-                    }    
-                }           
-            #endif
+		else if( MiWiPRONVMStatus.bits.saveFamilyTree )
+		{
+			if( t2.Val > COMM_INTERVAL * (FAMILY_TREE_BROADCAST+1))
+			{
+				MiWiPRONVMStatus.bits.saveFamilyTree = 0;
+				
+				// verify the family relationship
+				if( role != ROLE_PAN_COORDINATOR && FamilyTree[ myShortAddress.v[1] ] != ConnectionTable[myParent].AltAddress.v[1] )
+				{
+					tempShortAddress.v[0] = 0;
+					tempShortAddress.v[1] = FamilyTree[ myShortAddress.v[1] ];
+					if( (i = SearchForShortAddress()) < CONNECTION_SIZE )
+					{
+						myParent = i;
+					}
+					else
+					{
+						tempNodeStatus.Val = 0xBB;
+						tempPANID.Val = myPANID.Val;
+						myParent = AddNodeToNetworkTable();
+					}   
+				}
+				
+				nvmPutFamilyTree(FamilyTree); 
+			}    
+		}
+		else if( MiWiPRONVMStatus.bits.saveRoutingTable )
+		{
+			if( t2.Val > COMM_INTERVAL * (FAMILY_TREE_BROADCAST+1))
+			{
+				MiWiPRONVMStatus.bits.saveRoutingTable = 0;
+				nvmPutRoutingTable(RoutingTable);
+			}    
+		}
+		else if( MiWiPRONVMStatus.bits.saveNeighborTable )
+		{
+			if( t2.Val > COMM_INTERVAL * (FAMILY_TREE_BROADCAST+1))
+			{
+				MiWiPRONVMStatus.bits.saveNeighborTable = 0;
+				nvmPutNeighborRoutingTable(NeighborRoutingTable);
+			}    
+		} 
+		else if( MiWiPRONVMStatus.bits.saveConnectionTable )
+		{
+			if( t2.Val > COMM_INTERVAL * (FAMILY_TREE_BROADCAST+1))
+			{
+				MiWiPRONVMStatus.bits.saveConnectionTable = 0;
+				nvmPutConnectionTable(ConnectionTable);
+			}    
+		}           
+	#endif
             
             
-            if( MiWiPROStatus.bits.COMM_RANDOM_SEND )
-            {
-                if( MiWi_TickGetDiff(t1, RandomSendInfo.StartTick) > ((ONE_MILI_SECOND) * RandomSendInfo.RandomDelayInMilliSecond) )
-                {
-                    MiWiPROStatus.bits.COMM_RANDOM_SEND = 0;
-                    MiMAC_SendPacket(RandomSendInfo.MTP, RandomSendInfo.RandomSendTxBuffer, RandomSendInfo.RandomSendTxData);
-                }    
-            }    
+		if( MiWiPROStatus.bits.COMM_RANDOM_SEND )
+		{
+			if( MiWi_TickGetDiff(t1, RandomSendInfo.StartTick) > ((ONE_MILI_SECOND) * RandomSendInfo.RandomDelayInMilliSecond) )
+			{
+				MiWiPROStatus.bits.COMM_RANDOM_SEND = 0;
+				MiMAC_SendPacket(RandomSendInfo.MTP, RandomSendInfo.RandomSendTxBuffer, RandomSendInfo.RandomSendTxData);
+			}
+		}
             
 
-            #if defined(ENABLE_ROUTING_UPDATE)
+	#if defined(ENABLE_ROUTING_UPDATE)
 
-                if( role != ROLE_FFD_END_DEVICE )
-                {
-                    if( MiWi_TickGetDiff(t1, RoutingUpdateTick) > ROUTING_UPDATE_INTERVAL )
-                    {
-                        MiWiPROStatus.bits.COMM_ROUTING_TABLE = 1;
-                        backgroundTaskTick = MiWi_TickGet();
-                        RoutingUpdateTick.Val = backgroundTaskTick.Val;
-                        for(i = 0; i < NUM_COORDINATOR; i++)
-                        {
-                            if( RoutingUpdateCounter[i] > 0 )
-                            {
-                                RoutingUpdateCounter[i]--;
-                                if( RoutingUpdateCounter[i] == 0 )
-                                {
-                                    BYTE j;
-                                    RoutingTable[i/8] = RoutingTable[i/8] & ((0x01 << (i%8))^0xFF);
-                                    for(j = 0; j < NUM_COORDINATOR/8; j++)
-                                    {
-                                        NeighborRoutingTable[i][j] = 0;
-                                    } 
-                                    MiWiPRONVMStatus.bits.saveRoutingTable = 1;
-                                    MiWiPRONVMStatus.bits.saveNeighborTable = 1;   
-                                }
-                            }
-                        }
-                    }
-                }
-                
-            #endif
+		if( role != ROLE_FFD_END_DEVICE )
+		{
+			if( MiWi_TickGetDiff(t1, RoutingUpdateTick) > ROUTING_UPDATE_INTERVAL )
+			{
+				MiWiPROStatus.bits.COMM_ROUTING_TABLE = 1;
+				backgroundTaskTick = MiWi_TickGet();
+				RoutingUpdateTick.Val = backgroundTaskTick.Val;
+				for(i = 0; i < NUM_COORDINATOR; i++)
+				{
+					if( RoutingUpdateCounter[i] > 0 )
+					{
+						RoutingUpdateCounter[i]--;
+						if( RoutingUpdateCounter[i] == 0 )
+						{
+							BYTE j;
+							RoutingTable[i/8] = RoutingTable[i/8] & ((0x01 << (i%8))^0xFF);
+							for(j = 0; j < NUM_COORDINATOR/8; j++)
+							{
+								NeighborRoutingTable[i][j] = 0;
+							} 
+							MiWiPRONVMStatus.bits.saveRoutingTable = 1;
+							MiWiPRONVMStatus.bits.saveNeighborTable = 1;   
+						}
+					}
+				}
+			}
+		}
+			
+	#endif
             
-        #endif
-        
- 
-        
-        #if defined(ENABLE_FREQUENCY_AGILITY)      
-            if( FrequencyAgilityInfo.status.bits.ChangeChannel )
-            {
-                if( MiWi_TickGetDiff(t1, FrequencyAgilityInfo.FA_StatTick) > FA_WAIT_TIMEOUT )
-                {
-                    MiApp_SetChannel( FrequencyAgilityInfo.status.bits.SuggestChannel );
-                    FrequencyAgilityInfo.status.Val = 0;
-                }    
-            }
-            #if defined(ENABLE_ED_SCAN) && defined(NWK_ROLE_COORDINATOR)   
-                else if( FrequencyAgilityInfo.status.bits.EnergyScan )
-                {
-                    if( MiWi_TickGetDiff(t1, FrequencyAgilityInfo.FA_StatTick) > FA_WAIT_TIMEOUT )
-                    {
-                        BYTE backupChannel = currentChannel;
-                        MiApp_NoiseDetection(FrequencyAgilityInfo.ChannelMap.Val, 10, NOISE_DETECT_ENERGY, &i);
-                        MiApp_SetChannel(backupChannel);
-                        FrequencyAgilityInfo.status.bits.EnergyScan = 0;
-                    }    
-                } 
-            #endif 
-        #endif
+#endif
+
+
+
+	#if defined(ENABLE_FREQUENCY_AGILITY)      
+		if( FrequencyAgilityInfo.status.bits.ChangeChannel )
+		{
+			if( MiWi_TickGetDiff(t1, FrequencyAgilityInfo.FA_StatTick) > FA_WAIT_TIMEOUT )
+			{
+				MiApp_SetChannel( FrequencyAgilityInfo.status.bits.SuggestChannel );
+				FrequencyAgilityInfo.status.Val = 0;
+			}    
+		}
+		#if defined(ENABLE_ED_SCAN) && defined(NWK_ROLE_COORDINATOR)   
+		else if( FrequencyAgilityInfo.status.bits.EnergyScan )
+		{
+			if( MiWi_TickGetDiff(t1, FrequencyAgilityInfo.FA_StatTick) > FA_WAIT_TIMEOUT )
+			{
+				BYTE backupChannel = currentChannel;
+				MiApp_NoiseDetection(FrequencyAgilityInfo.ChannelMap.Val, 10, NOISE_DETECT_ENERGY, &i);
+				MiApp_SetChannel(backupChannel);
+				FrequencyAgilityInfo.status.bits.EnergyScan = 0;
+			}    
+		} 
+		#endif 
+	#endif
         
         //clean up an old socket if one still exists
         if(openSocketInfo.status.bits.requestIsOpen)
         {
             if(openSocketInfo.status.bits.matchFound)
             {  
-                #ifdef NWK_ROLE_COORDINATOR
-                    BYTE j;
+		#ifdef NWK_ROLE_COORDINATOR
+				BYTE j;
         
-                    ConsolePutROMString((ROM char*)"sending out second response\r\n");
+				ConsolePutROMString((ROM char*)"sending out second response\r\n");
 
-                    MiApp_FlushTx();
-                    TxBuffer[TxData++] = MIWI_PRO_STACK_REPORT_TYPE;      //Report Type
-                    TxBuffer[TxData++] = OPEN_SOCKET_RESPONSE;      //Report ID
+				MiApp_FlushTx();
+				TxBuffer[TxData++] = MIWI_PRO_STACK_REPORT_TYPE;      //Report Type
+				TxBuffer[TxData++] = OPEN_SOCKET_RESPONSE;      //Report ID
 
                 
-                    //copy the long and short address from the Rx Buffer
-                    for(j=0;j<MY_ADDRESS_LENGTH;j++)
-                    {
-                        TxBuffer[TxData++] = openSocketInfo.LongAddress1[j]; 
-                    }
-                
-                    TxBuffer[TxData++] = openSocketInfo.ShortAddress1.v[0];
-                    TxBuffer[TxData++] = openSocketInfo.ShortAddress1.v[1];
+				//copy the long and short address from the Rx Buffer
+				for(j=0;j<MY_ADDRESS_LENGTH;j++)
+				{
+					TxBuffer[TxData++] = openSocketInfo.LongAddress1[j]; 
+				}
+
+				TxBuffer[TxData++] = openSocketInfo.ShortAddress1.v[0];
+				TxBuffer[TxData++] = openSocketInfo.ShortAddress1.v[1];
                     
-                    #if ADDITIONAL_NODE_ID_SIZE > 0
-                        for(j = 0; j < ADDITIONAL_NODE_ID_SIZE; j++)
-                        {
-                            TxBuffer[TxData++] = openSocketInfo.AdditionalNodeID1[j];    
-                        }
-                    #endif
+			#if ADDITIONAL_NODE_ID_SIZE > 0
+				for(j = 0; j < ADDITIONAL_NODE_ID_SIZE; j++)
+				{
+					TxBuffer[TxData++] = openSocketInfo.AdditionalNodeID1[j];    
+				}
+			#endif
                     
-                    MiApp_UnicastAddress(openSocketInfo.ShortAddress2.v, FALSE, FALSE);
-                    openSocketInfo.status.bits.requestIsOpen = 0;
-                #endif
+				MiApp_UnicastAddress(openSocketInfo.ShortAddress2.v, FALSE, FALSE);
+				openSocketInfo.status.bits.requestIsOpen = 0;
+		#endif
 
                 //openSocketInfo.status.bits.requestIsOpen = 0;
             }
@@ -2769,412 +2773,412 @@ START_ASSOCIATION_RESPONSE:
     }
 
 
-    #ifdef NWK_ROLE_COORDINATOR
-        BYTE FindDepth(BYTE nodeMSB)
-        {
-            BYTE depth;
-            BYTE target;
-            BYTE loopCheck;
+#ifdef NWK_ROLE_COORDINATOR
+	BYTE FindDepth(BYTE nodeMSB)
+	{
+		BYTE depth;
+		BYTE target;
+		BYTE loopCheck;
             
-            if( nodeMSB == 0 )
-            {
-                return 0;
-            }
-            if( FamilyTree[nodeMSB] >= NUM_COORDINATOR )
-            {
-                return 0;
-            }
+		if( nodeMSB == 0 )
+		{
+			return 0;
+		}
+		if( FamilyTree[nodeMSB] >= NUM_COORDINATOR )
+		{
+			return 0;
+		}
 
-            depth = 1;
-            target = nodeMSB;
-            loopCheck = 0;
-            while( FamilyTree[target] )
-            {
-                target = FamilyTree[target];
-                depth++;
-                if( loopCheck++ > NUM_COORDINATOR )
-                {
-                    break;
-                }
-            }
-            return depth;   
-        }
+		depth = 1;
+		target = nodeMSB;
+		loopCheck = 0;
+		while( FamilyTree[target] )
+		{
+			target = FamilyTree[target];
+			depth++;
+			if( loopCheck++ > NUM_COORDINATOR )
+			{
+				break;
+			}
+		}
+		return depth;   
+	}
     
-        #define DEST_NULL   0        
-        #define DEST_PARENT 1
-        #define DEST_CHILD  2
-        #define DEST_PEER   3
+	#define DEST_NULL   0        
+	#define DEST_PARENT 1
+	#define DEST_CHILD  2
+	#define DEST_PEER   3
         
-        BYTE FindRoutingPath(BYTE destMSB)
-        {
-            BYTE i;
-            BYTE j;
-            BYTE target;
-            BYTE treeSteps;
-            BYTE loopCheck;
-            BYTE destRole = DEST_NULL;
-            
-            // house keeping check
-            if( (destMSB > NUM_COORDINATOR) || (FamilyTree[0] == 0 && FamilyTree[destMSB] > NUM_COORDINATOR) )
-            {
-                return 0xFF;
-            }
-            
-            // first check if I know this guy directly
-            if( RoutingTable[destMSB/8] & (0x01 << (destMSB % 8)) )
-            {
-                // yes, I know this guy directly
-                return destMSB;
-            }  
-            
-            // second, check if my neighbor know this guy
-            for(i = 0; i < NUM_COORDINATOR; i++)
-            {
-                if( NeighborRoutingTable[i][destMSB/8] & (0x01 << (destMSB % 8)) )
-                {
-                    return i;
-                }    
-            }
+	BYTE FindRoutingPath(BYTE destMSB)
+	{
+		BYTE i;
+		BYTE j;
+		BYTE target;
+		BYTE treeSteps;
+		BYTE loopCheck;
+		BYTE destRole = DEST_NULL;
+		
+		// house keeping check
+		if( (destMSB > NUM_COORDINATOR) || (FamilyTree[0] == 0 && FamilyTree[destMSB] > NUM_COORDINATOR) )
+		{
+			return 0xFF;
+		}
+		
+		// first check if I know this guy directly
+		if( RoutingTable[destMSB/8] & (0x01 << (destMSB % 8)) )
+		{
+			// yes, I know this guy directly
+			return destMSB;
+		}  
+		
+		// second, check if my neighbor know this guy
+		for(i = 0; i < NUM_COORDINATOR; i++)
+		{
+			if( NeighborRoutingTable[i][destMSB/8] & (0x01 << (destMSB % 8)) )
+			{
+				return i;
+			}    
+		}
 
-            // check the maximum steps I need to rout insted of tree routing
-            target = destMSB;
-            loopCheck = 0;
-            while(target)
-            {
-                if( FamilyTree[target] == myShortAddress.v[1] )
-                {
-                    destRole = DEST_CHILD;
-                    treeSteps = FindDepth(destMSB) - FindDepth(myShortAddress.v[1]);
-                    break;
-                }
-                target = FamilyTree[target];   
-                if( loopCheck++ > NUM_COORDINATOR )
-                {
-                    break;
-                } 
-            }
-                      
-            if ( destRole == DEST_NULL )
-            {
-                target = myShortAddress.v[1];
-                loopCheck = 0;
-                while(target)
-                {
-                    if( FamilyTree[target] == destMSB )
-                    {
-                        destRole = DEST_PARENT;
-                        treeSteps = FindDepth(myShortAddress.v[1]) - FindDepth(destMSB);
-                        break;
-                    }  
-                    target = FamilyTree[target];  
-                    if( loopCheck++ > NUM_COORDINATOR )
-                    {
-                        break;
-                    }  
-                } 
-            } 
-                
-            if( destRole == DEST_NULL )
-            {
-                destRole = DEST_PEER;
-                treeSteps = FindDepth(destMSB);
-            }
-                      
-            for(i = 1; i < treeSteps; i++)
-            {
-                BYTE k;
-                
-                // check if I know this guy along with the parent path
-                target = destMSB;
-                for(j = 0; j < i; j++)
-                {
-                    target = FamilyTree[target];
-                }    
-                if( RoutingTable[target/8] & (0x01 << (target % 8)) )
-                {
-                    return target;
-                }    
-                
-                // check if I know this guy along with the child path
-                for(k = 0; k < NUM_COORDINATOR; k++)
-                {
-                    if( FamilyTree[k] < NUM_COORDINATOR )
-                    {
-                        target = k;
-                        for(j = 0; j < i; j++)
-                        {
-                            target = FamilyTree[target];
-                        }    
-                        if( (target == destMSB) && (RoutingTable[k/8] & (0x01 << (k%8))) )
-                        {
-                            return k;
-                        }    
-                    }    
-                }
-                
-                // check if my neighbor know this guy along the parent path
-                target = destMSB;
-                for(j = 0; j < i; j++)
-                {
-                    target = FamilyTree[target];
-                }
-                for(k = 0; k < NUM_COORDINATOR; k++)
-                {
-                    if( NeighborRoutingTable[k][target/8] & (0x01 << (target%8)) )
-                    {
-                        return k;
-                    }    
-                }    
-                
-                // check if my neighbor know this guy along the child path
-                for(k = 0; k < NUM_COORDINATOR; k++)
-                {
-                    if( FamilyTree[k] < NUM_COORDINATOR )
-                    {
-                        target = k;
-                        for(j = 0; j < i; j++)
-                        {
-                            target = FamilyTree[target];
-                        }    
-                        if( target == destMSB )
-                        {
-                            for(j = 0; j < NUM_COORDINATOR; j++)
-                            {
-                                if( NeighborRoutingTable[j][k/8] & (0x01 << (k%8)) )
-                                {
-                                    return j;
-                                }    
-                            }    
-                        }    
-                    }    
-                }        
-                
-            } 
-                      
-            // I have looked forward for three steps, now I need to go tree routing
-            // check if the destination is my child
-            if( destRole == DEST_CHILD )
-            {
-                i = destMSB;
-                loopCheck = 0;
-                while( (FamilyTree[i] != myShortAddress.v[1]) ||
-                    (RoutingTable[i/8] & (0x01 << (i % 8))) )
-                {
-                    i = FamilyTree[i];
-                    if( loopCheck++ > NUM_COORDINATOR )
-                    {
-                        break;
-                    }
-                }
-                return i;  
-            }
-            else
-            {
-                i = FamilyTree[myShortAddress.v[1]];
-                target = i;
-                loopCheck = 0;
-                while( (FamilyTree[i] != i) && (i != destMSB) )
-                {
-                    if( RoutingTable[i/8] & (0x01 << (i%8)) )
-                    {
-                        target = i;
-                    }
-                    i = FamilyTree[i]; 
-                    if( loopCheck++ > NUM_COORDINATOR )
-                    {
-                        break;
-                    }   
-                }    
-                return target;
-            }           
-            //! return 0xFF;
-        }    
+		// check the maximum steps I need to rout insted of tree routing
+		target = destMSB;
+		loopCheck = 0;
+		while(target)
+		{
+			if( FamilyTree[target] == myShortAddress.v[1] )
+			{
+				destRole = DEST_CHILD;
+				treeSteps = FindDepth(destMSB) - FindDepth(myShortAddress.v[1]);
+				break;
+			}
+			target = FamilyTree[target];   
+			if( loopCheck++ > NUM_COORDINATOR )
+			{
+				break;
+			} 
+		}
+				  
+		if ( destRole == DEST_NULL )
+		{
+			target = myShortAddress.v[1];
+			loopCheck = 0;
+			while(target)
+			{
+				if( FamilyTree[target] == destMSB )
+				{
+					destRole = DEST_PARENT;
+					treeSteps = FindDepth(myShortAddress.v[1]) - FindDepth(destMSB);
+					break;
+				}  
+				target = FamilyTree[target];  
+				if( loopCheck++ > NUM_COORDINATOR )
+				{
+					break;
+				}  
+			} 
+		} 
+			
+		if( destRole == DEST_NULL )
+		{
+			destRole = DEST_PEER;
+			treeSteps = FindDepth(destMSB);
+		}
+				  
+		for(i = 1; i < treeSteps; i++)
+		{
+			BYTE k;
+			
+			// check if I know this guy along with the parent path
+			target = destMSB;
+			for(j = 0; j < i; j++)
+			{
+				target = FamilyTree[target];
+			}    
+			if( RoutingTable[target/8] & (0x01 << (target % 8)) )
+			{
+				return target;
+			}    
+			
+			// check if I know this guy along with the child path
+			for(k = 0; k < NUM_COORDINATOR; k++)
+			{
+				if( FamilyTree[k] < NUM_COORDINATOR )
+				{
+					target = k;
+					for(j = 0; j < i; j++)
+					{
+						target = FamilyTree[target];
+					}    
+					if( (target == destMSB) && (RoutingTable[k/8] & (0x01 << (k%8))) )
+					{
+						return k;
+					}    
+				}    
+			}
+			
+			// check if my neighbor know this guy along the parent path
+			target = destMSB;
+			for(j = 0; j < i; j++)
+			{
+				target = FamilyTree[target];
+			}
+			for(k = 0; k < NUM_COORDINATOR; k++)
+			{
+				if( NeighborRoutingTable[k][target/8] & (0x01 << (target%8)) )
+				{
+					return k;
+				}    
+			}    
+			
+			// check if my neighbor know this guy along the child path
+			for(k = 0; k < NUM_COORDINATOR; k++)
+			{
+				if( FamilyTree[k] < NUM_COORDINATOR )
+				{
+					target = k;
+					for(j = 0; j < i; j++)
+					{
+						target = FamilyTree[target];
+					}    
+					if( target == destMSB )
+					{
+						for(j = 0; j < NUM_COORDINATOR; j++)
+						{
+							if( NeighborRoutingTable[j][k/8] & (0x01 << (k%8)) )
+							{
+								return j;
+							}    
+						}    
+					}    
+				}    
+			}        
+			
+		} 
+				  
+		// I have looked forward for three steps, now I need to go tree routing
+		// check if the destination is my child
+		if( destRole == DEST_CHILD )
+		{
+			i = destMSB;
+			loopCheck = 0;
+			while( (FamilyTree[i] != myShortAddress.v[1]) ||
+				(RoutingTable[i/8] & (0x01 << (i % 8))) )
+			{
+				i = FamilyTree[i];
+				if( loopCheck++ > NUM_COORDINATOR )
+				{
+					break;
+				}
+			}
+			return i;  
+		}
+		else
+		{
+			i = FamilyTree[myShortAddress.v[1]];
+			target = i;
+			loopCheck = 0;
+			while( (FamilyTree[i] != i) && (i != destMSB) )
+			{
+				if( RoutingTable[i/8] & (0x01 << (i%8)) )
+				{
+					target = i;
+				}
+				i = FamilyTree[i]; 
+				if( loopCheck++ > NUM_COORDINATOR )
+				{
+					break;
+				}
+			}
+			return target;
+		}
+		//! return 0xFF;
+	}
     
     
-        /*********************************************************************
-         * Function:        BOOL RouteMessage(WORD_VAL PANID, 
-         *                                    WORD_VAL ShortAddress, BOOL SecEn)
-         *
-         * PreCondition:    Coordinator has joined the network
-         *
-         * Input:           PANID           - PAN identifier of the destination 
-         *                                    node
-         *                  ShortAddress    - Network short address of the 
-         *                                    destination node
-         *                  SecEn           - Boolean to indicate if the message
-         *                                    payload needs to be secured
-         *
-         * Output:          A boolean to indicate if routing successful
-         *
-         * Side Effects:    None
-         *
-         * Overview:        This function is the backbone of MiWi PRO routing
-         *                  mechanism. MiWi PRO uses this function to route
-         *                  the message across multiple hops to reach the
-         *                  destination node.
-         ********************************************************************/
-        BOOL RouteMessage(WORD_VAL PANID, WORD_VAL ShortAddress, BOOL SecEn)
-        {
-            BYTE i;
-            BYTE parentNode = ShortAddress.v[1];
-            
-            if( parentNode > 0x7F )
-            {
-                return FALSE;
-            }
-            
-            if( FamilyTree[0] == 0 && FamilyTree[parentNode] > NUM_COORDINATOR )
-            {
-                // if the destination node has not join the network
-                return FALSE;
-            } 
+	/*********************************************************************
+	 * Function:        BOOL RouteMessage(WORD_VAL PANID, 
+	 *                                    WORD_VAL ShortAddress, BOOL SecEn)
+	 *
+	 * PreCondition:    Coordinator has joined the network
+	 *
+	 * Input:           PANID           - PAN identifier of the destination 
+	 *                                    node
+	 *                  ShortAddress    - Network short address of the 
+	 *                                    destination node
+	 *                  SecEn           - Boolean to indicate if the message
+	 *                                    payload needs to be secured
+	 *
+	 * Output:          A boolean to indicate if routing successful
+	 *
+	 * Side Effects:    None
+	 *
+	 * Overview:        This function is the backbone of MiWi PRO routing
+	 *                  mechanism. MiWi PRO uses this function to route
+	 *                  the message across multiple hops to reach the
+	 *                  destination node.
+	 ********************************************************************/
+	BOOL RouteMessage(WORD_VAL PANID, WORD_VAL ShortAddress, BOOL SecEn)
+	{
+		BYTE i;
+		BYTE parentNode = ShortAddress.v[1];
+		
+		if( parentNode > 0x7F )
+		{
+			return FALSE;
+		}
+		
+		if( FamilyTree[0] == 0 && FamilyTree[parentNode] > NUM_COORDINATOR )
+		{
+			// if the destination node has not join the network
+			return FALSE;
+		} 
 
-            for(i = 0; i < PACKET_RECORD_SIZE; i++)
-            {
-                if( (PacketRecords[i].RxCounter > 0 ) &&
-                    (PacketRecords[i].AltSourceAddr.Val == ShortAddress.Val) &&
-                    (PacketRecords[i].MiWiPROSeq == TxBuffer[10]) 
-                  )
-                {
-                    MiWiPROStatus.bits.COMM_ROUTING_TABLE = ROUTING_TABLE_BROADCAST;
-                    backgroundTaskTick = MiWi_TickGet();
-                    return FALSE;
-                }
-            }
-            
-            for(i = 0; i < PACKET_RECORD_SIZE; i++)
-            {
-                if( PacketRecords[i].RxCounter == 0 )
-                {
-                    PacketRecords[i].RxCounter = INDIRECT_MESSAGE_TIMEOUT_CYCLE + 1;
-                    PacketRecords[i].MiWiPROSeq = TxBuffer[10];
-                    PacketRecords[i].AltSourceAddr.Val = ShortAddress.Val;
-                    PacketRecords[i].StartTick = MiWi_TickGet();                    break;
-                }    
-            }        
-            
-            // first check if it is one of my end device children
-            if( parentNode == myShortAddress.v[1] )
-            {
-                // destination is my child
-                if( ShortAddress.v[0] > 0x80 )
-                {
-                    #if defined(ENABLE_INDIRECT_MESSAGE)
-                        // this is a sleeping device, need indirect message
-                        #if defined(IEEE_802_15_4)
-                            return SaveIndirectMessage(FALSE, PANID, ShortAddress.v, TRUE, SecEn);
-                        #else
-                            tempShortAddress.Val = ShortAddress.Val;
-                            if( (i = SearchForShortAddress()) == 0xFF )
-                            {
-                                return SaveIndirectMessage(FALSE, ShortAddress.v, TRUE, SecEn); 
-                            }
+		for(i = 0; i < PACKET_RECORD_SIZE; i++)
+		{
+			if( (PacketRecords[i].RxCounter > 0 ) &&
+				(PacketRecords[i].AltSourceAddr.Val == ShortAddress.Val) &&
+				(PacketRecords[i].MiWiPROSeq == TxBuffer[10]) 
+			  )
+			{
+				MiWiPROStatus.bits.COMM_ROUTING_TABLE = ROUTING_TABLE_BROADCAST;
+				backgroundTaskTick = MiWi_TickGet();
+				return FALSE;
+			}
+		}
+		
+		for(i = 0; i < PACKET_RECORD_SIZE; i++)
+		{
+			if( PacketRecords[i].RxCounter == 0 )
+			{
+				PacketRecords[i].RxCounter = INDIRECT_MESSAGE_TIMEOUT_CYCLE + 1;
+				PacketRecords[i].MiWiPROSeq = TxBuffer[10];
+				PacketRecords[i].AltSourceAddr.Val = ShortAddress.Val;
+				PacketRecords[i].StartTick = MiWi_TickGet();				break;
+			}    
+		}        
+		
+		// first check if it is one of my end device children
+		if( parentNode == myShortAddress.v[1] )
+		{
+			// destination is my child
+			if( ShortAddress.v[0] > 0x80 )
+			{
+				#if defined(ENABLE_INDIRECT_MESSAGE)
+					// this is a sleeping device, need indirect message
+					#if defined(IEEE_802_15_4)
+						return SaveIndirectMessage(FALSE, PANID, ShortAddress.v, TRUE, SecEn);
+					#else
+						tempShortAddress.Val = ShortAddress.Val;
+						if( (i = SearchForShortAddress()) == 0xFF )
+						{
+							return SaveIndirectMessage(FALSE, ShortAddress.v, TRUE, SecEn); 
+						}
 
-                            return SaveIndirectMessage(FALSE, ConnectionTable[i].Address, FALSE, SecEn);
-                        #endif
-                    #else
-                        return FALSE;
-                    #endif
-                }
-                else
-                {
-                    MTP.flags.Val = 0;
-                    MTP.flags.bits.ackReq = 1;
-                    MTP.flags.bits.secEn = SecEn;
-                    
-                    tempShortAddress.Val = ShortAddress.Val;
-                    
-                    #if defined(IEEE_802_15_4)
-                        MTP.altDestAddr = TRUE;
-                        MTP.altSrcAddr = TRUE;
-                        MTP.DestAddress = tempShortAddress.v;
-                        MTP.DestPANID.Val = myPANID.Val;
-                    #else
-                        if( (i = SearchForShortAddress()) != 0xFF )
-                        {
-                            MTP.DestAddress = ConnectionTable[i].Address;
-                        }
-                        else
-                        {
-                            // the children's info is not in the connection table
-                            // should not happen
-                            return FALSE;
-                        }
-                    #endif
-                    return MiMAC_SendPacket(MTP, TxBuffer, TxData);
-                }
-            }
-                    
-            // now routing
-            parentNode = FindRoutingPath(ShortAddress.v[1]);
-            if( parentNode == 0xFF )
-            {
-                return FALSE;
-            }
-            
-            if( RouterFailures[parentNode] >= MAX_ROUTING_FAILURE )
-            {
-                BYTE i;
+						return SaveIndirectMessage(FALSE, ConnectionTable[i].Address, FALSE, SecEn);
+					#endif
+				#else
+					return FALSE;
+				#endif
+			}
+			else
+			{
+				MTP.flags.Val = 0;
+				MTP.flags.bits.ackReq = 1;
+				MTP.flags.bits.secEn = SecEn;
+				
+				tempShortAddress.Val = ShortAddress.Val;
+				
+				#if defined(IEEE_802_15_4)
+					MTP.altDestAddr = TRUE;
+					MTP.altSrcAddr = TRUE;
+					MTP.DestAddress = tempShortAddress.v;
+					MTP.DestPANID.Val = myPANID.Val;
+				#else
+					if( (i = SearchForShortAddress()) != 0xFF )
+					{
+						MTP.DestAddress = ConnectionTable[i].Address;
+					}
+					else
+					{
+						// the children's info is not in the connection table
+						// should not happen
+						return FALSE;
+					}
+				#endif
+				return MiMAC_SendPacket(MTP, TxBuffer, TxData);
+			}
+		}
+				
+		// now routing
+		parentNode = FindRoutingPath(ShortAddress.v[1]);
+		if( parentNode == 0xFF )
+		{
+			return FALSE;
+		}
+		
+		if( RouterFailures[parentNode] >= MAX_ROUTING_FAILURE )
+		{
+			BYTE i;
 
-                RouterFailures[parentNode] = 0;
-                RoutingTable[parentNode/8] &= (0x01 << (parentNode % 8) ) ^ 0xFF;
-                for(i = 0; i < NUM_COORDINATOR/8; i++)
-                {
-                    NeighborRoutingTable[parentNode][i] = 0;
-                }
-                /*
-                if (parentNode == myParent)
-                {
-                    MiWiPROStateMachine.bits.memberOfNetwork = 0;
-                    myParent = 0xFF;
-                }  
-                */
-                #if defined(ENABLE_NETWORK_FREEZER)
-                    nvmPutRoutingTable(RoutingTable);
-                    nvmPutNeighborRoutingTable(NeighborRoutingTable);
-                #endif
-                
-                MiWiPROStatus.bits.COMM_ROUTING_TABLE = ROUTING_TABLE_BROADCAST;
-                backgroundTaskTick = MiWi_TickGet();
-                return FALSE;
-            }
+			RouterFailures[parentNode] = 0;
+			RoutingTable[parentNode/8] &= (0x01 << (parentNode % 8) ) ^ 0xFF;
+			for(i = 0; i < NUM_COORDINATOR/8; i++)
+			{
+				NeighborRoutingTable[parentNode][i] = 0;
+			}
+			/*
+			if (parentNode == myParent)
+			{
+				MiWiPROStateMachine.bits.memberOfNetwork = 0;
+				myParent = 0xFF;
+			}  
+			*/
+			#if defined(ENABLE_NETWORK_FREEZER)
+				nvmPutRoutingTable(RoutingTable);
+				nvmPutNeighborRoutingTable(NeighborRoutingTable);
+			#endif
+			
+			MiWiPROStatus.bits.COMM_ROUTING_TABLE = ROUTING_TABLE_BROADCAST;
+			backgroundTaskTick = MiWi_TickGet();
+			return FALSE;
+		}
 
-            MTP.flags.Val = 0;
-            MTP.flags.bits.ackReq = 1;
-            MTP.flags.bits.secEn = SecEn;
+		MTP.flags.Val = 0;
+		MTP.flags.bits.ackReq = 1;
+		MTP.flags.bits.secEn = SecEn;
 
-            tempShortAddress.v[0] = 0;
-            tempShortAddress.v[1] = parentNode;
-            
-            #if defined(IEEE_802_15_4)
-                MTP.altDestAddr = TRUE;
-                MTP.altSrcAddr = TRUE;
-                MTP.DestAddress = tempShortAddress.v;
-                MTP.DestPANID.Val = myPANID.Val;
-            #else
-                if( (i = SearchForShortAddress()) != 0xFF )
-                {
-                    MTP.DestAddress = ConnectionTable[i].Address;
-                }
-                else
-                {
-                    // highly impossible for none 15.4, where the
-                    // access of Coordinators not through beacon
-                    RouterFailures[parentNode]++;
-                    return FALSE;
-                }
-            #endif
-            if( MiMAC_SendPacket(MTP, TxBuffer, TxData) == FALSE )
-            {
-                RouterFailures[parentNode]++;
-                return FALSE;
-            }
+		tempShortAddress.v[0] = 0;
+		tempShortAddress.v[1] = parentNode;
+		
+		#if defined(IEEE_802_15_4)
+			MTP.altDestAddr = TRUE;
+			MTP.altSrcAddr = TRUE;
+			MTP.DestAddress = tempShortAddress.v;
+			MTP.DestPANID.Val = myPANID.Val;
+		#else
+			if( (i = SearchForShortAddress()) != 0xFF )
+			{
+				MTP.DestAddress = ConnectionTable[i].Address;
+			}
+			else
+			{
+				// highly impossible for none 15.4, where the
+				// access of Coordinators not through beacon
+				RouterFailures[parentNode]++;
+				return FALSE;
+			}
+		#endif
+		if( MiMAC_SendPacket(MTP, TxBuffer, TxData) == FALSE )
+		{
+			RouterFailures[parentNode]++;
+			return FALSE;
+		}
 
-            RouterFailures[parentNode] = 0;
-            return TRUE;
+		RouterFailures[parentNode] = 0;
+		return TRUE;
 
-        }
-    #endif
+	}
+#endif
 
 
 
@@ -3206,11 +3210,11 @@ START_ASSOCIATION_RESPONSE:
      *                  layer parameters and return  the status of
      *                  MiMAC transmission status.
      ********************************************************************/
-    #if defined(IEEE_802_15_4)
-        BOOL SendMACPacket(BYTE *PANID, BYTE *Address, BYTE PacketType, BYTE ModeMask)
-    #else
-        BOOL SendMACPacket(BYTE *Address, BYTE PacketType)
-    #endif
+#if defined(IEEE_802_15_4)
+	BOOL SendMACPacket(BYTE *PANID, BYTE *Address, BYTE PacketType, BYTE ModeMask)
+#else
+	BOOL SendMACPacket(BYTE *Address, BYTE PacketType)
+#endif
     {   
         MTP.flags.Val = 0;
         
@@ -3224,28 +3228,28 @@ START_ASSOCIATION_RESPONSE:
         
         MTP.DestAddress = Address;
         
-        #if defined(IEEE_802_15_4)
-            if( (ModeMask & MSK_ALT_DST_ADDR) > 0)
-            {
-                MTP.altDestAddr = TRUE;
-            }
-            else
-            {
-                MTP.altDestAddr = FALSE;
-            }
-            if( (ModeMask & MSK_ALT_SRC_ADDR) > 0)
-            {
-                MTP.altSrcAddr = TRUE;
-            }
-            else
-            {
-                MTP.altSrcAddr = FALSE;
-            }
-            MTP.DestPANID.v[0] = PANID[0];
-            MTP.DestPANID.v[1] = PANID[1];
-        #endif
+	#if defined(IEEE_802_15_4)
+		if( (ModeMask & MSK_ALT_DST_ADDR) > 0)
+		{
+			MTP.altDestAddr = TRUE;
+		}
+		else
+		{
+			MTP.altDestAddr = FALSE;
+		}
+		if( (ModeMask & MSK_ALT_SRC_ADDR) > 0)
+		{
+			MTP.altSrcAddr = TRUE;
+		}
+		else
+		{
+			MTP.altSrcAddr = FALSE;
+		}
+		MTP.DestPANID.v[0] = PANID[0];
+		MTP.DestPANID.v[1] = PANID[1];
+	#endif
         
-        return MiMAC_SendPacket(MTP, TxBuffer, TxData);
+		return MiMAC_SendPacket(MTP, TxBuffer, TxData);
     }
 
     /*********************************************************************
@@ -3267,261 +3271,261 @@ START_ASSOCIATION_RESPONSE:
      * Overview:        This function is used to send an indirect message
      *                  to a sleeping device
      ********************************************************************/
-    #if defined(NWK_ROLE_COORDINATOR) && defined(ENABLE_INDIRECT_MESSAGE)
-        MIWI_TICK tmpTick;
-        void SendIndirectPacket(BYTE *Address, BYTE *AltAddress, BOOL isAltAddress)
-        {
-            BYTE i,j;
-            BYTE index;
-            BYTE packetType = PACKET_TYPE_DATA;
-            #if defined(ENABLE_TIME_SYNC) && !defined(ENABLE_SLEEP)
-                WORD_VAL tmpW;
-            #endif
-            
-            MAC_FlushTx();
-            #if defined(ENABLE_TIME_SYNC) && !defined(ENABLE_SLEEP)
-                MiApp_WriteData(MAC_COMMAND_TIME_SYNC_DATA_PACKET);
-                packetType = PACKET_TYPE_COMMAND;
-                tmpTick = MiWi_TickGet();
-                if( (tmpTick.Val - TimeSyncTick.Val) < ((ONE_SECOND) * RFD_WAKEUP_INTERVAL) )
-                {
-                    //tmpW.Val = (((ONE_SECOND) * RFD_WAKEUP_INTERVAL) - (tmpTick.Val - TimeSyncTick.Val) + ( TimeSlotTick.Val * TimeSyncSlot ) ) / (ONE_SECOND * 16);
-                    tmpW.Val = (((ONE_SECOND) * RFD_WAKEUP_INTERVAL) - (tmpTick.Val - TimeSyncTick.Val) + ( TimeSlotTick.Val * TimeSyncSlot ) ) / SYMBOLS_TO_TICKS((DWORD)0xFFFF * MICRO_SECOND_PER_COUNTER_TICK / 16);
-                    MiApp_WriteData(tmpW.v[0]);
-                    MiApp_WriteData(tmpW.v[1]);
-                    //tmpW.Val = 0xFFFF - (WORD)((TICKS_TO_SYMBOLS((((ONE_SECOND) * RFD_WAKEUP_INTERVAL) - (tmpTick.Val - TimeSyncTick.Val)  + ( TimeSlotTick.Val * TimeSyncSlot ) + TimeSlotTick.Val/2 - (ONE_SECOND * tmpW.Val * 16) )) * 16 / 250));
-                    //tmpW2.Val = 0xFFFF - (WORD)((TICKS_TO_SYMBOLS((((ONE_SECOND) * RFD_WAKEUP_INTERVAL) - (tmpTick.Val - TimeSyncTick.Val)  + ( TimeSlotTick.Val * TimeSyncSlot ) + TimeSlotTick.Val/2 - ((DWORD)0xFFFF * tmpW.Val) )) * 16 / MICRO_SECOND_PER_COUNTER_TICK));
-                    //tmpW.Val = 0xFFFF - (WORD)((TICKS_TO_SYMBOLS((((ONE_SECOND) * RFD_WAKEUP_INTERVAL) - (tmpTick.Val - TimeSyncTick.Val)  + ( TimeSlotTick.Val * TimeSyncSlot ) + TimeSlotTick.Val/2 - SYMBOLS_TO_TICKS((DWORD)0xFFFF * MICRO_SECOND_PER_COUNTER_TICK / 16 * tmpW.Val) )) * 16 / MICRO_SECOND_PER_COUNTER_TICK));
-                    tmpW.Val = 0xFFFF - (WORD)((TICKS_TO_SYMBOLS(( ((ONE_SECOND) * RFD_WAKEUP_INTERVAL) - (tmpTick.Val - TimeSyncTick.Val)  + ( TimeSlotTick.Val * TimeSyncSlot ) + TimeSlotTick.Val/2)) - ((DWORD)0xFFFF * MICRO_SECOND_PER_COUNTER_TICK / 16 * tmpW.Val) ) * 16 / MICRO_SECOND_PER_COUNTER_TICK);
-                    if( TimeSyncSlot < TIME_SYNC_SLOTS )
-                    {
-                        TimeSyncSlot++;
-                    }    
-                    MiApp_WriteData(tmpW.v[0]);
-                    MiApp_WriteData(tmpW.v[1]);
-                }
-                else
-                {
-                    MiApp_WriteData(0);
-                    MiApp_WriteData(0);
-                    MiApp_WriteData(0x5F);
-                    MiApp_WriteData(0xF0);
-                }        
+#if defined(NWK_ROLE_COORDINATOR) && defined(ENABLE_INDIRECT_MESSAGE)
+	MIWI_TICK tmpTick;
+	void SendIndirectPacket(BYTE *Address, BYTE *AltAddress, BOOL isAltAddress)
+	{
+		BYTE i,j;
+		BYTE index;
+		BYTE packetType = PACKET_TYPE_DATA;
+	#if defined(ENABLE_TIME_SYNC) && !defined(ENABLE_SLEEP)
+		WORD_VAL tmpW;
+	#endif
+		
+		MAC_FlushTx();
+	#if defined(ENABLE_TIME_SYNC) && !defined(ENABLE_SLEEP)
+		MiApp_WriteData(MAC_COMMAND_TIME_SYNC_DATA_PACKET);
+		packetType = PACKET_TYPE_COMMAND;
+		tmpTick = MiWi_TickGet();
+		if( (tmpTick.Val - TimeSyncTick.Val) < ((ONE_SECOND) * RFD_WAKEUP_INTERVAL) )
+		{
+			//tmpW.Val = (((ONE_SECOND) * RFD_WAKEUP_INTERVAL) - (tmpTick.Val - TimeSyncTick.Val) + ( TimeSlotTick.Val * TimeSyncSlot ) ) / (ONE_SECOND * 16);
+			tmpW.Val = (((ONE_SECOND) * RFD_WAKEUP_INTERVAL) - (tmpTick.Val - TimeSyncTick.Val) + ( TimeSlotTick.Val * TimeSyncSlot ) ) / SYMBOLS_TO_TICKS((DWORD)0xFFFF * MICRO_SECOND_PER_COUNTER_TICK / 16);
+			MiApp_WriteData(tmpW.v[0]);
+			MiApp_WriteData(tmpW.v[1]);
+			//tmpW.Val = 0xFFFF - (WORD)((TICKS_TO_SYMBOLS((((ONE_SECOND) * RFD_WAKEUP_INTERVAL) - (tmpTick.Val - TimeSyncTick.Val)  + ( TimeSlotTick.Val * TimeSyncSlot ) + TimeSlotTick.Val/2 - (ONE_SECOND * tmpW.Val * 16) )) * 16 / 250));
+			//tmpW2.Val = 0xFFFF - (WORD)((TICKS_TO_SYMBOLS((((ONE_SECOND) * RFD_WAKEUP_INTERVAL) - (tmpTick.Val - TimeSyncTick.Val)  + ( TimeSlotTick.Val * TimeSyncSlot ) + TimeSlotTick.Val/2 - ((DWORD)0xFFFF * tmpW.Val) )) * 16 / MICRO_SECOND_PER_COUNTER_TICK));
+			//tmpW.Val = 0xFFFF - (WORD)((TICKS_TO_SYMBOLS((((ONE_SECOND) * RFD_WAKEUP_INTERVAL) - (tmpTick.Val - TimeSyncTick.Val)  + ( TimeSlotTick.Val * TimeSyncSlot ) + TimeSlotTick.Val/2 - SYMBOLS_TO_TICKS((DWORD)0xFFFF * MICRO_SECOND_PER_COUNTER_TICK / 16 * tmpW.Val) )) * 16 / MICRO_SECOND_PER_COUNTER_TICK));
+			tmpW.Val = 0xFFFF - (WORD)((TICKS_TO_SYMBOLS(( ((ONE_SECOND) * RFD_WAKEUP_INTERVAL) - (tmpTick.Val - TimeSyncTick.Val)  + ( TimeSlotTick.Val * TimeSyncSlot ) + TimeSlotTick.Val/2)) - ((DWORD)0xFFFF * MICRO_SECOND_PER_COUNTER_TICK / 16 * tmpW.Val) ) * 16 / MICRO_SECOND_PER_COUNTER_TICK);
+			if( TimeSyncSlot < TIME_SYNC_SLOTS )
+			{
+				TimeSyncSlot++;
+			}    
+			MiApp_WriteData(tmpW.v[0]);
+			MiApp_WriteData(tmpW.v[1]);
+		}
+		else
+		{
+			MiApp_WriteData(0);
+			MiApp_WriteData(0);
+			MiApp_WriteData(0x5F);
+			MiApp_WriteData(0xF0);
+		}        
 
-            #endif
-            
-            
-            if( isAltAddress )
-            {
-                tempShortAddress.v[0] = AltAddress[0];
-                tempShortAddress.v[1] = AltAddress[1];
-                if( (index = SearchForShortAddress()) == 0xFF )
-                {
-                    goto NO_INDIRECT_MESSAGE;
-                }       
-            }
-            else
-            {
-                for(i = 0; i < MY_ADDRESS_LENGTH; i++)
-                {
-                    tempLongAddress[i] = Address[i];
-                }
-                if( (index = SearchForLongAddress()) == 0xFF )
-                {
-                    goto NO_INDIRECT_MESSAGE;
-                }        
-            }        
-    
-            for(i = 0; i < INDIRECT_MESSAGE_SIZE; i++)
-            {
-                if( indirectMessages[i].flags.bits.isValid )
-                {
-                    if( (indirectMessages[i].flags.bits.isBroadcast == 0) && 
-                        indirectMessages[i].flags.bits.isAltAddr &&
-                        (ConnectionTable[index].AltAddress.v[0] == indirectMessages[i].DestAddress[0]) && 
-                        (ConnectionTable[index].AltAddress.v[1] == indirectMessages[i].DestAddress[1]) )
-                    {
-                        for(j = 0; j < indirectMessages[i].PayLoadSize; j++)
-                        {
-                            MiApp_WriteData(indirectMessages[i].PayLoad[j]);
-                        }
-                        
-                        #if defined(IEEE_802_15_4)
-                            if( indirectMessages[i].flags.bits.isCommand )
-                            {
-                                #if defined(ENABLE_TIME_SYNC) && !defined(ENABLE_SLEEP)
-                                    TxBuffer[0] = MAC_COMMAND_TIME_SYNC_COMMAND_PACKET;
-                                #endif
-                                SendMACPacket(myPANID.v, ConnectionTable[index].AltAddress.v, PACKET_TYPE_COMMAND, MSK_ALT_DST_ADDR | MSK_ALT_SRC_ADDR);
-                            }
-                            else
-                            { 
-                                MTP.flags.Val = 0;
-                                MTP.flags.bits.packetType = packetType;
-                                MTP.flags.bits.ackReq = 1;
-                                MTP.flags.bits.secEn = indirectMessages[i].flags.bits.isSecured;
-                                MTP.DestAddress = ConnectionTable[index].AltAddress.v;
-                                MTP.altDestAddr = TRUE;
-                                MTP.altSrcAddr = TRUE;
-                                MTP.DestPANID.Val = indirectMessages[i].DestPANID.Val;
-                                MiMAC_SendPacket(MTP, TxBuffer, TxData);
-                                //SendMACPacket(myPANID.v, AltAddress, PACKET_TYPE_DATA, MSK_ALT_DST_ADDR | MSK_ALT_SRC_ADDR);
-                            }
-                        #else
-                            MTP.flags.Val = 0;
-                            MTP.flags.bits.packetType = packetType;
-                            MTP.flags.bits.ackReq = 1;
-                            MTP.flags.bits.secEn = indirectMessages[i].flags.bits.isSecured;
-                            MTP.DestAddress = ConnectionTable[index].Address;
-                            if( indirectMessages[i].flags.bits.isCommand )
-                            {
-                                MTP.flags.bits.packetType = PACKET_TYPE_COMMAND;
-                                MTP.flags.bits.sourcePrsnt = 1;
-                                #if defined(ENABLE_TIME_SYNC) && !defined(ENABLE_SLEEP)
-                                    TxBuffer[0] = MAC_COMMAND_TIME_SYNC_COMMAND_PACKET;
-                                #endif
-                            }
+	#endif
+		
+		
+		if( isAltAddress )
+		{
+			tempShortAddress.v[0] = AltAddress[0];
+			tempShortAddress.v[1] = AltAddress[1];
+			if( (index = SearchForShortAddress()) == 0xFF )
+			{
+				goto NO_INDIRECT_MESSAGE;
+			}       
+		}
+		else
+		{
+			for(i = 0; i < MY_ADDRESS_LENGTH; i++)
+			{
+				tempLongAddress[i] = Address[i];
+			}
+			if( (index = SearchForLongAddress()) == 0xFF )
+			{
+				goto NO_INDIRECT_MESSAGE;
+			}        
+		}        
 
-                            MiMAC_SendPacket(MTP, TxBuffer, TxData);
-                        #endif
-                        
-                        indirectMessages[i].flags.bits.isValid = 0;
-                        return;
-                    }
-    
-                    if( (indirectMessages[i].flags.bits.isBroadcast == 0) &&
-                        (indirectMessages[i].flags.bits.isAltAddr == 0) &&
-                        isSameAddress( ConnectionTable[index].Address, indirectMessages[i].DestAddress) )
-                    {
-                        for(j = 0; j < indirectMessages[i].PayLoadSize; j++)
-                        {
-                            MiApp_WriteData(indirectMessages[i].PayLoad[j]);
-                        }
-                        #if defined(IEEE_802_15_4)
-                            if( indirectMessages[i].flags.bits.isCommand )
-                            {
-                                #if defined(ENABLE_TIME_SYNC) && !defined(ENABLE_SLEEP)
-                                    TxBuffer[0] = MAC_COMMAND_TIME_SYNC_COMMAND_PACKET;
-                                #endif
-                                SendMACPacket(myPANID.v, ConnectionTable[index].Address, PACKET_TYPE_COMMAND, 0);
-                            }
-                            else
-                            {
-                                MTP.flags.Val = 0;
-                                MTP.flags.bits.packetType = packetType;
-                                MTP.flags.bits.ackReq = 1;
-                                MTP.flags.bits.secEn = indirectMessages[i].flags.bits.isSecured;
-                                MTP.DestAddress = ConnectionTable[index].Address;
-                                MTP.altDestAddr = FALSE;
-                                MTP.altSrcAddr = TRUE;
-                                MTP.DestPANID.Val = indirectMessages[i].DestPANID.Val;
+		for(i = 0; i < INDIRECT_MESSAGE_SIZE; i++)
+		{
+			if( indirectMessages[i].flags.bits.isValid )
+			{
+				if( (indirectMessages[i].flags.bits.isBroadcast == 0) && 
+					indirectMessages[i].flags.bits.isAltAddr &&
+					(ConnectionTable[index].AltAddress.v[0] == indirectMessages[i].DestAddress[0]) && 
+					(ConnectionTable[index].AltAddress.v[1] == indirectMessages[i].DestAddress[1]) )
+				{
+					for(j = 0; j < indirectMessages[i].PayLoadSize; j++)
+					{
+						MiApp_WriteData(indirectMessages[i].PayLoad[j]);
+					}
+					
+				#if defined(IEEE_802_15_4)
+					if( indirectMessages[i].flags.bits.isCommand )
+					{
+					#if defined(ENABLE_TIME_SYNC) && !defined(ENABLE_SLEEP)
+						TxBuffer[0] = MAC_COMMAND_TIME_SYNC_COMMAND_PACKET;
+					#endif
+						SendMACPacket(myPANID.v, ConnectionTable[index].AltAddress.v, PACKET_TYPE_COMMAND, MSK_ALT_DST_ADDR | MSK_ALT_SRC_ADDR);
+					}
+					else
+					{ 
+						MTP.flags.Val = 0;
+						MTP.flags.bits.packetType = packetType;
+						MTP.flags.bits.ackReq = 1;
+						MTP.flags.bits.secEn = indirectMessages[i].flags.bits.isSecured;
+						MTP.DestAddress = ConnectionTable[index].AltAddress.v;
+						MTP.altDestAddr = TRUE;
+						MTP.altSrcAddr = TRUE;
+						MTP.DestPANID.Val = indirectMessages[i].DestPANID.Val;
+						MiMAC_SendPacket(MTP, TxBuffer, TxData);
+						//SendMACPacket(myPANID.v, AltAddress, PACKET_TYPE_DATA, MSK_ALT_DST_ADDR | MSK_ALT_SRC_ADDR);
+					}
+				#else
+					MTP.flags.Val = 0;
+					MTP.flags.bits.packetType = packetType;
+					MTP.flags.bits.ackReq = 1;
+					MTP.flags.bits.secEn = indirectMessages[i].flags.bits.isSecured;
+					MTP.DestAddress = ConnectionTable[index].Address;
+					if( indirectMessages[i].flags.bits.isCommand )
+					{
+						MTP.flags.bits.packetType = PACKET_TYPE_COMMAND;
+						MTP.flags.bits.sourcePrsnt = 1;
+					#if defined(ENABLE_TIME_SYNC) && !defined(ENABLE_SLEEP)
+						TxBuffer[0] = MAC_COMMAND_TIME_SYNC_COMMAND_PACKET;
+					#endif
+					}
 
-                                MiMAC_SendPacket(MTP, TxBuffer, TxData);
-                                //SendMACPacket(myPANID.v, Address, PACKET_TYPE_DATA, 0);
-                            }
-                        #else
-                            MTP.flags.Val = 0;
-                            MTP.flags.bits.packetType = packetType;
-                            MTP.flags.bits.ackReq = 1;
-                            MTP.flags.bits.secEn = indirectMessages[i].flags.bits.isSecured;
-                            MTP.DestAddress = ConnectionTable[index].Address;
-                            if( indirectMessages[i].flags.bits.isCommand )
-                            {
-                                MTP.flags.bits.packetType = PACKET_TYPE_COMMAND;
-                                #if defined(ENABLE_TIME_SYNC) && !defined(ENABLE_SLEEP)
-                                    TxBuffer[0] = MAC_COMMAND_TIME_SYNC_COMMAND_PACKET;
-                                #endif
-                                MTP.flags.bits.sourcePrsnt = 1;
-                            }
+					MiMAC_SendPacket(MTP, TxBuffer, TxData);
+				#endif
+					
+					indirectMessages[i].flags.bits.isValid = 0;
+					return;
+				}
 
-                            MiMAC_SendPacket(MTP, TxBuffer, TxData);
-                        #endif
-                        
-                        indirectMessages[i].flags.bits.isValid = 0;
-                        return;
-                    }
-                }
-            }
-            
-            
-            for(i = 0; i < INDIRECT_MESSAGE_SIZE; i++)
-            {
-                if( indirectMessages[i].flags.bits.isValid )
-                {        
-                    if( indirectMessages[i].flags.bits.isBroadcast )
-                    {
-                        for(j = 0; j < indirectMessages[i].PayLoadSize; j++)
-                        {
-                            MiApp_WriteData(indirectMessages[i].PayLoad[j]);
-                        }
-                        #if defined(IEEE_802_15_4)
-                            MTP.flags.Val = 0;
-                            MTP.flags.bits.packetType = packetType;
-                            if( indirectMessages[i].flags.bits.isCommand )
-                            {
-                                MTP.flags.bits.packetType = PACKET_TYPE_COMMAND;
-                                #if defined(ENABLE_TIME_SYNC) && !defined(ENABLE_SLEEP)
-                                    TxBuffer[0] = MAC_COMMAND_TIME_SYNC_COMMAND_PACKET;
-                                #endif
-                            }
-                            MTP.flags.bits.ackReq = 1;
-                            MTP.flags.bits.sourcePrsnt = 1;
-                            MTP.flags.bits.secEn = indirectMessages[i].flags.bits.isSecured;
-                            MTP.altSrcAddr = TRUE;
-                            if( isAltAddress )
-                            {
-                                MTP.altDestAddr = TRUE;
-                                MTP.DestAddress = ConnectionTable[index].AltAddress.v;
-                            }
-                            else
-                            {
-                                MTP.altDestAddr = FALSE;
-                                MTP.DestAddress = ConnectionTable[index].Address;
-                            }
-                            MTP.DestPANID.Val = indirectMessages[i].DestPANID.Val;
-                            
-                            MiMAC_SendPacket(MTP, TxBuffer, TxData);
-                        #else
-                            MTP.flags.Val = 0;
-                            MTP.flags.bits.packetType = packetType;
-                            MTP.flags.bits.ackReq = 1;
-                            MTP.flags.bits.secEn = indirectMessages[i].flags.bits.isSecured;
-                            if( indirectMessages[i].flags.bits.isCommand )
-                            {
-                                MTP.flags.bits.packetType = PACKET_TYPE_COMMAND;
-                                #if defined(ENABLE_TIME_SYNC) && !defined(ENABLE_SLEEP)
-                                    TxBuffer[0] = MAC_COMMAND_TIME_SYNC_COMMAND_PACKET;
-                                #endif
-                            }
-                            MTP.DestAddress = ConnectionTable[index].Address;
+				if( (indirectMessages[i].flags.bits.isBroadcast == 0) &&
+					(indirectMessages[i].flags.bits.isAltAddr == 0) &&
+					isSameAddress( ConnectionTable[index].Address, indirectMessages[i].DestAddress) )
+				{
+					for(j = 0; j < indirectMessages[i].PayLoadSize; j++)
+					{
+						MiApp_WriteData(indirectMessages[i].PayLoad[j]);
+					}
+					#if defined(IEEE_802_15_4)
+						if( indirectMessages[i].flags.bits.isCommand )
+						{
+							#if defined(ENABLE_TIME_SYNC) && !defined(ENABLE_SLEEP)
+								TxBuffer[0] = MAC_COMMAND_TIME_SYNC_COMMAND_PACKET;
+							#endif
+							SendMACPacket(myPANID.v, ConnectionTable[index].Address, PACKET_TYPE_COMMAND, 0);
+						}
+						else
+						{
+							MTP.flags.Val = 0;
+							MTP.flags.bits.packetType = packetType;
+							MTP.flags.bits.ackReq = 1;
+							MTP.flags.bits.secEn = indirectMessages[i].flags.bits.isSecured;
+							MTP.DestAddress = ConnectionTable[index].Address;
+							MTP.altDestAddr = FALSE;
+							MTP.altSrcAddr = TRUE;
+							MTP.DestPANID.Val = indirectMessages[i].DestPANID.Val;
 
-                            MiMAC_SendPacket(MTP, TxBuffer, TxData);
-                        #endif 
-                        return;   
-                    }
-                }
-            }
+							MiMAC_SendPacket(MTP, TxBuffer, TxData);
+							//SendMACPacket(myPANID.v, Address, PACKET_TYPE_DATA, 0);
+						}
+					#else
+						MTP.flags.Val = 0;
+						MTP.flags.bits.packetType = packetType;
+						MTP.flags.bits.ackReq = 1;
+						MTP.flags.bits.secEn = indirectMessages[i].flags.bits.isSecured;
+						MTP.DestAddress = ConnectionTable[index].Address;
+						if( indirectMessages[i].flags.bits.isCommand )
+						{
+							MTP.flags.bits.packetType = PACKET_TYPE_COMMAND;
+							#if defined(ENABLE_TIME_SYNC) && !defined(ENABLE_SLEEP)
+								TxBuffer[0] = MAC_COMMAND_TIME_SYNC_COMMAND_PACKET;
+							#endif
+							MTP.flags.bits.sourcePrsnt = 1;
+						}
+
+						MiMAC_SendPacket(MTP, TxBuffer, TxData);
+					#endif
+					
+					indirectMessages[i].flags.bits.isValid = 0;
+					return;
+				}
+			}
+		}
+		
+		
+		for(i = 0; i < INDIRECT_MESSAGE_SIZE; i++)
+		{
+			if( indirectMessages[i].flags.bits.isValid )
+			{        
+				if( indirectMessages[i].flags.bits.isBroadcast )
+				{
+					for(j = 0; j < indirectMessages[i].PayLoadSize; j++)
+					{
+						MiApp_WriteData(indirectMessages[i].PayLoad[j]);
+					}
+					#if defined(IEEE_802_15_4)
+						MTP.flags.Val = 0;
+						MTP.flags.bits.packetType = packetType;
+						if( indirectMessages[i].flags.bits.isCommand )
+						{
+							MTP.flags.bits.packetType = PACKET_TYPE_COMMAND;
+							#if defined(ENABLE_TIME_SYNC) && !defined(ENABLE_SLEEP)
+								TxBuffer[0] = MAC_COMMAND_TIME_SYNC_COMMAND_PACKET;
+							#endif
+						}
+						MTP.flags.bits.ackReq = 1;
+						MTP.flags.bits.sourcePrsnt = 1;
+						MTP.flags.bits.secEn = indirectMessages[i].flags.bits.isSecured;
+						MTP.altSrcAddr = TRUE;
+						if( isAltAddress )
+						{
+							MTP.altDestAddr = TRUE;
+							MTP.DestAddress = ConnectionTable[index].AltAddress.v;
+						}
+						else
+						{
+							MTP.altDestAddr = FALSE;
+							MTP.DestAddress = ConnectionTable[index].Address;
+						}
+						MTP.DestPANID.Val = indirectMessages[i].DestPANID.Val;
+						
+						MiMAC_SendPacket(MTP, TxBuffer, TxData);
+					#else
+						MTP.flags.Val = 0;
+						MTP.flags.bits.packetType = packetType;
+						MTP.flags.bits.ackReq = 1;
+						MTP.flags.bits.secEn = indirectMessages[i].flags.bits.isSecured;
+						if( indirectMessages[i].flags.bits.isCommand )
+						{
+							MTP.flags.bits.packetType = PACKET_TYPE_COMMAND;
+							#if defined(ENABLE_TIME_SYNC) && !defined(ENABLE_SLEEP)
+								TxBuffer[0] = MAC_COMMAND_TIME_SYNC_COMMAND_PACKET;
+							#endif
+						}
+						MTP.DestAddress = ConnectionTable[index].Address;
+
+						MiMAC_SendPacket(MTP, TxBuffer, TxData);
+					#endif 
+					return;   
+				}
+			}
+		}
 
 NO_INDIRECT_MESSAGE:            
-            // no indirect message found
-            #if defined(IEEE_802_15_4)
-                if( isAltAddress )
-                {
-                    SendMACPacket(myPANID.v, AltAddress, packetType, MSK_ALT_DST_ADDR | MSK_ALT_SRC_ADDR );
-                }
-                else
-                {
-                    SendMACPacket(myPANID.v, Address, packetType, MSK_ALT_SRC_ADDR);
-                }
-            #else
-                MTP.flags.Val = 0;
-                MTP.flags.bits.packetType = packetType;
-                MTP.flags.bits.ackReq = 1;
-                MTP.DestAddress = Address;
-                MiMAC_SendPacket(MTP, TxBuffer, TxData);
-            #endif
-        }
-    #endif
+		// no indirect message found
+		#if defined(IEEE_802_15_4)
+			if( isAltAddress )
+			{
+				SendMACPacket(myPANID.v, AltAddress, packetType, MSK_ALT_DST_ADDR | MSK_ALT_SRC_ADDR );
+			}
+			else
+			{
+				SendMACPacket(myPANID.v, Address, packetType, MSK_ALT_SRC_ADDR);
+			}
+		#else
+			MTP.flags.Val = 0;
+			MTP.flags.bits.packetType = packetType;
+			MTP.flags.bits.ackReq = 1;
+			MTP.DestAddress = Address;
+			MiMAC_SendPacket(MTP, TxBuffer, TxData);
+		#endif
+	}
+#endif
     
     
     /*********************************************************************
@@ -3572,7 +3576,7 @@ NO_INDIRECT_MESSAGE:
      *                  the console.  This is a debugging\helper function only
      *                  and is not used by the stack
      ********************************************************************/
-    #if defined(ENABLE_DUMP)
+#if defined(ENABLE_DUMP)
     void DumpConnection(BYTE index)
     {
         BYTE i, j;
@@ -3665,17 +3669,20 @@ NO_INDIRECT_MESSAGE:
                         }
                     }
                     
-                    #if ADDITIONAL_NODE_ID_SIZE > 0
-                        ConsolePut(' ');
-                        for(j = 0; j < (8-MY_ADDRESS_LENGTH); j++)
-                        {
-                            Printf("  ");
-                        }
-                        for(j = 0; j < ADDITIONAL_NODE_ID_SIZE; j++)
-                        {
-                            PrintChar(ConnectionTable[i].PeerInfo[j]);
-                        }
-                    #endif
+				#if ADDITIONAL_NODE_ID_SIZE > 0
+					ConsolePut(' ');
+					j = 8 - MY_ADDRESS_LENGTH;
+					while (j-- > 0)
+						Printf("  ");
+					//!	for (j = 0; j < 8 - MY_ADDRESS_LENGTH; j++)
+					//!	{
+					//!		Printf("  ");
+					//!	}
+					for(j = 0; j < ADDITIONAL_NODE_ID_SIZE; j++)
+					{
+						PrintChar(ConnectionTable[i].PeerInfo[j]);
+					}
+				#endif
                     
                     ConsolePut('\r');
                     ConsolePut('\n');
@@ -3750,26 +3757,30 @@ NO_INDIRECT_MESSAGE:
                     }
                 }
                 
-                #if ADDITIONAL_NODE_ID_SIZE > 0
-                    ConsolePut(' ');
-                    for(j = 0; j < (8-MY_ADDRESS_LENGTH); j++)
-                    {
-                        Printf("  ");
-                    }
-                    for(j = 0; j < ADDITIONAL_NODE_ID_SIZE; j++)
-                    {
-                        PrintChar(ConnectionTable[index].PeerInfo[j]);
-                    }
-                #endif
+			#if ADDITIONAL_NODE_ID_SIZE > 0
+				ConsolePut(' ');
+				//!
+				j = 8 - MY_ADDRESS_LENGTH;
+				while (j-- > 0)
+					Printf("  ");
+				//!	for (j = 0; j < (8 - MY_ADDRESS_LENGTH); j++)
+				//!	{
+				//!		Printf("  ");
+				//!	}
+				for(j = 0; j < ADDITIONAL_NODE_ID_SIZE; j++)
+				{
+					PrintChar(ConnectionTable[index].PeerInfo[j]);
+				}
+			#endif
                 
                 ConsolePut('\r');
                 ConsolePut('\n');
             }
         }
     }
-    #else
+#else
     void DumpNetworkTable(void){}
-    #endif
+#endif
     
     
     /*********************************************************************
@@ -3788,92 +3799,92 @@ NO_INDIRECT_MESSAGE:
      *                  discover a device by their EUI address
      ********************************************************************/
 
-    #if defined(SUPPORT_EUI_ADDRESS_SEARCH)
+#if defined(SUPPORT_EUI_ADDRESS_SEARCH)
     void DiscoverNodeByEUI(void)
     {
         BYTE i;
         
         MiWiPROStateMachine.bits.EUISearching = 1;
-        #ifndef NWK_ROLE_COORDINATOR
-            //if we a member of the network
-            if(MiWiPROStateMachine.bits.memberOfNetwork == 1)
-            {
-                MAC_FlushTx();
-    
-                TxBuffer[TxData++] = defaultHops;
-                TxBuffer[TxData++] = 0x06;                          //Frame Control
-                TxBuffer[TxData++] = 0xFF;                          //dest PANID LSB
-                TxBuffer[TxData++] = 0xFF;                          //dest PANID MSB
-                TxBuffer[TxData++] = 0xFF;                          //dest address LSB
-                TxBuffer[TxData++] = 0xFF;                          //dest address MSB
-                TxBuffer[TxData++] = myPANID.v[0];                  //source PANID LSB
-                TxBuffer[TxData++] = myPANID.v[1];                  //source PANID MSB
-                TxBuffer[TxData++] = myShortAddress.v[0];           //source address LSB
-                TxBuffer[TxData++] = myShortAddress.v[1];           //source address MSB
-                TxBuffer[TxData++] = MiWiPROSeqNum++;               //seq num
-                TxBuffer[TxData++] = MIWI_PRO_STACK_REPORT_TYPE;        //Report Type
-                TxBuffer[TxData++] = EUI_ADDRESS_SEARCH_REQUEST;    //Report ID
-                for(i = 0; i < MY_ADDRESS_LENGTH; i++)
-                {
-                    TxBuffer[TxData++] = tempLongAddress[i];            //Data byte 0
-                }
-                
-                MTP.flags.Val = 0;
-                MTP.flags.bits.ackReq = 1;
-                MTP.flags.bits.sourcePrsnt = 1;
-                
-                #if defined(IEEE_802_15_4)
-                    MTP.DestAddress = ConnectionTable[myParent].AltAddress.v;
-                    MTP.DestPANID.Val = ConnectionTable[myParent].PANID.Val;
-                    MTP.altDestAddr = TRUE;
-                    MTP.altSrcAddr = TRUE;
-                #else
-                    MTP.DestAddress = ConnectionTable[myParent].LongAddress;
-                #endif
-                
-                MiMAC_SendPacket(MTP, TxBuffer, TxData);
-            }
-        #else
-            //if I am a coordinator capable device
-            if(MiWiPROStateMachine.bits.memberOfNetwork == 1)
-            {
-                MAC_FlushTx();
-                TxBuffer[TxData++] = defaultHops;      
-                TxBuffer[TxData++] = 0x06;      //Frame Control
-                TxBuffer[TxData++] = 0xFF;      //dest PANID LSB
-                TxBuffer[TxData++] = 0xFF;      //dest PANID MSB
-                TxBuffer[TxData++] = 0xFF;      //dest address LSB
-                TxBuffer[TxData++] = 0xFF;      //dest address MSB
-                TxBuffer[TxData++] = myPANID.v[0];      //source PANID LSB
-                TxBuffer[TxData++] = myPANID.v[1];      //source PANID MSB
-                TxBuffer[TxData++] = myShortAddress.v[0];      //source address LSB
-                TxBuffer[TxData++] = myShortAddress.v[1];      //source address MSB
-                TxBuffer[TxData++] = MiWiPROSeqNum++;      //seq num
-                TxBuffer[TxData++] = MIWI_PRO_STACK_REPORT_TYPE;      //Report Type
-                TxBuffer[TxData++] = EUI_ADDRESS_SEARCH_REQUEST;      //Report ID
-                for(i = 0; i < MY_ADDRESS_LENGTH; i++)
-                {
-                    TxBuffer[TxData++] = tempLongAddress[i];      //Data byte 0
-                }
-                
-                MTP.flags.Val = 0;
-                MTP.flags.bits.broadcast = 1;
-                
-                #if defined(IEEE_802_15_4)
-                    MTP.DestAddress = NULL;
-                    MTP.altDestAddr = TRUE;
-                    MTP.altSrcAddr = TRUE;
-                    MTP.DestPANID.Val = myPANID.Val;
-                #else
-                    MTP.DestAddress = NULL;
-                #endif
-                
-                MiMAC_SendPacket(MTP, TxBuffer, TxData);
+	#ifndef NWK_ROLE_COORDINATOR
+		//if we a member of the network
+		if(MiWiPROStateMachine.bits.memberOfNetwork == 1)
+		{
+			MAC_FlushTx();
 
-            }
-        #endif
+			TxBuffer[TxData++] = defaultHops;
+			TxBuffer[TxData++] = 0x06;                          //Frame Control
+			TxBuffer[TxData++] = 0xFF;                          //dest PANID LSB
+			TxBuffer[TxData++] = 0xFF;                          //dest PANID MSB
+			TxBuffer[TxData++] = 0xFF;                          //dest address LSB
+			TxBuffer[TxData++] = 0xFF;                          //dest address MSB
+			TxBuffer[TxData++] = myPANID.v[0];                  //source PANID LSB
+			TxBuffer[TxData++] = myPANID.v[1];                  //source PANID MSB
+			TxBuffer[TxData++] = myShortAddress.v[0];           //source address LSB
+			TxBuffer[TxData++] = myShortAddress.v[1];           //source address MSB
+			TxBuffer[TxData++] = MiWiPROSeqNum++;               //seq num
+			TxBuffer[TxData++] = MIWI_PRO_STACK_REPORT_TYPE;        //Report Type
+			TxBuffer[TxData++] = EUI_ADDRESS_SEARCH_REQUEST;    //Report ID
+			for(i = 0; i < MY_ADDRESS_LENGTH; i++)
+			{
+				TxBuffer[TxData++] = tempLongAddress[i];            //Data byte 0
+			}
+			
+			MTP.flags.Val = 0;
+			MTP.flags.bits.ackReq = 1;
+			MTP.flags.bits.sourcePrsnt = 1;
+			
+		#if defined(IEEE_802_15_4)
+			MTP.DestAddress = ConnectionTable[myParent].AltAddress.v;
+			MTP.DestPANID.Val = ConnectionTable[myParent].PANID.Val;
+			MTP.altDestAddr = TRUE;
+			MTP.altSrcAddr = TRUE;
+		#else
+			MTP.DestAddress = ConnectionTable[myParent].LongAddress;
+		#endif
+			
+			MiMAC_SendPacket(MTP, TxBuffer, TxData);
+		}
+	#else
+		//if I am a coordinator capable device
+		if(MiWiPROStateMachine.bits.memberOfNetwork == 1)
+		{
+			MAC_FlushTx();
+			TxBuffer[TxData++] = defaultHops;      
+			TxBuffer[TxData++] = 0x06;      //Frame Control
+			TxBuffer[TxData++] = 0xFF;      //dest PANID LSB
+			TxBuffer[TxData++] = 0xFF;      //dest PANID MSB
+			TxBuffer[TxData++] = 0xFF;      //dest address LSB
+			TxBuffer[TxData++] = 0xFF;      //dest address MSB
+			TxBuffer[TxData++] = myPANID.v[0];      //source PANID LSB
+			TxBuffer[TxData++] = myPANID.v[1];      //source PANID MSB
+			TxBuffer[TxData++] = myShortAddress.v[0];      //source address LSB
+			TxBuffer[TxData++] = myShortAddress.v[1];      //source address MSB
+			TxBuffer[TxData++] = MiWiPROSeqNum++;      //seq num
+			TxBuffer[TxData++] = MIWI_PRO_STACK_REPORT_TYPE;      //Report Type
+			TxBuffer[TxData++] = EUI_ADDRESS_SEARCH_REQUEST;      //Report ID
+			for(i = 0; i < MY_ADDRESS_LENGTH; i++)
+			{
+				TxBuffer[TxData++] = tempLongAddress[i];      //Data byte 0
+			}
+			
+			MTP.flags.Val = 0;
+			MTP.flags.bits.broadcast = 1;
+			
+		#if defined(IEEE_802_15_4)
+			MTP.DestAddress = NULL;
+			MTP.altDestAddr = TRUE;
+			MTP.altSrcAddr = TRUE;
+			MTP.DestPANID.Val = myPANID.Val;
+		#else
+			MTP.DestAddress = NULL;
+		#endif
+			
+			MiMAC_SendPacket(MTP, TxBuffer, TxData);
+
+		}
+	#endif
     }
-    #endif
+#endif
 
     /*********************************************************************
      * Function:        void OpenSocket(void)
@@ -3920,12 +3931,12 @@ NO_INDIRECT_MESSAGE:
                 }
                 openSocketInfo.status.bits.requestIsOpen = 1;
                 openSocketInfo.status.bits.matchFound = 0;
-                #if ADDITIONAL_NODE_ID_SIZE > 0 
-                    for(i = 0; i < ADDITIONAL_NODE_ID_SIZE; i++)
-                    {
-                        openSocketInfo.AdditionalNodeID1[i] = AdditionalNodeID[i];
-                    }
-                #endif
+			#if ADDITIONAL_NODE_ID_SIZE > 0 
+				for(i = 0; i < ADDITIONAL_NODE_ID_SIZE; i++)
+				{
+					openSocketInfo.AdditionalNodeID1[i] = AdditionalNodeID[i];
+				}
+			#endif
             }
             else
             {
@@ -3979,21 +3990,27 @@ NO_INDIRECT_MESSAGE:
                                                     
                     openSocketInfo.socketHandle = AddNodeToNetworkTable();
                     
-                    #if ADDITIONAL_NODE_ID_SIZE > 0
-                        for(i = 0; i < ADDITIONAL_NODE_ID_SIZE; i++)
-                        {
-                            ConnectionTable[openSocketInfo.socketHandle].PeerInfo[i] = openSocketInfo.AdditionalNodeID1[i];
-                        }    
-                    #endif
+                    if( openSocketInfo.socketHandle < 0xFF )
+                    {
+				#if ADDITIONAL_NODE_ID_SIZE > 0
+					for(i = 0; i < ADDITIONAL_NODE_ID_SIZE; i++)
+					{
+						ConnectionTable[openSocketInfo.socketHandle].PeerInfo[i] = openSocketInfo.AdditionalNodeID1[i];
+					}    
+				#endif
+                    }    
                     
                     //RouteMessage(myPANID,openSocketInfo.ShortAddress1,FALSE);
                     MiApp_UnicastAddress(openSocketInfo.ShortAddress1.v, FALSE, FALSE);
                     openSocketInfo.status.bits.requestIsOpen = 0;
                     openSocketInfo.status.bits.matchFound = 1;    
                     
+                    if( openSocketInfo.socketHandle < 0xFF )
+                    {
                     #if defined(ENABLE_NETWORK_FREEZER)
                         nvmPutConnectionTableIndex(&(ConnectionTable[openSocketInfo.socketHandle]), openSocketInfo.socketHandle);
                     #endif
+                    }
                     
                 }            
             }
@@ -4006,9 +4023,9 @@ NO_INDIRECT_MESSAGE:
             openSocketInfo.socketStart = MiWi_TickGet();
         }
         
-        #else
-            openSocketInfo.socketStart = MiWi_TickGet();
-        #endif
+	#else
+		openSocketInfo.socketStart = MiWi_TickGet();
+	#endif
            
         tempShortAddress.Val = 0x0000;
 
@@ -4019,12 +4036,12 @@ NO_INDIRECT_MESSAGE:
         {
             TxBuffer[TxData++] = myLongAddress[i];      
         }
-        #if ADDITIONAL_NODE_ID_SIZE > 0
-            for(i = 0; i < ADDITIONAL_NODE_ID_SIZE; i++)
-            {
-                TxBuffer[TxData++] = AdditionalNodeID[i];    
-            }
-        #endif
+	#if ADDITIONAL_NODE_ID_SIZE > 0
+		for(i = 0; i < ADDITIONAL_NODE_ID_SIZE; i++)
+		{
+			TxBuffer[TxData++] = AdditionalNodeID[i];    
+		}
+	#endif
         
         MiApp_UnicastAddress(tempShortAddress.v, FALSE, FALSE);
         
@@ -4065,18 +4082,18 @@ NO_INDIRECT_MESSAGE:
      *                  RFD does not acquire data in predefined interval
      *
      ********************************************************************/
-    #if defined(IEEE_802_15_4)
-        BOOL SaveIndirectMessage(INPUT BOOL Broadcast, 
-                                 INPUT WORD_VAL DestinationPANID, 
-                                 INPUT BYTE *DestinationAddress, 
-                                 INPUT BOOL isAltAddress, 
-                                 INPUT BOOL SecurityEnabled)
-    #else
-        BOOL SaveIndirectMessage(INPUT BOOL Broadcast, 
-                                 INPUT BYTE *DestinationAddress, 
-                                 INPUT BOOL isAltAddress, 
-                                 INPUT BOOL SecurityEnabled)
-    #endif    
+#if defined(IEEE_802_15_4)
+	BOOL SaveIndirectMessage(INPUT BOOL Broadcast, 
+							 INPUT WORD_VAL DestinationPANID, 
+							 INPUT BYTE *DestinationAddress, 
+							 INPUT BOOL isAltAddress, 
+							 INPUT BOOL SecurityEnabled)
+#else
+	BOOL SaveIndirectMessage(INPUT BOOL Broadcast, 
+							 INPUT BYTE *DestinationAddress, 
+							 INPUT BOOL isAltAddress, 
+							 INPUT BOOL SecurityEnabled)
+#endif    
     {
         BYTE i;
         BYTE j;
@@ -4090,63 +4107,63 @@ NO_INDIRECT_MESSAGE:
                 indirectMessages[i].flags.bits.isSecured = SecurityEnabled;
                 indirectMessages[i].flags.bits.isValid = 1;
                 indirectMessages[i].flags.bits.isAltAddr = isAltAddress;
-                #if defined(IEEE_802_15_4)
-                    if( isAltAddress == FALSE )
-                    {
-                        if( Broadcast == FALSE )
-                        {
-                            for(j = 0; j < MY_ADDRESS_LENGTH; j++)
-                            {
-                                indirectMessages[i].DestAddress[j] = DestinationAddress[j];
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if( Broadcast == FALSE )
-                        {
-                            indirectMessages[i].DestAddress[0] = DestinationAddress[0];
-                            indirectMessages[i].DestAddress[1] = DestinationAddress[1];
-                        }
-                    }
-                    indirectMessages[i].DestPANID.Val = DestinationPANID.Val;
-                #else
-                    if( Broadcast == FALSE )
-                    {
-                        if( isAltAddress )
-                        {
-                            indirectMessages[i].DestAddress[0] = DestinationAddress[0];
-                            indirectMessages[i].DestAddress[1] = DestinationAddress[1]; 
-                        }
-                        else
-                        {
-                            for(j = 0; j < MY_ADDRESS_LENGTH; j++)
-                            {
-                                indirectMessages[i].DestAddress[j] = DestinationAddress[j];
-                            }
-                        }     
-                    }
-                #endif
+			#if defined(IEEE_802_15_4)
+				if( isAltAddress == FALSE )
+				{
+					if( Broadcast == FALSE )
+					{
+						for(j = 0; j < MY_ADDRESS_LENGTH; j++)
+						{
+							indirectMessages[i].DestAddress[j] = DestinationAddress[j];
+						}
+					}
+				}
+				else
+				{
+					if( Broadcast == FALSE )
+					{
+						indirectMessages[i].DestAddress[0] = DestinationAddress[0];
+						indirectMessages[i].DestAddress[1] = DestinationAddress[1];
+					}
+				}
+				indirectMessages[i].DestPANID.Val = DestinationPANID.Val;
+			#else
+				if( Broadcast == FALSE )
+				{
+					if( isAltAddress )
+					{
+						indirectMessages[i].DestAddress[0] = DestinationAddress[0];
+						indirectMessages[i].DestAddress[1] = DestinationAddress[1]; 
+					}
+					else
+					{
+						for(j = 0; j < MY_ADDRESS_LENGTH; j++)
+						{
+							indirectMessages[i].DestAddress[j] = DestinationAddress[j];
+						}
+					}     
+				}
+			#endif
                 
-                #if defined(ENABLE_SECURITY) && defined(ENABLE_NETWORK_FREEZER) && !defined(TARGET_SMALL)
-                    if( SecurityEnabled )
-                    {  
-                        if( isAltAddress )
-                        {
-                            tempShortAddress.v[0] = DestinationAddress[0];
-                            tempShortAddress.v[1] = DestinationAddress[1];
-                            j = SearchForShortAddress();
-                        }
-                        else
-                        {
-                            for(j = 0; j < MY_ADDRESS_LENGTH; j++)
-                            {
-                                tempLongAddress[j] = DestinationAddress[j];
-                            }
-                            j = SearchForLongAddress();
-                        }
-                    }
-                #endif
+			#if defined(ENABLE_SECURITY) && defined(ENABLE_NETWORK_FREEZER) && !defined(TARGET_SMALL)
+				if( SecurityEnabled )
+				{  
+					if( isAltAddress )
+					{
+						tempShortAddress.v[0] = DestinationAddress[0];
+						tempShortAddress.v[1] = DestinationAddress[1];
+						j = SearchForShortAddress();
+					}
+					else
+					{
+						for(j = 0; j < MY_ADDRESS_LENGTH; j++)
+						{
+							tempLongAddress[j] = DestinationAddress[j];
+						}
+						j = SearchForLongAddress();
+					}
+				}
+			#endif
                 indirectMessages[i].PayLoadSize = TxData;
                 for(j = 0; j < TxData; j++)
                 {
@@ -4187,11 +4204,11 @@ NO_INDIRECT_MESSAGE:
     {
         BYTE i;   
         
-        for(i=0;i<CONNECTION_SIZE;i++)
+        for (i  =0; i < CONNECTION_SIZE; i++)
         {
-            if(ConnectionTable[i].status.bits.isValid && ConnectionTable[i].status.bits.shortAddressValid)
+            if (ConnectionTable[i].status.bits.isValid && ConnectionTable[i].status.bits.shortAddressValid)
             {
-                if(ConnectionTable[i].AltAddress.Val == tempShortAddress.Val)
+                if (ConnectionTable[i].AltAddress.Val == tempShortAddress.Val)
                 {
                     return i;
                 }
@@ -4200,51 +4217,51 @@ NO_INDIRECT_MESSAGE:
         return 0xFF;
     }
 
-    #if defined(NWK_ROLE_COORDINATOR)
-        /*********************************************************************
-         * Function:        void SendBeacon(void)
-         *
-         * PreCondition:    Coordinator has joined the network
-         *
-         * Input:           None
-         *
-         * Output:          None
-         *
-         * Side Effects:    None
-         *
-         * Overview:        This function sends a beacon frame.
-         ********************************************************************/
-        void SendBeacon(void)
-        {
-            BYTE i;
-            
-            MAC_FlushTx();
-            #if !defined(IEEE_802_15_4)
-                MiApp_WriteData(myPANID.v[0]);
-                MiApp_WriteData(myPANID.v[1]);
-                MiApp_WriteData(myShortAddress.v[0]);
-                MiApp_WriteData(myShortAddress.v[1]);
-            #endif
-            MiApp_WriteData(0xFF);    //superframe specification (BO = 0xF, SO = 0xF)
-    		MiApp_WriteData(MiWiPROCapacityInfo.Val);
-            MiApp_WriteData(0x00);    // GTS
-            MiApp_WriteData(0x00);    // Pending addresses
-            MiApp_WriteData(MIWI_PRO_PROTOCOL_ID);    // Protocol ID
-            MiApp_WriteData(MIWI_PRO_VERSION_NUM);    // Version Number
-            #if ADDITIONAL_NODE_ID_SIZE > 0 
-                for(i = 0; i < ADDITIONAL_NODE_ID_SIZE; i++)
-                {
-                    MiApp_WriteData(AdditionalNodeID[i]);
-                }
-            #endif
-           
-            #if defined(IEEE_802_15_4)
-                SendMACPacket(myPANID.v, NULL, PACKET_TYPE_RESERVE, MSK_ALT_SRC_ADDR);
-            #else
-                SendMACPacket(NULL, PACKET_TYPE_RESERVE);
-            #endif   
-        }    
-    #endif
+#if defined(NWK_ROLE_COORDINATOR)
+	/*********************************************************************
+	 * Function:        void SendBeacon(void)
+	 *
+	 * PreCondition:    Coordinator has joined the network
+	 *
+	 * Input:           None
+	 *
+	 * Output:          None
+	 *
+	 * Side Effects:    None
+	 *
+	 * Overview:        This function sends a beacon frame.
+	 ********************************************************************/
+	void SendBeacon(void)
+	{
+		BYTE i;
+		
+		MAC_FlushTx();
+		#if !defined(IEEE_802_15_4)
+			MiApp_WriteData(myPANID.v[0]);
+			MiApp_WriteData(myPANID.v[1]);
+			MiApp_WriteData(myShortAddress.v[0]);
+			MiApp_WriteData(myShortAddress.v[1]);
+		#endif
+		MiApp_WriteData(0xFF);    //superframe specification (BO = 0xF, SO = 0xF)
+		MiApp_WriteData(MiWiPROCapacityInfo.Val);
+		MiApp_WriteData(0x00);    // GTS
+		MiApp_WriteData(0x00);    // Pending addresses
+		MiApp_WriteData(MIWI_PRO_PROTOCOL_ID);    // Protocol ID
+		MiApp_WriteData(MIWI_PRO_VERSION_NUM);    // Version Number
+		#if ADDITIONAL_NODE_ID_SIZE > 0 
+			for(i = 0; i < ADDITIONAL_NODE_ID_SIZE; i++)
+			{
+				MiApp_WriteData(AdditionalNodeID[i]);
+			}
+		#endif
+	   
+		#if defined(IEEE_802_15_4)
+			SendMACPacket(myPANID.v, NULL, PACKET_TYPE_RESERVE, MSK_ALT_SRC_ADDR);
+		#else
+			SendMACPacket(NULL, PACKET_TYPE_RESERVE);
+		#endif   
+	}    
+#endif
     
     /*********************************************************************
      * Function:        BYTE SearchForLongAddress(void)
@@ -4420,84 +4437,84 @@ EndOfSearchLoop:
         MAC_FlushTx();
         MiApp_WriteData(MAC_COMMAND_DATA_REQUEST);
         
-        #if defined(ENABLE_ENHANCED_DATA_REQUEST)
-            if( tmpTxData > PAYLOAD_START )
-            {
-                TxData = tmpTxData;
-                
-                MTP.flags.Val = 0;
-                MTP.flags.bits.packetType = PACKET_TYPE_COMMAND;
-                MTP.flags.bits.ackReq = 1;
-                MTP.flags.bits.sourcePrsnt = 1;
-                if( (TxBuffer[1] & 0x01) > 0 )
-                {
-                    MTP.flags.bits.secEn = 1;
-                    TxBuffer[1] &= 0xFE;
-                }
-                    
-                #if defined(IEEE_802_15_4)
-                    MTP.altDestAddr = TRUE;
-                    MTP.altSrcAddr = TRUE;
+	#if defined(ENABLE_ENHANCED_DATA_REQUEST)
+		if( tmpTxData > PAYLOAD_START )
+		{
+			TxData = tmpTxData;
+			
+			MTP.flags.Val = 0;
+			MTP.flags.bits.packetType = PACKET_TYPE_COMMAND;
+			MTP.flags.bits.ackReq = 1;
+			MTP.flags.bits.sourcePrsnt = 1;
+			if( (TxBuffer[1] & 0x01) > 0 )
+			{
+				MTP.flags.bits.secEn = 1;
+				TxBuffer[1] &= 0xFE;
+			}
+				
+		#if defined(IEEE_802_15_4)
+			MTP.altDestAddr = TRUE;
+			MTP.altSrcAddr = TRUE;
 
-                    MTP.DestPANID.Val = ConnectionTable[myParent].PANID.Val;
-                    MTP.DestAddress = ConnectionTable[myParent].AltAddress.v;
-                #else
-                
-                    {
-                        BYTE i;
-                        for(i = tmpTxData; i > 1; i--)
-                        {
-                            TxBuffer[i+1] = TxBuffer[i-1];
-                        }  
-                        TxData += 2;  
-                    }    
-                    TxBuffer[1] = myShortAddress.v[0];
-                    TxBuffer[2] = myShortAddress.v[1];
-                    MTP.DestAddress = ConnectionTable[myParent].Address;
-                #endif
-                if( MiMAC_SendPacket(MTP, TxBuffer, TxData) )
-                {
-                    MiWiPROStateMachine.bits.DataRequesting = 1;
-                    DataRequestTimer = MiWi_TickGet();
-                    return TRUE;
-                }
-                return FALSE;    
-            }    
-        #endif
-        
-        #if defined(IEEE_802_15_4)
-            if( SendMACPacket(ConnectionTable[0].PANID.v, ConnectionTable[0].AltAddress.v, PACKET_TYPE_COMMAND, MSK_ALT_DST_ADDR|MSK_ALT_SRC_ADDR) )
-        #else
-            MiApp_WriteData(myShortAddress.v[0]);
-            MiApp_WriteData(myShortAddress.v[1]);
-            
-            if( SendMACPacket(ConnectionTable[0].Address, PACKET_TYPE_COMMAND) )
-        #endif           
+			MTP.DestPANID.Val = ConnectionTable[myParent].PANID.Val;
+			MTP.DestAddress = ConnectionTable[myParent].AltAddress.v;
+		#else
+		
+			{
+				BYTE i;
+				for(i = tmpTxData; i > 1; i--)
+				{
+					TxBuffer[i+1] = TxBuffer[i-1];
+				}  
+				TxData += 2;  
+			}    
+			TxBuffer[1] = myShortAddress.v[0];
+			TxBuffer[2] = myShortAddress.v[1];
+			MTP.DestAddress = ConnectionTable[myParent].Address;
+		#endif
+			if( MiMAC_SendPacket(MTP, TxBuffer, TxData) )
+			{
+				MiWiPROStateMachine.bits.DataRequesting = 1;
+				DataRequestTimer = MiWi_TickGet();
+				return TRUE;
+			}
+			return FALSE;    
+		}    
+	#endif
+	
+	#if defined(IEEE_802_15_4)
+		if( SendMACPacket(ConnectionTable[0].PANID.v, ConnectionTable[0].AltAddress.v, PACKET_TYPE_COMMAND, MSK_ALT_DST_ADDR|MSK_ALT_SRC_ADDR) )
+	#else
+		MiApp_WriteData(myShortAddress.v[0]);
+		MiApp_WriteData(myShortAddress.v[1]);
+		
+		if( SendMACPacket(ConnectionTable[0].Address, PACKET_TYPE_COMMAND) )
+	#endif
         {
             MiWiPROStateMachine.bits.DataRequesting = 1;
             DataRequestTimer = MiWi_TickGet();
             TxData = tmpTxData;
-            #if defined(ENABLE_TIME_SYNC)
-                #if defined(__18CXX)
-                    TMR3H = 0;
-                    TMR3L = 0;
-                #elif defined(__dsPIC33F__) || defined(__PIC24F__) || defined(__PIC24FK__) || defined(__PIC24H__)
-                    PR1 = 0xFFFF;
-                    TMR1 = 0;
-                #elif defined(__PIC32MX__)
-                    PR1 = 0xFFFF;
-                    while(T1CONbits.TWIP) ;
-                    TMR1 = 0;
-                #endif
-            #endif
+	#if defined(ENABLE_TIME_SYNC)
+		#if defined(__18CXX)
+			TMR3H = 0;
+			TMR3L = 0;
+		#elif defined(__dsPIC33F__) || defined(__PIC24F__) || defined(__PIC24FK__) || defined(__PIC24H__)
+			PR1 = 0xFFFF;
+			TMR1 = 0;
+		#elif defined(__PIC32MX__)
+			PR1 = 0xFFFF;
+			while(T1CONbits.TWIP) ;
+			TMR1 = 0;
+		#endif
+	#endif
             return TRUE;
         }
         TxData = tmpTxData;
         return FALSE;
     }
     #endif
-
-
+   
+    
     
     
     BOOL MiApp_ProtocolInit(BOOL bNetworkFreezer)
@@ -4505,36 +4522,36 @@ EndOfSearchLoop:
         MACINIT_PARAM MIP;
         BYTE i;
 
-        #if defined(ENABLE_NVM_MAC)
-            if( MY_ADDRESS_LENGTH > 6 )
-            {
-                for(i = 0; i < 3; i++)
-                {
-                    EEPROMRead(&(myLongAddress[MY_ADDRESS_LENGTH-1-i]), EEPROM_MAC_ADDR+i, 1);
-                }
-                myLongAddress[4] = 0xFF;
-                if( MY_ADDRESS_LENGTH > 7 )
-                {
-                    myLongAddress[3] = 0xFE;
-                }
-                for(i = 0; i < 3; i++)
-                {
-                    EEPROMRead(&(myLongAddress[2-i]), EEPROM_MAC_ADDR+3+i, 1);
-                }
-            }
-            else
-            {
-                for(i = 0; i < MY_ADDRESS_LENGTH; i++)
-                {
-                    EEPROMRead(&(myLongAddress[MY_ADDRESS_LENGTH-1-i]), EEPROM_MAC_ADDR+i, 1);
-                }   
-            }
+	#if defined(ENABLE_NVM_MAC)
+		if( MY_ADDRESS_LENGTH > 6 )
+		{
+			for(i = 0; i < 3; i++)
+			{
+				EEPROMRead(&(myLongAddress[MY_ADDRESS_LENGTH-1-i]), EEPROM_MAC_ADDR+i, 1);
+			}
+			myLongAddress[4] = 0xFF;
+			if( MY_ADDRESS_LENGTH > 7 )
+			{
+				myLongAddress[3] = 0xFE;
+			}
+			for(i = 0; i < 3; i++)
+			{
+				EEPROMRead(&(myLongAddress[2-i]), EEPROM_MAC_ADDR+3+i, 1);
+			}
+		}
+		else
+		{
+			for(i = 0; i < MY_ADDRESS_LENGTH; i++)
+			{
+				EEPROMRead(&(myLongAddress[MY_ADDRESS_LENGTH-1-i]), EEPROM_MAC_ADDR+i, 1);
+			}   
+		}
+	
+	#endif
         
-        #endif
-        
-        #if defined(ENABLE_NETWORK_FREEZER)
-            NVMInit();
-        #endif
+	#if defined(ENABLE_NETWORK_FREEZER)
+		NVMInit();
+	#endif
 
         myShortAddress.Val = 0xFFFF;
         myPANID.Val = MY_PAN_ID;
@@ -4545,18 +4562,18 @@ EndOfSearchLoop:
             ConnectionTable[i].status.Val = 0;
         }
         
-        #ifdef NWK_ROLE_COORDINATOR
-            for(i=0;i< NUM_COORDINATOR/8;i++)
-            {
-                RoutingTable[i] = 0;
-            }
-            for(i=0; i < NUM_COORDINATOR; i++)
-            {
-                RouterFailures[i] = 0;
-            }
-            role = ROLE_FFD_END_DEVICE;
-            MiWiPROStatus.Val = 0;
-        #endif
+	#ifdef NWK_ROLE_COORDINATOR
+		for (i = 0; i < NUM_COORDINATOR / 8; i++)
+		{
+			RoutingTable[i] = 0;
+		}
+		for (i = 0; i < NUM_COORDINATOR; i++)
+		{
+			RouterFailures[i] = 0;
+		}
+		role = ROLE_FFD_END_DEVICE;
+		MiWiPROStatus.Val = 0;
+	#endif
         MiWiPROStateMachine.Val = 0;
         MiWiPRONVMStatus.Val = 0;
         
@@ -4566,95 +4583,95 @@ EndOfSearchLoop:
         InitSymbolTimer();
         
         TxData = 0;
-        #ifdef ENABLE_INDIRECT_MESSAGE
-            for(i = 0; i < INDIRECT_MESSAGE_SIZE; i++)
-            {
-                indirectMessages[i].flags.Val = 0;
-            }
-        #endif 
-        
-        #if defined(ENABLE_SLEEP) && defined(ENABLE_BROADCAST_TO_SLEEP_DEVICE)
-            for(i = 0; i < PACKET_RECORD_SIZE; i++)
-            {
-                PacketRecords[i].RxCounter = 0;
-            }
-        #endif
-        
-        #if defined(ENABLE_SECURITY)
-            for(i = 0; i < CONNECTION_SIZE; i++)
-            {
-                IncomingFrameCounter[i].Val = 0;
-            }
-        #endif
-                
-        #if defined(ENABLE_NETWORK_FREEZER)
+	#ifdef ENABLE_INDIRECT_MESSAGE
+		for (i = 0; i < INDIRECT_MESSAGE_SIZE; i++)
+		{
+			indirectMessages[i].flags.Val = 0;
+		}
+	#endif 
+	
+	#if defined(ENABLE_SLEEP) && defined(ENABLE_BROADCAST_TO_SLEEP_DEVICE)
+		for(i = 0; i < PACKET_RECORD_SIZE; i++)
+		{
+			PacketRecords[i].RxCounter = 0;
+		}
+	#endif
+	
+	#if defined(ENABLE_SECURITY)
+		for(i = 0; i < CONNECTION_SIZE; i++)
+		{
+			IncomingFrameCounter[i].Val = 0;
+		}
+	#endif
+			
+	#if defined(ENABLE_NETWORK_FREEZER)
 
-            if( bNetworkFreezer )
-            {
-                nvmGetCurrentChannel(&currentChannel);
-                if( currentChannel >= 32 )
-                {
-                    return FALSE;
-                }
-                
-                nvmGetMyShortAddress(myShortAddress.v);
-                if( myShortAddress.Val == 0xFFFF )
-                {
-                    return FALSE;
-                }
-                
-                nvmGetMyPANID(myPANID.v);
-                nvmGetConnMode(&ConnMode);
-                MiWiPROCapacityInfo.bits.ConnMode = ConnMode;
-                nvmGetConnectionTable(ConnectionTable);
-                nvmGetMyShortAddress(myShortAddress.v);
-                nvmGetMyParent(&myParent);
-                #if defined(NWK_ROLE_COORDINATOR)
-                    nvmGetRoutingTable(RoutingTable);
-                    nvmGetNeighborRoutingTable(NeighborRoutingTable);
-                    nvmGetFamilyTree(FamilyTree);
-                    nvmGetRole(&role);
-                #endif
-                
-                Printf("Channel:");
-                PrintDec(currentChannel);
-                Printf(" PANID:");
-                PrintChar(myPANID.v[1]);
-                PrintChar(myPANID.v[0]);
-                Printf("ShortAddr:");
-                PrintChar(myShortAddress.v[1]);
-                PrintChar(myShortAddress.v[0]);
-            
-                MiApp_SetChannel(currentChannel);
-                MiMAC_SetAltAddress(myShortAddress.v, myPANID.v);
-                MiWiPROStateMachine.bits.memberOfNetwork = 1;
-            }
-            else
-            {
-                nvmPutMyPANID(myPANID.v);
-                nvmPutCurrentChannel(&currentChannel);
-                nvmPutConnMode(&ConnMode);
-                nvmPutConnectionTable(ConnectionTable);
-                
-                nvmPutMyShortAddress(myShortAddress.v);
-                nvmPutMyParent(&myParent);
-                #if defined(NWK_ROLE_COORDINATOR)
-                    for(i = 0; i < NUM_COORDINATOR/8; i++)
-                    {
-                        RoutingTable[i] = 0;
-                    }    
-                    for(i = 0; i < NUM_COORDINATOR; i++)
-                    {
-                        BYTE j;
-                        for(j = 0; j < NUM_COORDINATOR/8; j++)
-                        {
-                            NeighborRoutingTable[i][j] = 0;
-                        }    
-                        FamilyTree[i] = 0xFF;
-                    }    
-                #endif
-            }
-        #endif
+		if( bNetworkFreezer )
+		{
+			nvmGetCurrentChannel(&currentChannel);
+			if( currentChannel >= 32 )
+			{
+				return FALSE;
+			}
+			
+			nvmGetMyShortAddress(myShortAddress.v);
+			if( myShortAddress.Val == 0xFFFF )
+			{
+				return FALSE;
+			}
+			
+			nvmGetMyPANID(myPANID.v);
+			nvmGetConnMode(&ConnMode);
+			MiWiPROCapacityInfo.bits.ConnMode = ConnMode;
+			nvmGetConnectionTable(ConnectionTable);
+			nvmGetMyShortAddress(myShortAddress.v);
+			nvmGetMyParent(&myParent);
+		#if defined(NWK_ROLE_COORDINATOR)
+			nvmGetRoutingTable(RoutingTable);
+			nvmGetNeighborRoutingTable(NeighborRoutingTable);
+			nvmGetFamilyTree(FamilyTree);
+			nvmGetRole(&role);
+		#endif
+			
+			Printf("Channel:");
+			PrintDec(currentChannel);
+			Printf(" PANID:");
+			PrintChar(myPANID.v[1]);
+			PrintChar(myPANID.v[0]);
+			Printf("ShortAddr:");
+			PrintChar(myShortAddress.v[1]);
+			PrintChar(myShortAddress.v[0]);
+		
+			MiApp_SetChannel(currentChannel);
+			MiMAC_SetAltAddress(myShortAddress.v, myPANID.v);
+			MiWiPROStateMachine.bits.memberOfNetwork = 1;
+		}
+		else
+		{
+			nvmPutMyPANID(myPANID.v);
+			nvmPutCurrentChannel(&currentChannel);
+			nvmPutConnMode(&ConnMode);
+			nvmPutConnectionTable(ConnectionTable);
+			
+			nvmPutMyShortAddress(myShortAddress.v);
+			nvmPutMyParent(&myParent);
+		#if defined(NWK_ROLE_COORDINATOR)
+			for (i = 0; i < NUM_COORDINATOR / 8; i++)
+			{
+				RoutingTable[i] = 0;
+			}    
+			for (i = 0; i < NUM_COORDINATOR; i++)
+			{
+				BYTE j;
+				for (j = 0; j < NUM_COORDINATOR/8; j++)
+				{
+					NeighborRoutingTable[i][j] = 0;
+				}    
+				FamilyTree[i] = 0xFF;
+			}    
+		#endif
+		}
+	#endif
         
 
         MIP.actionFlags.Val = 0;
@@ -4670,34 +4687,32 @@ EndOfSearchLoop:
 	#if !defined(ENABLE_SLEEP)
 		MiWiPROCapacityInfo.bits.Sleep = 1;
 	#endif
-
 	#if defined(ENABLE_SECURITY)
 		MiWiPROCapacityInfo.bits.Security = 1;
 	#endif
         MiWiPROCapacityInfo.bits.ConnMode = ConnMode;
-	#ifdef NWK_ROLE_COORDINATOR
+#ifdef NWK_ROLE_COORDINATOR
 		MiWiPROCapacityInfo.bits.CoordCap = 1;
 		MiWiPROCapacityInfo.bits.Role = role;
 		MiWiPRONVMStatus.Val = 0;
 		backgroundTaskTick = MiWi_TickGet();
-
-		#if defined(ENABLE_ROUTING_UPDATE)
-			RoutingUpdateTick.Val = backgroundTaskTick.Val;
-			for(i = 0; i < NUM_COORDINATOR; i++)
-			{
-				RoutingUpdateCounter[i] = 0;
-			}
-		#endif
+	#if defined(ENABLE_ROUTING_UPDATE)
+		RoutingUpdateTick.Val = backgroundTaskTick.Val;
+		for(i = 0; i < NUM_COORDINATOR; i++)
+		{
+			RoutingUpdateCounter[i] = 0;
+		}
 	#endif
+#endif
         
-	#if defined(ENABLE_TIME_SYNC)
-		#if defined(ENABLE_SLEEP)
-			WakeupTimes.Val = 0;
-			CounterValue.Val = 61535;   // (0xFFFF - 4000) one second
-		#elif defined(ENABLE_INDIRECT_MESSAGE)
-			TimeSlotTick.Val = ((ONE_SECOND) * RFD_WAKEUP_INTERVAL) / TIME_SYNC_SLOTS;
-		#endif
+#if defined(ENABLE_TIME_SYNC)
+	#if defined(ENABLE_SLEEP)
+		WakeupTimes.Val = 0;
+		CounterValue.Val = 61535;   // (0xFFFF - 4000) one second
+	#elif defined(ENABLE_INDIRECT_MESSAGE)
+		TimeSlotTick.Val = ((ONE_SECOND) * RFD_WAKEUP_INTERVAL) / TIME_SYNC_SLOTS;
 	#endif
+#endif
         
 	#if defined(ENABLE_FREQUENCY_AGILITY) && defined(NWK_ROLE_COORDINATOR)
 		FrequencyAgilityInfo.status.Val = 0;
@@ -4706,16 +4721,17 @@ EndOfSearchLoop:
         MiWiPROSeqNum = TMRL;
 
 	#if defined(__STM32F10X__)
-        RFIF_LOW();
+        RFIF_CLEAR();
         RFIE_ENABLE();
 	#else
         RFIF = 0;
         RFIE = 1;
 	#endif
         return TRUE;        
+    
     }
     
-    #if defined(ENABLE_SLEEP)
+#if defined(ENABLE_SLEEP)
     /************************************************************************************
      * Function:
      *      BYTE    MiApp_TransceiverPowerState(BYTE Mode)
@@ -4827,8 +4843,9 @@ EndOfSearchLoop:
         
         return ERR_INVALID_INPUT;    
     }    
-    #endif
+#endif
 
+    
 BOOL MiApp_SetChannel(BYTE channel)
 {
     if( MiMAC_SetChannel(channel, 0) )
@@ -4842,6 +4859,7 @@ BOOL MiApp_SetChannel(BYTE channel)
     return FALSE;
 }    
 
+    
 /************************************************************************************
  * Function:
  *      void    MiApp_ConnectionMode(BYTE Mode)
@@ -4885,8 +4903,9 @@ BOOL MiApp_SetChannel(BYTE channel)
 void MiApp_ConnectionMode(INPUT BYTE Mode)
 {
     if( Mode > 3 )
+    {
         return;
-
+    }
     ConnMode = Mode;
     MiWiPROCapacityInfo.bits.ConnMode = ConnMode;
     
@@ -4894,6 +4913,8 @@ void MiApp_ConnectionMode(INPUT BYTE Mode)
 	nvmPutConnMode(&ConnMode);
 #endif
 }
+
+
 
 /************************************************************************************
  * Function:
@@ -4974,13 +4995,13 @@ BYTE MiApp_SearchConnection(INPUT BYTE ScanDuration, INPUT DWORD ChannelMap)
             t1 = MiWi_TickGet();
             while(1)
             {
-                if( MiApp_MessageAvailable())
+                if ( MiApp_MessageAvailable())
                 {
                     MiApp_DiscardMessage();
                 }                
                 //MiWiPROTasks();
                 t2 = MiWi_TickGet();
-                if( MiWi_TickGetDiff(t2, t1) > ((DWORD)(ScanTime[ScanDuration])) )
+                if ( MiWi_TickGetDiff(t2, t1) > ((DWORD)(ScanTime[ScanDuration])) )
                 {
                     // if scan time exceed scan duration, prepare to scan the next channel
                     break;
@@ -4997,6 +5018,13 @@ BYTE MiApp_SearchConnection(INPUT BYTE ScanDuration, INPUT DWORD ChannelMap)
     return ActiveScanResultIndex;
 }
 
+
+
+
+
+
+
+    
 /************************************************************************************
  * Function:
  *      BYTE    MiApp_EstablishConnection(BYTE ActiveScanIndex, BYTE Mode)
@@ -5130,7 +5158,6 @@ BYTE    MiApp_EstablishConnection(INPUT BYTE ActiveScanIndex, INPUT BYTE Mode)
 		}
 		ConnectionTable[myParent].status.bits.longAddressValid = 1;
 	#endif
-
 	#if ADDITIONAL_NODE_ID_SIZE > 0
 		for(i = 0; i < ADDITIONAL_NODE_ID_SIZE; i++)
 		{
@@ -5192,6 +5219,7 @@ BYTE    MiApp_EstablishConnection(INPUT BYTE ActiveScanIndex, INPUT BYTE Mode)
 BOOL MiApp_MessageAvailable(void)
 {
     MiWiPROTasks();
+
     return (BOOL)MiWiPROStateMachine.bits.RxHasUserData;
 }
     
@@ -5200,6 +5228,8 @@ void MiApp_DiscardMessage(void)
     MiWiPROStateMachine.bits.RxHasUserData = 0;
     MiMAC_DiscardPacket();    
 }    
+
+
 
 /************************************************************************************
  * Function:
@@ -5308,6 +5338,7 @@ BOOL MultiCast( INPUT BYTE MultiCastMode, INPUT BOOL SecEn )
     MTP.flags.bits.broadcast = 1;
     MTP.flags.bits.secEn = SecEn;
 
+        
 #if defined(IEEE_802_15_4)
 	MTP.altSrcAddr = TRUE;
 	MTP.DestPANID.Val = myPANID.Val;
@@ -5320,6 +5351,7 @@ BOOL MultiCast( INPUT BYTE MultiCastMode, INPUT BOOL SecEn )
 
     return MiMAC_SendPacket(MTP, TxBuffer, TxData);    
 }    
+
 
 /************************************************************************************
  * Function:
@@ -5654,6 +5686,7 @@ DIRECT_LONG_ADDRESS:
 				MTP.DestAddress = ConnectionTable[myParent].Address;
 			#endif
 
+
 				if( MiMAC_SendPacket(MTP, TxBuffer, TxData) == FALSE )
 			{
 				MiWiPROStateMachine.bits.MiWiPROAckInProgress = 0;
@@ -5889,6 +5922,8 @@ BOOL MiApp_StartConnection(BYTE Mode, BYTE ScanDuration, DWORD ChannelMap)
     return FALSE;
 }
 
+
+
 #ifdef ENABLE_ED_SCAN
 	/************************************************************************************
 	 * Function:
@@ -5992,9 +6027,9 @@ BOOL MiApp_StartConnection(BYTE Mode, BYTE ScanDuration, DWORD ChannelMap)
 				Printf(" ");
 				PrintChar(maxRSSI);
 				
-				#if defined(ENABLE_FREQUENCY_AGILITY)
-					EnergyScanResults[i] = maxRSSI;
-				#endif
+			#if defined(ENABLE_FREQUENCY_AGILITY)
+				EnergyScanResults[i] = maxRSSI;
+			#endif
 				
 				if( maxRSSI < minRSSI )
 				{
@@ -6013,6 +6048,7 @@ BOOL MiApp_StartConnection(BYTE Mode, BYTE ScanDuration, DWORD ChannelMap)
 	}
    
 #endif
+
 
 #if defined(ENABLE_FREQUENCY_AGILITY)
 	/********************************************************************************************
@@ -6297,6 +6333,7 @@ GetOutOfLoop:
 			return TRUE;
 		}
 	#endif
+    
 #endif
     
     
@@ -6404,6 +6441,7 @@ GetOutOfLoop:
 				ConnectionTable[ConnectionIndex].status.Val = 0;
 				DelayMs(100);
 
+
 				for(i = 0; i < CONNECTION_SIZE; i++)
 				{
 				#if defined(NWK_ROLE_COORDINATOR)
@@ -6464,6 +6502,7 @@ GetOutOfLoop:
 	}
 #endif
 
+    
 #else
     // define a bogus variable to bypass limitation of C18 compiler not able to compile an empty file
     extern char bogusVar;

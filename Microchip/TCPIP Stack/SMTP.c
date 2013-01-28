@@ -1215,7 +1215,7 @@ void SMTPSendMail(void)
   ***************************************************************************/
 BOOL SMTPIsBusy(void)
 {
-	return TransportState != TRANSPORT_HOME;
+	return (TransportState != TRANSPORT_HOME ? TRUE : FALSE);
 }
 
 /*****************************************************************************
@@ -1604,13 +1604,13 @@ static BYTE *FindEmailAddress(BYTE *str, WORD *wLen)
 	*wLen = 0x0000;
 	ParseStates.Val = 0x00;
 
-	while((c = *str++))
+	while((c = *str++) != 0)
 	{	
 		if(c == '<')
 		{
 			ParseStates.bits.FoundOpenBracket = 1;
 			lpStart = str;
-			*wLen = -1;
+			*wLen = (WORD)-1;
 		}
 		else if(c == '@')
 			ParseStates.bits.FoundAt = 1;
@@ -1683,13 +1683,13 @@ static ROM BYTE *FindROMEmailAddress(ROM BYTE *str, WORD *wLen)
 	*wLen = 0x0000;
 	ParseStates.Val = 0x00;
 
-	while((c = *str++))
+	while((c = *str++) != 0)
 	{	
 		if(c == '<')
 		{
 			ParseStates.bits.FoundOpenBracket = 1;
 			lpStart = str;
-			*wLen = -1;
+			*wLen = (WORD)-1;
 		}
 		else if(c == '@')
 			ParseStates.bits.FoundAt = 1;

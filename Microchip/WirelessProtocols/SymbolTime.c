@@ -10,7 +10,7 @@
 *
 * Copyright and Disclaimer Notice
 *
-* Copyright © 2007-2010 Microchip Technology Inc.  All rights reserved.
+* Copyright ¬© 2007-2010 Microchip Technology Inc.  All rights reserved.
 *
 * Microchip licenses to you the right to use, modify, copy and distribute 
 * Software only when embedded on a Microchip microcontroller or digital 
@@ -21,7 +21,7 @@
 * You should refer to the license agreement accompanying this Software for 
 * additional information regarding your rights and obligations.
 *
-* SOFTWARE AND DOCUMENTATION ARE PROVIDED ìAS ISî WITHOUT WARRANTY OF ANY 
+* SOFTWARE AND DOCUMENTATION ARE PROVIDED ‚ÄúAS IS‚Äù WITHOUT WARRANTY OF ANY 
 * KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION, ANY 
 * WARRANTY OF MERCHANTABILITY, TITLE, NON-INFRINGEMENT AND FITNESS FOR A 
 * PARTICULAR PURPOSE. IN NO EVENT SHALL MICROCHIP OR ITS LICENSORS BE 
@@ -98,22 +98,17 @@ void InitSymbolTimer()
 
     timerExtension1 = 0;
     timerExtension2 = 0;
-
 #elif defined(__dsPIC30F__) || defined(__dsPIC33F__) || defined(__PIC24F__) || defined(__PIC24FK__) || defined(__PIC24H__)
-
     T2CON = 0b0000000000001000 | CLOCK_DIVIDER_SETTING;
     T2CONbits.TON = 1;
-
 #elif defined(__PIC32MX__)
-
     CloseTimer2();
     WriteTimer2(0x00);
     WriteTimer3(0x00);
     WritePeriod3(0xFFFF);
     OpenTimer2((T2_ON | T2_32BIT_MODE_ON | CLOCK_DIVIDER_SETTING), 0xFFFFFFFF);
-
 #elif defined(__STM32F10X__)
-	#error "Not implemented"
+    SYMBOL_TIMER_INIT();
 #else
     #error "Symbol timer implementation required for stack usage."
 #endif
@@ -160,7 +155,7 @@ MIWI_TICK MiWi_TickGet(void)
     /* disable the timer to prevent roll over of the lower 16 bits while before/after reading of the extension */
     TMR_IE = 0;
 
-#if 1
+	#if 1
     do
     {
         IntFlag1 = TMR_IF;
@@ -174,11 +169,14 @@ MIWI_TICK MiWi_TickGet(void)
         TMR_IF = 0;
         timerExtension1++;
         if(timerExtension1 == 0)
+        {
             timerExtension2++;
     }
+    }
 
-#else
+	#else
 
+    
     failureCounter = 0;
     /* read the timer value */
     do
@@ -202,7 +200,7 @@ MIWI_TICK MiWi_TickGet(void)
             }
         }
     }
-#endif
+	#endif
 
 	/* copy the byte extension */
 	currentTime.byte.b2 += timerExtension1;
@@ -212,10 +210,18 @@ MIWI_TICK MiWi_TickGet(void)
 	TMR_IE = 1;
     
 #elif defined(__dsPIC30F__) || defined(__dsPIC33F__) || defined(__PIC24F__) || defined(__PIC24FK__) || defined(__PIC24H__) || defined(__PIC32MX__)
-	currentTime.word.w0 = TMR2;
-	currentTime.word.w1 = TMR3;
+    currentTime.word.w1 = TMR3;
+    currentTime.word.w0 = TMR2;
+    if( currentTime.word.w1 != TMR3 )
+    {
+       currentTime.word.w1 = TMR3;
+       currentTime.word.w0 = TMR2;
+    }
 #elif defined(__STM32F10X__)
-	#error "Not implemented"
+    TICK_STOP();
+    currentTime.word.w0 = TMRL;
+    currentTime.word.w1 = TMRH;
+    TICK_START();
 #else
 	#error "Symbol timer implementation required for stack usage."
 #endif

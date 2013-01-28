@@ -1422,7 +1422,6 @@ void HTTPPrint_pot(void)
 	BYTE AN0String[8];
 	WORD ADval;
 
-	#warning "HTTPPrint_pot : not implemented"
 	ADval = 12345;
     uitoa(ADval, (BYTE*)AN0String);
 

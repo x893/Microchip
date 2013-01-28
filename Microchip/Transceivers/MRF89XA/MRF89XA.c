@@ -1,4 +1,39 @@
 /********************************************************************
+* FileName:        MRF89XA.c
+* Dependencies:    
+* Processor:    PIC18, PIC24, PIC32, dsPIC30, dsPIC33
+*               tested with 18F4620, dsPIC33FJ256GP710    
+* Complier:     Microchip C18 v3.04 or higher
+*               Microchip C30 v2.03 or higher
+*               Microchip C32 v1.02 or higher        
+* Company:      Microchip Technology, Inc.
+*
+* Copyright and Disclaimer Notice
+*
+* Copyright © 2007-2009 Microchip Technology Inc.  All rights reserved.
+*
+* Microchip licenses to you the right to use, modify, copy and distribute 
+* Software only when embedded on a Microchip microcontroller or digital 
+* signal controller and used with a Microchip radio frequency transceiver, 
+* which are integrated into your product or third party product (pursuant 
+* to the terms in the accompanying license agreement).   
+*
+* You should refer to the license agreement accompanying this Software for 
+* additional information regarding your rights and obligations.
+*
+* SOFTWARE AND DOCUMENTATION ARE PROVIDED “AS IS” WITHOUT WARRANTY OF ANY 
+* KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION, ANY 
+* WARRANTY OF MERCHANTABILITY, TITLE, NON-INFRINGEMENT AND FITNESS FOR A 
+* PARTICULAR PURPOSE. IN NO EVENT SHALL MICROCHIP OR ITS LICENSORS BE 
+* LIABLE OR OBLIGATED UNDER CONTRACT, NEGLIGENCE, STRICT LIABILITY, 
+* CONTRIBUTION, BREACH OF WARRANTY, OR OTHER LEGAL EQUITABLE THEORY ANY 
+* DIRECT OR INDIRECT DAMAGES OR EXPENSES INCLUDING BUT NOT LIMITED TO 
+* ANY INCIDENTAL, SPECIAL, INDIRECT, PUNITIVE OR CONSEQUENTIAL DAMAGES, 
+* LOST PROFITS OR LOST DATA, COST OF PROCUREMENT OF SUBSTITUTE GOODS, 
+* TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES (INCLUDING BUT 
+* NOT LIMITED TO ANY DEFENSE THEREOF), OR OTHER SIMILAR COSTS.
+*
+*********************************************************************
 * File Description:
 *
 *  This file provides transceiver driver functionality for MRF89XA 
@@ -14,8 +49,8 @@
 
 #include "SystemProfile.h"
 
-#if defined(MRF89XA)
 
+#if defined(MRF89XA)
     #include "Transceivers/MRF89XA/MRF89XA.h"
     #include "WirelessProtocols/SymbolTime.h"
     #include "Transceivers/MCHP_MAC.h"
@@ -44,7 +79,7 @@
         #pragma udata
     #endif
   
-    volatile BYTE IRQ1_Received = 0;
+    volatile BOOL IRQ1_Received = FALSE;
     MACINIT_PARAM               MACInitParams;
     BYTE                        TxMACSeq;
     BYTE                        MACSeq;
@@ -86,16 +121,16 @@
 
     //First time configuration settings for MRF89XA
     ROM WORD InitConfigRegs[] = {
-        /* 0 */                     GCONREG | GCONREG_SET, 
-        /* 1 */                     DMODREG | DMODREG_SET,
-        /* 2 */                     FDEVREG | FREQ_DEV,
-        /* 3 */                     BRREG | DATARATE,
-        /* 4 */                     FLTHREG | FLTHREG_SET,
-        /* 5 */                     FIFOCREG | FIFOCREG_SET,
-        /* 6 */                     R1CNTREG | R1CNT,
-        /* 7 */                     P1CNTREG | P1CNT,
-        /* 8 */                     S1CNTREG | S1CNT,
-        /* 9 */                     R2CNTREG,
+        /* 0 */		GCONREG | GCONREG_SET, 
+        /* 1 */		DMODREG | DMODREG_SET,
+        /* 2 */		FDEVREG | FREQ_DEV,
+        /* 3 */		BRREG | DATARATE,
+        /* 4 */		FLTHREG | FLTHREG_SET,
+        /* 5 */		FIFOCREG | FIFOCREG_SET,
+        /* 6 */		R1CNTREG | R1CNT,
+        /* 7 */		P1CNTREG | P1CNT,
+        /* 8 */		S1CNTREG | S1CNT,
+        /* 9 */		R2CNTREG,
         /* 10 */                    P2CNTREG,
         /* 11 */                    S2CNTREG,
         /* 12 */                    PACONREG | PACONREG_SET,
@@ -118,13 +153,12 @@
         /* 29 */                    NADDREG | NADDREG_SET,
         /* 30 */                    PCONREG | PCONREG_SET,
          /* 31 */                   FCRCREG | FCRCREG_SET 
-                            };    
+		       };    
 
     void SPIPut(BYTE v);
     BYTE SPIGet(void);
     void SetRFMode(BYTE);
     BYTE RegisterRead(BYTE);
-
     /*********************************************************************
      * WORD getReceiverBW(void)
      *
@@ -153,6 +187,7 @@
         return (WORD)(((value & 0x0F) + 1) * 25);
     }
 
+    
      /*********************************************************************
      * void RegisterSet(INPUT WORD setting)
      *
@@ -166,7 +201,7 @@
      *
      * Input:       
      *          WORD    setting     The address of the register and its
-     *                              corresponding settings
+     *		          corresponding settings
      *
      * Output:  None    
      *
@@ -176,7 +211,6 @@
     void RegisterSet(WORD setting)
     {
         BYTE IRQ1select = PHY_IRQ1_En;
-
 	#if defined USE_IRQ0_AS_INTERRUPT
 		BOOL IRQ0select = PHY_IRQ0_En;
 		#if defined(__STM32F10X__)
@@ -198,16 +232,16 @@
         SPIPut((BYTE)setting);
 
 	#if defined(__STM32F10X__)
-        Config_nCS_HIGH();
+		Config_nCS_HIGH();
 		PHY_IRQ1_En_SET(IRQ1select);
 	#else
-        Config_nCS = 1;
-        PHY_IRQ1_En = IRQ1select;
+		Config_nCS = 1;
+		PHY_IRQ1_En = IRQ1select;
 	#endif
         
 	#if defined USE_IRQ0_AS_INTERRUPT
 		#if defined(__STM32F10X__)
-        PHY_IRQ0_En_SET(IRQ1select);
+		PHY_IRQ0_En_SET(IRQ1select);
 		#else
 		PHY_IRQ0_En = IRQ0select;
 		#endif
@@ -244,18 +278,18 @@
 	#endif
 
 	#if defined(__STM32F10X__)
-        PHY_IRQ1_DISABLE();
+		PHY_IRQ1_DISABLE();
 		Config_nCS_LOW();
 	#else
-        PHY_IRQ1_En = 0;
-        Config_nCS = 0;
+		PHY_IRQ1_En = 0;
+		Config_nCS = 0;
 	#endif
         address = (address|0x40);
         SPIPut(address);
         value = SPIGet();
 	#if defined(__STM32F10X__)
 		Config_nCS_HIGH();
-        PHY_IRQ1_En_SET(IRQ1select);
+		PHY_IRQ1_En_SET(IRQ1select);
 	#else
         Config_nCS = 1;
         PHY_IRQ1_En = IRQ1select;
@@ -272,6 +306,7 @@
         return value;
     }
     
+
     /*********************************************************************
      * void WriteFIFO(BYTE Data)
      *
@@ -303,7 +338,7 @@
 	#endif
         
 	#if defined(__STM32F10X__)
-        PHY_IRQ1_DISABLE();
+		PHY_IRQ1_DISABLE();
 		Data_nCS_LOW();
 	#else
         PHY_IRQ1_En = 0;
@@ -314,7 +349,7 @@
 
 	#if defined(__STM32F10X__)
 		Data_nCS_HIGH();
-        PHY_IRQ1_En_SET(IRQ1select);
+		PHY_IRQ1_En_SET(IRQ1select);
 	#else
         Data_nCS = 1;
         PHY_IRQ1_En = IRQ1select;
@@ -322,13 +357,14 @@
         
 	#if defined USE_IRQ0_AS_INTERRUPT
 		#if defined(__STM32F10X__)
-			PHY_IRQ0_En_SET(IRQ0select);
+		PHY_IRQ0_En_SET(IRQ0select);
 		#else
-            PHY_IRQ0_En = IRQ0select;
+		PHY_IRQ0_En = IRQ0select;
 		#endif
 	#endif
     }
 
+    
     /*********************************************************************
      * BOOL TxPacket(INPUT BYTE TxPacketLen, INPUT BOOL CCA)
      *
@@ -382,16 +418,20 @@ Start_Transmitting:
             #ifdef ENABLE_CCA
                 CCARetries = 0;
         
-                if( CCA )
+                if ( CCA )
                 {
+                   
 Start_CCA:    
                     rssival = RegisterRead(RSTSREG>>8); 
                     rssival = (rssival>>1);            //Rssi value in dB
                 
-                    if( rssival > CCA_THRESHOLD )
+                    if ( rssival > CCA_THRESHOLD )
                     {
-                        if(CCARetries++ > CCA_RETRIES )
+                        if (CCARetries++ > CCA_RETRIES )
+                        {
                             return FALSE;
+                            
+                        }
                         goto Start_CCA;
                     }
                 }
@@ -414,7 +454,7 @@ Start_CCA:
             SetRFMode(RF_STANDBY);
             RegisterSet(FTXRXIREG | FTXRXIREG_SET | 0x01);	//Resets FIFO (If any thing is present or previous FIFO Overrun occurred then this clears it.
             WriteFIFO(TxPacketLen);    //Fill the length information - this is needed if variable length packet format is chosen
-            for(i = 0; i < TxPacketLen; i++)
+            for (i = 0; i < TxPacketLen; i++)
             {
                 WriteFIFO(MACTxBuffer[i]);
             }
@@ -433,34 +473,37 @@ Start_CCA:
             PHY_IRQ1_En = 1;
 		#endif
 
-            while((IRQ1_Received == 0) && (PHY_IRQ1 == 0) ) { }
+            while((IRQ1_Received == 0) && (PHY_IRQ1 == 0) )
+            {
+        
+            };
     
-			//Wait until TX Done interrupt and restore the RF state to standby mode
+            //Wait until TX Done interrupt and restore the RF state to standby mode
     
-            IRQ1_Received = 0;
+            IRQ1_Received = FALSE;
             SetRFMode(RF_STANDBY);
             SetRFMode(RF_RECEIVER);
                                                             //Set RF to Receive Mode        
             #if defined(ENABLE_ACK) 
-                if( (MACTxBuffer[0] & ACK_MASK) > 0 )        // required acknowledgement
+                if ( (MACTxBuffer[0] & ACK_MASK) > 0 )        // required acknowledgement
                 {
                     TxMACSeq = MACTxBuffer[1];
                     t1 = MiWi_TickGet();
                     while(1)
                     {
-                        if( hasAck )
+                        if ( hasAck )
                         {
                             status = TRUE;
                             goto TX_END_HERE;
                         }
                         t2 = MiWi_TickGet();
-                        if( MiWi_TickGetDiff(t2, t1) > ONE_SECOND/20 )
+                        if ( MiWi_TickGetDiff(t2, t1) > ONE_SECOND/20 )
                         {
                             break;
                         }
                     }
                     #if defined(ENABLE_RETRANSMISSION)
-                        if(allowedTxFailure++ <= RETRANSMISSION_TIMES)
+                        if (allowedTxFailure++ <= RETRANSMISSION_TIMES)
                             goto Start_Transmitting;
                     #endif
                 }
@@ -476,6 +519,7 @@ Start_CCA:
 TX_END_HERE: 
         return status;
     }
+    
     
     /************************************************************************************
      * Function:
@@ -560,7 +604,7 @@ TX_END_HERE:
      *****************************************************************************************/       
     BOOL MiMAC_SetChannel(INPUT BYTE channel, INPUT BYTE offsetFreq)
     {
-        if( channel >= CHANNEL_NUM )    
+        if ( channel >= CHANNEL_NUM )    
         {
             return FALSE;   
         }
@@ -614,7 +658,7 @@ TX_END_HERE:
      *****************************************************************************************/ 
     BOOL MiMAC_SetPower(INPUT BYTE outputPower)
     {
-        if( outputPower > TX_POWER_N_8_DB )
+        if ( outputPower > TX_POWER_N_8_DB )
         {
             return FALSE;
         }
@@ -659,25 +703,29 @@ TX_END_HERE:
          
         MACInitParams = initValue;
          
-        DelayMs(20);  
+        DelayMs(20);
+
 	#if defined(__STM32F10X__)
-        Config_nCS_HIGH();		// Config select inactive
+		Config_nCS_HIGH();		// Config select inactive
 		Data_nCS_HIGH();		// Data select inactive
+		MACSeq = (BYTE)(MiWi_TickGet().Val);
 	#else
         Config_nCS = 1;			// Config select inactive
         Data_nCS = 1;			// Data select inactive
-	#endif
+
 
         MACSeq = TMRL;
+	#endif
+
         ReceivedBankIndex = 0xFF;
         
-        for(i = 0; i < BANK_SIZE; i++)
+        for (i = 0; i < BANK_SIZE; i++)
         {
             RxPacket[i].flags.Val = 0;
         }
         
         #if defined(ENABLE_ACK) && defined(RETRANSMISSION)
-            for(i = 0; i < ACK_INFO_SIZE; i++)
+            for (i = 0; i < ACK_INFO_SIZE; i++)
             {
                 AckInfo[i].Valid = FALSE;
             }
@@ -685,7 +733,7 @@ TX_END_HERE:
     
         #if defined(ENABLE_SECURITY)
             #if defined(ENABLE_NETWORK_FREEZER)
-                if( initValue.actionFlags.bits.NetworkFreezer )
+                if ( initValue.actionFlags.bits.NetworkFreezer )
                 {
                     nvmGetOutFrameCounter(OutgoingFrameCounter.v);
                     OutgoingFrameCounter.Val += FRAME_COUNTER_UPDATE_INTERVAL;
@@ -700,7 +748,7 @@ TX_END_HERE:
             #else
                 OutgoingFrameCounter.Val = 1;
             #endif
-            for(i = 0; i < KEY_SIZE; i++)
+            for (i = 0; i < KEY_SIZE; i++)
             {
                 key[i] = mySecurityKey[i];
             }
@@ -781,6 +829,7 @@ void SetRFMode(BYTE mode)
 
 }
 
+    
     /************************************************************************************
      * Function:
      *      BOOL MiMAC_SendPacket(  MAC_TRANS_PARAM transParam, 
@@ -821,7 +870,7 @@ void SetRFMode(BYTE mode)
         BYTE i;
         BYTE TxIndex;
       
-        if( MACPayloadLen > TX_BUFFER_SIZE )
+        if ( MACPayloadLen > TX_BUFFER_SIZE )
         {
             return FALSE;
         }
@@ -836,7 +885,7 @@ void SetRFMode(BYTE mode)
             transParam.flags.bits.sourcePrsnt = 1;
         #endif
         
-        if( transParam.flags.bits.packetType == PACKET_TYPE_COMMAND )
+        if ( transParam.flags.bits.packetType == PACKET_TYPE_COMMAND )
         {
             transParam.flags.bits.sourcePrsnt = 1;
         }
@@ -847,21 +896,21 @@ void SetRFMode(BYTE mode)
         
         TxIndex = 2;
         
-        if( transParam.flags.bits.destPrsnt )
+        if ( transParam.flags.bits.destPrsnt )
         {   
-            for(i = 0; i < MACInitParams.actionFlags.bits.PAddrLength; i++)
+            for (i = 0; i < MACInitParams.actionFlags.bits.PAddrLength; i++)
             {
                 MACTxBuffer[TxIndex++] = transParam.DestAddress[i];
             }
         }
-        if( transParam.flags.bits.broadcast == 0 )
+        if ( transParam.flags.bits.broadcast == 0 )
         {
             
         }
     
-        if( transParam.flags.bits.sourcePrsnt )
+        if ( transParam.flags.bits.sourcePrsnt )
         {   
-            for(i = 0; i < MACInitParams.actionFlags.bits.PAddrLength; i++)
+            for (i = 0; i < MACInitParams.actionFlags.bits.PAddrLength; i++)
             {
                 MACTxBuffer[TxIndex++] = MACInitParams.PAddress[i];
             }
@@ -869,16 +918,16 @@ void SetRFMode(BYTE mode)
         }
     
         #if defined(ENABLE_SECURITY)
-            if( transParam.flags.bits.secEn )
+            if ( transParam.flags.bits.secEn )
             {
     
-                for(i = 0; i < 4; i++)
+                for (i = 0; i < 4; i++)
                 {
                     MACTxBuffer[TxIndex++] = OutgoingFrameCounter.v[i];
                 }
                 OutgoingFrameCounter.Val++;
                 #if defined(ENABLE_NETWORK_FREEZER)
-                    if( (OutgoingFrameCounter.v[0] == 0) && ((OutgoingFrameCounter.v[1] & 0x03) == 0) )
+                    if ( (OutgoingFrameCounter.v[0] == 0) && ((OutgoingFrameCounter.v[1] & 0x03) == 0) )
                     {
                         nvmPutOutFrameCounter(OutgoingFrameCounter.v);
                     }    
@@ -890,7 +939,7 @@ void SetRFMode(BYTE mode)
                     
                     headerLen = TxIndex;
                     
-                    for(i = 0; i < MACPayloadLen; i++)
+                    for (i = 0; i < MACPayloadLen; i++)
                     {
                         MACTxBuffer[TxIndex++] = MACPayload[i];
                     }
@@ -899,9 +948,9 @@ void SetRFMode(BYTE mode)
                         {
                             BYTE nounce[BLOCK_SIZE];
                             
-                            for(i = 0; i < BLOCK_SIZE; i++)
+                            for (i = 0; i < BLOCK_SIZE; i++)
                             {
-                                if( i < TxIndex )
+                                if ( i < TxIndex )
                                 {
                                     nounce[i] = MACTxBuffer[i];
                                 }
@@ -927,7 +976,7 @@ void SetRFMode(BYTE mode)
     
         #endif
 
-        for(i = 0; i < MACPayloadLen; i++)
+        for (i = 0; i < MACPayloadLen; i++)
         {
             MACTxBuffer[TxIndex++] = MACPayload[i];
         }
@@ -944,10 +993,10 @@ void SetRFMode(BYTE mode)
             
        
         #if defined(ENABLE_ACK) && defined(ENABLE_RETRANSMISSION)
-            for(i = 0; i < ACK_INFO_SIZE; i++)
+            for (i = 0; i < ACK_INFO_SIZE; i++)
             {
                 currentTick = MiWi_TickGet();
-                if( AckInfo[i].Valid && (currentTick.Val > AckInfo[i].startTick.Val) && 
+                if ( AckInfo[i].Valid && (currentTick.Val > AckInfo[i].startTick.Val) && 
                     (MiWi_TickGetDiff(currentTick, AckInfo[i].startTick) > ONE_SECOND) )
                 {
                     AckInfo[i].Valid = FALSE;
@@ -955,27 +1004,30 @@ void SetRFMode(BYTE mode)
             }
         #endif
             
-        if( ReceivedBankIndex != 0xFF )
+        if ( ReceivedBankIndex != 0xFF )
         {
             return FALSE;
         }
        
-        for(i = 0; i < BANK_SIZE; i++)
+        for (i = 0; i < BANK_SIZE; i++)
         {
-            if( RxPacket[i].flags.bits.Valid )
+            if ( RxPacket[i].flags.bits.Valid )
             {
                 BYTE PayloadIndex;
+			#if defined(ENABLE_SECURITY)
+                BYTE j;
+			#endif
 
                 MACRxPacket.flags.Val = RxPacket[i].Payload[0];
                 MACRxPacket.PayloadLen = RxPacket[i].PayloadLen;
                 PayloadIndex = 2;
                 
-                if( MACRxPacket.flags.bits.destPrsnt )
+                if ( MACRxPacket.flags.bits.destPrsnt )
                 {
                     PayloadIndex += MACInitParams.actionFlags.bits.PAddrLength;
                 }
                 
-                if( MACRxPacket.flags.bits.sourcePrsnt )
+                if ( MACRxPacket.flags.bits.sourcePrsnt )
                 {
                     MACRxPacket.SourceAddress = (BYTE *)&(RxPacket[i].Payload[PayloadIndex]);
                     PayloadIndex += MACInitParams.actionFlags.bits.PAddrLength;
@@ -986,111 +1038,111 @@ void SetRFMode(BYTE mode)
                 }
                 
                 
-                #if defined(ENABLE_SECURITY)
-                    if( MACRxPacket.flags.bits.secEn )
-                    {
-                        // check key sequence number first
-                        if( KEY_SEQUENCE_NUMBER != RxPacket[i].Payload[PayloadIndex+4] )    
-                        {
-                            RxPacket[i].flags.Val = 0;
-                            return FALSE;
-                        }
-                        
-                        // check frame counter now
-                        if( MACRxPacket.flags.bits.sourcePrsnt )
-                        {
-							BYTE j;
-                            for(j = 0; j < CONNECTION_SIZE; j++)
-                            {
-                                if( (ConnectionTable[j].status.bits.isValid) && 
-                                    isSameAddress(ConnectionTable[j].Address, MACRxPacket.SourceAddress) )
-                                {
-                                    break;
-                                }
-                            }
-                            if( j < CONNECTION_SIZE )
-                            {
-                                DWORD_VAL FrameCounter;
-                                BYTE k;
-                                
-                                for(k = 0; k < 4; k++)
-                                {
-                                    FrameCounter.v[k] = RxPacket[i].Payload[PayloadIndex+k];    
-                                }
-                                
-                                if( IncomingFrameCounter[j].Val > FrameCounter.Val )
-                                {
-                                    RxPacket[i].flags.Val = 0;
-                                    return FALSE;
-                                }
-                                else
-                                {
-                                    IncomingFrameCounter[j].Val = FrameCounter.Val;
-                                }
-                            }
-                        }
-                        
-                        // now decrypt the data
-                        PayloadIndex += 5;      // bypass the frame counter and key sequence number
-                        
-                        #if SECURITY_LEVEL == SEC_LEVEL_CTR
-                            {
-                                BYTE nounce[BLOCK_SIZE];
-                                
-                                for(j = 0; j < BLOCK_SIZE; j++)
-                                {
-                                    if( j < PayloadIndex )
-                                    {
-                                        nounce[j] = RxPacket[i].Payload[j];
-                                    }
-                                    else
-                                    {
-                                        nounce[j] = 0;
-                                    }
-                                }
-                                
-                                CTR(&(RxPacket[i].Payload[PayloadIndex]), (RxPacket[i].PayloadLen - PayloadIndex), key, nounce); 
-                            }
-                        #elif (SECURITY_LEVEL == SEC_LEVEL_CCM_64) || (SECURITY_LEVEL == SEC_LEVEL_CCM_32) || (SECURITY_LEVEL == SEC_LEVEL_CCM_16)
+			#if defined(ENABLE_SECURITY)
+				if ( MACRxPacket.flags.bits.secEn )
+				{
+					// check key sequence number first
+					if ( KEY_SEQUENCE_NUMBER != RxPacket[i].Payload[PayloadIndex+4] )    
+					{
+						RxPacket[i].flags.Val = 0;
+						return FALSE;
+					}
+					
+					// check frame counter now
+					if ( MACRxPacket.flags.bits.sourcePrsnt )
+					{
 
-                            if(CCM_Dec((BYTE *)RxPacket[i].Payload, PayloadIndex, RxPacket[i].PayloadLen-PayloadIndex, key) == FALSE)
-                            {
-                                RxPacket[i].flags.Val = 0;
-                                return FALSE;
-                            }
+						for (j = 0; j < CONNECTION_SIZE; j++)
+						{
+							if ( (ConnectionTable[j].status.bits.isValid) && 
+								isSameAddress(ConnectionTable[j].Address, MACRxPacket.SourceAddress) )
+							{
+								break;
+							}
+						}
+						if ( j < CONNECTION_SIZE )
+						{
+							DWORD_VAL FrameCounter;
+							BYTE k;
+							
+							for (k = 0; k < 4; k++)
+							{
+								FrameCounter.v[k] = RxPacket[i].Payload[PayloadIndex+k];    
+							}
+							
+							if ( IncomingFrameCounter[j].Val > FrameCounter.Val )
+							{
+								RxPacket[i].flags.Val = 0;
+								return FALSE;
+							}
+							else
+							{
+								IncomingFrameCounter[j].Val = FrameCounter.Val;
+							}
+						}
+					}
+					
+					// now decrypt the data
+					PayloadIndex += 5;      // bypass the frame counter and key sequence number
+					
+				#if SECURITY_LEVEL == SEC_LEVEL_CTR
+					{
+						BYTE nounce[BLOCK_SIZE];
+						
+						for (j = 0; j < BLOCK_SIZE; j++)
+						{
+							if ( j < PayloadIndex )
+							{
+								nounce[j] = RxPacket[i].Payload[j];
+							}
+							else
+							{
+								nounce[j] = 0;
+							}
+						}
+						
+						CTR(&(RxPacket[i].Payload[PayloadIndex]), (RxPacket[i].PayloadLen - PayloadIndex), key, nounce); 
+					}
+				#elif (SECURITY_LEVEL == SEC_LEVEL_CCM_64) || (SECURITY_LEVEL == SEC_LEVEL_CCM_32) || (SECURITY_LEVEL == SEC_LEVEL_CCM_16)
 
-                        #elif (SECURITY_LEVEL == SEC_LEVEL_CBC_MAC_64) || (SECURITY_LEVEL == SEC_LEVEL_CBC_MAC_32) || (SECURITY_LEVEL == SEC_LEVEL_CBC_MAC_16)
-                            {
-                                BYTE MIC[BLOCK_SIZE];
-                                
-                                CBC_MAC(RxPacket[i].Payload, (RxPacket[i].PayloadLen - SEC_MIC_LEN), key, MIC);
-                                for(j = 0; j < SEC_MIC_LEN; j++)
-                                {
-                                    if( MIC[j] != RxPacket[i].Payload[RxPacket[i].PayloadLen-SEC_MIC_LEN+j] )
-                                    {
-                                        RxPacket[i].flags.Val = 0;
-                                        return FALSE;
-                                    }    
-                                }
-                            }
-                        #endif
-                        MACRxPacket.PayloadLen -= (PayloadIndex + SEC_MIC_LEN);
-                    }   
-                    else
-                    {
-                        MACRxPacket.PayloadLen -= PayloadIndex;
-                    }
-    
-                #else
-                
-                    MACRxPacket.PayloadLen -= PayloadIndex;
-                
-                #endif
-                
+					if (CCM_Dec((BYTE *)RxPacket[i].Payload, PayloadIndex, RxPacket[i].PayloadLen-PayloadIndex, key) == FALSE)
+					{
+						RxPacket[i].flags.Val = 0;
+						return FALSE;
+					}
+
+				#elif (SECURITY_LEVEL == SEC_LEVEL_CBC_MAC_64) || (SECURITY_LEVEL == SEC_LEVEL_CBC_MAC_32) || (SECURITY_LEVEL == SEC_LEVEL_CBC_MAC_16)
+					{
+						BYTE MIC[BLOCK_SIZE];
+						
+						CBC_MAC(RxPacket[i].Payload, (RxPacket[i].PayloadLen - SEC_MIC_LEN), key, MIC);
+						for (j = 0; j < SEC_MIC_LEN; j++)
+						{
+							if ( MIC[j] != RxPacket[i].Payload[RxPacket[i].PayloadLen-SEC_MIC_LEN+j] )
+							{
+								RxPacket[i].flags.Val = 0;
+								return FALSE;
+							}    
+						}
+					}
+				#endif
+					MACRxPacket.PayloadLen -= (PayloadIndex + SEC_MIC_LEN);
+				}   
+				else
+				{
+					MACRxPacket.PayloadLen -= PayloadIndex;
+				}
+
+			#else
+			
+				MACRxPacket.PayloadLen -= PayloadIndex;
+			
+			#endif
+			
                 MACRxPacket.Payload = (BYTE *)&(RxPacket[i].Payload[PayloadIndex]);
-                #if !defined(TARGET_SMALL)    
-                    MACRxPacket.RSSIValue = RSSILock;
-                #endif
+			#if !defined(TARGET_SMALL)    
+				MACRxPacket.RSSIValue = RSSILock;
+			#endif
 
                 ReceivedBankIndex = i;
                 return TRUE;
@@ -1122,7 +1174,7 @@ void SetRFMode(BYTE mode)
      *
      * Example:
      *      <code>
-     *      if( TRUE == MiMAC_ReceivedPacket() )
+     *      if ( TRUE == MiMAC_ReceivedPacket() )
      *      {
      *          // handle the raw data from RF transceiver
      * 
@@ -1137,7 +1189,7 @@ void SetRFMode(BYTE mode)
      *****************************************************************************************/  
     void MiMAC_DiscardPacket(void)
     {
-        if( ReceivedBankIndex < BANK_SIZE )
+        if ( ReceivedBankIndex < BANK_SIZE )
         {
             RxPacket[ReceivedBankIndex].flags.Val = FALSE;
             ReceivedBankIndex = 0xFF;    
@@ -1186,24 +1238,24 @@ void SetRFMode(BYTE mode)
             WORD count=0;
             BYTE result[6] = {42, 78, 114, 150, 186 ,222};
           
-            for(i = 0; i < 0xFF; i++)
+            for (i = 0; i < 0xFF; i++)
             {
-                    if( AssessmentMode == CHANNEL_ASSESSMENT_CARRIER_SENSE )
-                    {
-                        count += ((RegisterRead(RSTSREG>>8)/2));
-                    }
-                    else if( AssessmentMode == CHANNEL_ASSESSMENT_ENERGY_DETECT )
-                    {
-                        count  += ((RegisterRead(RSTSREG>>8)/2));
+				if ( AssessmentMode == CHANNEL_ASSESSMENT_CARRIER_SENSE )
+				{
+					count += ((RegisterRead(RSTSREG>>8)/2));
+				}
+				else if ( AssessmentMode == CHANNEL_ASSESSMENT_ENERGY_DETECT )
+				{
+					count  += ((RegisterRead(RSTSREG>>8)/2));
 
-                    }
-                    for(k = 0; k < 0xFF; k++) {}
+				}
+				for (k = 0; k < 0xFF; k++) {}
              }
                 
-             count = (count>>8);
+             count = (count >> 8);
              i = (count/10);
-             if(i>6) i = 6;
-             if(i<1) i = 1;
+             if (i > 6) i = 6;
+             if (i < 1) i = 1;
              return(result[i-1]);
 
         }
@@ -1278,7 +1330,7 @@ void SetRFMode(BYTE mode)
                         PHY_IRQ1_En = 1;
                         DelayMs(10);                        //delay 10ms
                         #if defined(ENABLE_ACK)
-                            for(i = 0; i < ACK_INFO_SIZE; i++)
+                            for (i = 0; i < ACK_INFO_SIZE; i++)
                             {
                                 AckInfo[i].Valid = FALSE;
                             }
@@ -1299,7 +1351,7 @@ void SetRFMode(BYTE mode)
 #elif defined(__PIC32MX__)
 	void __ISR(_EXTERNAL_1_VECTOR, ipl4) _INT1Interrupt(void)
 #elif defined(__STM32F10X__)
-	void INT1_IRQ_HANDLER(void)
+	void PHY_IRQ0_IRQ_HANDLER(void)
 #else
     #if !defined(__18CXX)
 		void _ISRFAST _INT1Interrupt(void)
@@ -1307,21 +1359,24 @@ void SetRFMode(BYTE mode)
 #endif
 #if !defined(__18CXX)
 {
-	if(PHY_IRQ1 && PHY_IRQ1_En)
+	if (PHY_IRQ0 && PHY_IRQ0_En)
 	#if defined(__STM32F10X__)
-		PHY_IRQ1_CLEAR();
+		PHY_IRQ0_CLEAR();
 	#else
-		PHY_IRQ1 = 0;
+		PHY_IRQ0 = 0;
 	#endif
 
 	#if !defined(TARGET_SMALL)
-	if(RF_Mode == RF_RECEIVER)
+	if (RF_Mode == RF_RECEIVER)
+	{
 		RSSIVal = (RegisterRead(RSTSREG >> 8)) >> 1;	//Capturing the RSSiVal at SYNC/ADRS match
+	}
 	#endif
 	return;
 }
 #endif
 
+    
 #if defined(__18CXX)
 	#if defined(HITECH_C18)
 		#pragma interrupt_level 0
@@ -1338,14 +1393,14 @@ void SetRFMode(BYTE mode)
 #elif defined(__PIC32MX__)
 	void __ISR(_EXTERNAL_2_VECTOR, ipl4) _INT2Interrupt(void)
 #elif defined(__STM32F10X__)
-	void INT2_IRQ_HANDLER(void)
+	void PHY_IRQ1_IRQ_HANDLER(void)
 #else
 	void _ISRFAST _INT2Interrupt(void)
 #endif
 {
-	if( PHY_IRQ1 && PHY_IRQ1_En )
+	if ( PHY_IRQ1 && PHY_IRQ1_En )
 	{
-		if(RF_Mode == RF_RECEIVER)
+		if (RF_Mode == RF_RECEIVER)
 		{
 			BYTE RxPacketPtr;
 			BYTE PacketLen;
@@ -1353,7 +1408,6 @@ void SetRFMode(BYTE mode)
 			WORD counter;
 			BOOL bAck;
 			BYTE ackPacket[4];
-
 	#if !defined(USE_IRQ0_AS_INTERRUPT)
 		#if !defined(TARGET_SMALL)                    
 			RSSIVal = (RegisterRead(RSTSREG >> 8)) >> 1;	//Capturing the RSSiVal at SYNC/ADRS match
@@ -1366,26 +1420,40 @@ void SetRFMode(BYTE mode)
 		#else
 			Data_nCS = 0;
 		#endif
+
 			PacketLen = SPIGet();
+
 		#if defined(__STM32F10X__)
 			Data_nCS_HIGH();
 		#else
 			Data_nCS = 1;
 		#endif
+
 			//get an available bank index for the received packet
-			for(BankIndex = 0; BankIndex < BANK_SIZE; BankIndex++)
-				if( RxPacket[BankIndex].flags.bits.Valid == FALSE )
-					break;
+			for (BankIndex = 0; BankIndex < BANK_SIZE; BankIndex++)
+			{
+				if (RxPacket[BankIndex].flags.bits.Valid == FALSE)
+						{
+						break;
+						}
+			}
 			
 			// may be an acknowledgement (If packetlen = 2, packet information = 
-			bAck = ( PacketLen == 2 ) ? TRUE : FALSE;
+                if ( PacketLen == 2 )    
+                {
+                    bAck = TRUE;
+                }
+                else
+                {
+                    bAck = FALSE;
+                }
 
 			//discard the packet if one of the following conditions is true
-			if( PacketLen >= RX_PACKET_SIZE || PacketLen == 0 || (BankIndex >= BANK_SIZE && (bAck==FALSE)) )
+			if ( PacketLen >= RX_PACKET_SIZE || PacketLen == 0 || (BankIndex >= BANK_SIZE && (bAck==FALSE)) )
 			{
 IGNORE_HERE:       
 				{
-					BYTE fifo_stat = RegisterRead(FTXRXIREG>>8);
+					BYTE fifo_stat = RegisterRead(FTXRXIREG >> 8);
 					while(fifo_stat & 0x02)
 					{
 					#if defined(__STM32F10X__)
@@ -1399,7 +1467,7 @@ IGNORE_HERE:
 					#else
 						Data_nCS = 1;
 					#endif
-						fifo_stat = RegisterRead(FTXRXIREG>>8);            //read the contents of the fifo (to clear the FIFO)
+						fifo_stat = RegisterRead(FTXRXIREG >> 8);	//read the contents of the fifo (to clear the FIFO)
 					}
 				}               
 				goto RETURN_HERE;
@@ -1411,10 +1479,10 @@ IGNORE_HERE:
 			while(counter >= 1)
 			{
 				counter--;
-				if(1)
+				if (1)
 				{
 					//if ack packet store in memory structure for ack
-					if( bAck )
+					if ( bAck )
 					{
 					#if defined(__STM32F10X__)
 						Data_nCS_LOW();
@@ -1445,16 +1513,16 @@ IGNORE_HERE:
 					}
 					
 					//after reading the all the fifo contents
-					if( RxPacketPtr >= PacketLen ) 
+					if ( RxPacketPtr >= PacketLen ) 
 					{
 						BYTE i; 
 						
-						if( bAck )
+						if ( bAck )
 						{
 							#if defined(ENABLE_ACK)
-								if( ( ackPacket[0] & PACKET_TYPE_MASK ) == PACKET_TYPE_ACK )        //verify that the packet format is ACK packet
+								if ( ( ackPacket[0] & PACKET_TYPE_MASK ) == PACKET_TYPE_ACK )        //verify that the packet format is ACK packet
 								{    
-									if( ackPacket[1] == TxMACSeq )                                    //verify the Sequence number in ACK packet
+									if ( ackPacket[1] == TxMACSeq )                                    //verify the Sequence number in ACK packet
 									{
 										hasAck = TRUE;                                                //indicate hasACK (if valid ack)
 									}
@@ -1463,7 +1531,7 @@ IGNORE_HERE:
 								}
 								else
 							#endif
-							if( BankIndex >= BANK_SIZE )                                        //if banks are not available discard the packet
+							if ( BankIndex >= BANK_SIZE )                                        //if banks are not available discard the packet
 							{
 								RxPacketPtr = 0;
 								goto IGNORE_HERE;
@@ -1478,9 +1546,9 @@ IGNORE_HERE:
 						
 						// send ack / check ack
 						#if defined(ENABLE_ACK1)
-							if( ( RxPacket[BankIndex].Payload[0] & PACKET_TYPE_MASK ) == PACKET_TYPE_ACK )  // acknowledgement
+							if ( ( RxPacket[BankIndex].Payload[0] & PACKET_TYPE_MASK ) == PACKET_TYPE_ACK )  // acknowledgement
 							{
-								if( RxPacket[BankIndex].Payload[1] == TxMACSeq )                            
+								if ( RxPacket[BankIndex].Payload[1] == TxMACSeq )                            
 								{
 									hasAck = TRUE;
 								}
@@ -1493,11 +1561,11 @@ IGNORE_HERE:
 						{
 							BYTE ackInfoIndex = 0xFF;
 							
-							if( RxPacket[BankIndex].Payload[0] & DSTPRSNT_MASK )            //discard the packet if the packet is not for us
+							if ( RxPacket[BankIndex].Payload[0] & DSTPRSNT_MASK )            //discard the packet if the packet is not for us
 							{
-								for(i = 0; i < MACInitParams.actionFlags.bits.PAddrLength; i++)
+								for (i = 0; i < MACInitParams.actionFlags.bits.PAddrLength; i++)
 								{
-									if( RxPacket[BankIndex].Payload[2+i] != MACInitParams.PAddress[i] )
+									if ( RxPacket[BankIndex].Payload[2+i] != MACInitParams.PAddress[i] )
 									{
 										RxPacketPtr = 0;
 										RxPacket[BankIndex].PayloadLen = 0;
@@ -1506,54 +1574,63 @@ IGNORE_HERE:
 								}
 							}
 
-							#if defined(ENABLE_ACK)
-								if( (RxPacket[BankIndex].Payload[0] & ACK_MASK) )  // acknowledgement required
-								{
+						#if defined(ENABLE_ACK)
+							if ( (RxPacket[BankIndex].Payload[0] & ACK_MASK) )  // acknowledgement required
+							{
 
-									for(i = 0; i < 2; i++)
-									{
-										ackPacket[i] = MACTxBuffer[i];
-									}
-									MACTxBuffer[0] = PACKET_TYPE_ACK | BROADCAST_MASK;   // frame control, ack type + broadcast
-									MACTxBuffer[1] = RxPacket[BankIndex].Payload[1];     // sequenece number
-								#if defined(__STM32F10X__)
-									PHY_IRQ1_CLEAR();
-								#else
-									PHY_IRQ1 = 0;
-								#endif
-									TxPacket(2, FALSE);
-
-									for(i = 0; i < 2; i++)
-										MACTxBuffer[i] = ackPacket[i];
-								}
-							#endif
-								
-							#if defined(ENABLE_ACK) && defined(ENABLE_RETRANSMISSION)
-								for(i = 0; i < ACK_INFO_SIZE; i++)
+								for (i = 0; i < 2; i++)
 								{
-									if( AckInfo[i].Valid && (AckInfo[i].Seq == RxPacket[BankIndex].Payload[1])  )
-									{
-										AckInfo[i].startTick = MiWi_TickGet();
-										break;    
-									}
-									if( (ackInfoIndex == 0xFF) && (AckInfo[i].Valid == FALSE) )
-									{
-										ackInfoIndex = i;
-									}
+									ackPacket[i] = MACTxBuffer[i];
 								}
-								if( i >= ACK_INFO_SIZE )
-								{
-									if( ackInfoIndex < ACK_INFO_SIZE )
-									{                                
-										AckInfo[ackInfoIndex].Valid = TRUE;
-										AckInfo[ackInfoIndex].Seq = RxPacket[BankIndex].Payload[1]; 
-										AckInfo[ackInfoIndex].startTick = MiWi_TickGet();
-									}
-									RxPacket[BankIndex].flags.bits.Valid = TRUE;
-								}
+								MACTxBuffer[0] = PACKET_TYPE_ACK | BROADCAST_MASK;   // frame control, ack type + broadcast
+								MACTxBuffer[1] = RxPacket[BankIndex].Payload[1];     // sequenece number
+							#if defined(__STM32F10X__)
+								PHY_IRQ1_CLEAR();
 							#else
-								RxPacket[BankIndex].flags.bits.Valid = TRUE;
+								PHY_IRQ1 = 0;
 							#endif
+								TxPacket(2, FALSE);
+
+
+								for (i = 0; i < 2; i++)
+								{
+									MACTxBuffer[i] = ackPacket[i];
+								}
+							}
+						#endif
+								
+						#if defined(ENABLE_ACK) && defined(ENABLE_RETRANSMISSION)
+							for (i = 0; i < ACK_INFO_SIZE; i++)
+							{
+								if ( AckInfo[i].Valid && (AckInfo[i].Seq == RxPacket[BankIndex].Payload[1])  )
+								{
+									AckInfo[i].startTick = MiWi_TickGet();
+									break;    
+								}
+								if ( (ackInfoIndex == 0xFF) && (AckInfo[i].Valid == FALSE) )
+								{
+									ackInfoIndex = i;
+								}
+							}
+								
+							if ( i >= ACK_INFO_SIZE )
+							{
+								if ( ackInfoIndex < ACK_INFO_SIZE )
+								{                                
+									AckInfo[ackInfoIndex].Valid = TRUE;
+									AckInfo[ackInfoIndex].Seq = RxPacket[BankIndex].Payload[1]; 
+									AckInfo[ackInfoIndex].startTick = MiWi_TickGet();
+								}
+
+									
+								RxPacket[BankIndex].flags.bits.Valid = TRUE;
+							}
+						#else
+                                
+							RxPacket[BankIndex].flags.bits.Valid = TRUE;
+                 
+						#endif
+                                
 						}
 						goto RETURN_HERE;
 					}
@@ -1564,7 +1641,7 @@ IGNORE_HERE:
 		else
 		{
 		
-			IRQ1_Received = 1; //capture interrupt status
+			IRQ1_Received = TRUE; //capture interrupt status
 		}
 
 RETURN_HERE:
@@ -1576,42 +1653,43 @@ RETURN_HERE:
 		Nop();
 	}   
    
-	#if defined(__18CXX)
-		#if defined USE_IRQ0_AS_INTERRUPT
+#if defined(__18CXX)
+	#if defined USE_IRQ0_AS_INTERRUPT
+	{
+		if (PHY_IRQ0 && PHY_IRQ0_En)
+		{
+			PHY_IRQ0 = 0;
+			
+		#if !defined(TARGET_SMALL)                    
+			if (RF_Mode == RF_RECEIVER)
 			{
-				if(PHY_IRQ0 && PHY_IRQ0_En)
-				{
-					PHY_IRQ0 = 0;
-					
-				#if !defined(TARGET_SMALL)                    
-					if(RF_Mode == RF_RECEIVER)
-					{
-						RSSIVal = (RegisterRead(RSTSREG>>8))>>1;        //Capturing the RSSiVal at SYNC/ADRS match
-					}
-				#endif
-				}
+				RSSIVal = (RegisterRead(RSTSREG>>8))>>1;        //Capturing the RSSiVal at SYNC/ADRS match
 			}
 		#endif
+		}
+	}
+	#endif
 	
-		//check to see if the symbol timer overflowed
-		if(TMR_IF)
+	//check to see if the symbol timer overflowed
+	if (TMR_IF)
+	{
+		if (TMR_IE)
 		{
-			if(TMR_IE)
+			/* there was a timer overflow */
+			TMR_IF = 0;
+			timerExtension1++;
+			if (timerExtension1 == 0)
 			{
-				/* there was a timer overflow */
-				TMR_IF = 0;
-				timerExtension1++;
-				if(timerExtension1 == 0)
-				{
-					timerExtension2++;
-				}
+				timerExtension2++;
 			}
 		}
-		
-		UserInterruptHandler();
-	#endif
+	}
+	
+	UserInterruptHandler();
+#endif
 }
 
+    
 #if defined(__18CXX) & !defined(HI_TECH_C)
 	#pragma code highVector=0x08
 	void HighVector (void)

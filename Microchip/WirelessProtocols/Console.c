@@ -60,7 +60,7 @@
 #if defined(__STM32F10X__) || defined(__dsPIC33F__) || defined(__PIC24F__) || defined(__PIC24FK__) || defined(__PIC24H__) || defined(__PIC32MX__)
 
 /************************ VARIABLES ********************************/
-ROM unsigned char CharacterArray[]={'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
+ROM unsigned char CharacterArray[] = {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
 
 /************************ FUNCTIONS ********************************/
 
@@ -82,18 +82,18 @@ ROM unsigned char CharacterArray[]={'0','1','2','3','4','5','6','7','8','9','A',
 ********************************************************************/
 void ConsoleInit(void)
 {
-    #ifdef __PIC32MX__
-        OpenUART2(UART_EN, (1 << 12)|UART_TX_ENABLE, (CLOCK_FREQ/(1<<mOSCGetPBDIV())/16)/BAUD_RATE-1); 
-	#elif defined(__STM32F10X__)
-		#error "Initialize Console USART"
-    #else    
-        U2BRG   = (CLOCK_FREQ/2/16)/BAUD_RATE-1;
-        IFS1bits.U2RXIF = 0;
-        U2STA  = 0;
-        U2MODE = 0b0000000010000000;
-        U2MODEbits.UARTEN = 1;
-        U2STAbits.UTXEN = 1;
-    #endif
+#ifdef __PIC32MX__
+	OpenUART2(UART_EN, (1 << 12)|UART_TX_ENABLE, (CLOCK_FREQ/(1<<mOSCGetPBDIV())/16)/BAUD_RATE-1); 
+#elif defined(__STM32F10X__)
+	CONSOLE_UART_INIT();
+#else    
+	U2BRG   = (CLOCK_FREQ/2/16)/BAUD_RATE-1;
+	IFS1bits.U2RXIF = 0;
+	U2STA  = 0;
+	U2MODE = 0b0000000010000000;
+	U2MODEbits.UARTEN = 1;
+	U2STAbits.UTXEN = 1;
+#endif
 }
 
 /*********************************************************************

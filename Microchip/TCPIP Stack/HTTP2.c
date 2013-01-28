@@ -119,20 +119,20 @@
 		"HTTP/1.1 200 OK\r\nConnection: close\r\n",
 		"HTTP/1.1 400 Bad Request\r\nConnection: close\r\n\r\n400 Bad Request: can't handle Content-Length\r\n",
 		"HTTP/1.1 401 Unauthorized\r\nWWW-Authenticate: Basic realm=\"Protected\"\r\nConnection: close\r\n\r\n401 Unauthorized: Password required\r\n",
-		#if defined(HTTP_MPFS_UPLOAD)
+	#if defined(HTTP_MPFS_UPLOAD)
 		"HTTP/1.1 404 Not found\r\nConnection: close\r\nContent-Type: text/html\r\n\r\n404: File not found<br>Use <a href=\"/" HTTP_MPFS_UPLOAD "\">MPFS Upload</a> to program web pages\r\n",
-		#else		
+	#else		
 		"HTTP/1.1 404 Not found\r\nConnection: close\r\n\r\n404: File not found\r\n",
-		#endif
+	#endif
 		"HTTP/1.1 414 Request-URI Too Long\r\nConnection: close\r\n\r\n414 Request-URI Too Long: Buffer overflow detected\r\n",
 		"HTTP/1.1 500 Internal Server Error\r\nConnection: close\r\n\r\n500 Internal Server Error: Expected data not present\r\n",
 		"HTTP/1.1 501 Not Implemented\r\nConnection: close\r\n\r\n501 Not Implemented: Only GET and POST supported\r\n",
-		#if defined(HTTP_MPFS_UPLOAD)
+	#if defined(HTTP_MPFS_UPLOAD)
 		"HTTP/1.1 200 OK\r\nConnection: close\r\nContent-Type: text/html\r\n\r\n<html><body style=\"margin:100px\"><form method=post action=\"/" HTTP_MPFS_UPLOAD "\" enctype=\"multipart/form-data\"><b>MPFS Image Upload</b><p><input type=file name=i size=40> &nbsp; <input type=submit value=\"Upload\"></form></body></html>",
 		"",
 		"HTTP/1.1 200 OK\r\nConnection: close\r\nContent-Type: text/html\r\n\r\n<html><body style=\"margin:100px\"><b>MPFS Update Successful</b><p><a href=\"/\">Site main page</a></body></html>",
 		"HTTP/1.1 500 Internal Server Error\r\nConnection: close\r\nContent-Type: text/html\r\n\r\n<html><body style=\"margin:100px\"><b>MPFS Image Corrupt or Wrong Version</b><p><a href=\"/" HTTP_MPFS_UPLOAD "\">Try again?</a></body></html>",
-		#endif
+	#endif
 		"HTTP/1.1 302 Found\r\nConnection: close\r\nLocation: ",
 		"HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\n403 Forbidden: SSL Required - use HTTPS\r\n"
 	};
@@ -229,14 +229,14 @@ void HTTPInit(void)
     {
 		smHTTP = SM_HTTP_IDLE;
 		sktHTTP = TCPOpen(0, TCP_OPEN_SERVER, HTTP_PORT, TCP_PURPOSE_HTTP_SERVER);
-		#if defined(STACK_USE_SSL_SERVER)
+	#if defined(STACK_USE_SSL_SERVER)
 		TCPAddSSLListener(sktHTTP, HTTPS_PORT);
-		#endif
+	#endif
 		
 	    // Save the default record (just invalid file handles)
 		curHTTP.file = MPFS_INVALID_HANDLE;
 		curHTTP.offsets = MPFS_INVALID_HANDLE;
-		#if !defined(HTTP_SAVE_CONTEXT_IN_PIC_RAM)
+	#if !defined(HTTP_SAVE_CONTEXT_IN_PIC_RAM)
 		{
 			PTR_BASE oldPtr;
 
@@ -244,7 +244,7 @@ void HTTPInit(void)
 			MACPutArray((BYTE*)&curHTTP, sizeof(HTTP_CONN));
 			MACSetWritePtr(oldPtr);
 		}
-		#endif
+	#endif
     }
 
 	// Set curHTTPID to zero so that first call to HTTPLoadConn() doesn't write 

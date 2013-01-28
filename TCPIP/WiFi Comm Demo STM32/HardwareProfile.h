@@ -56,16 +56,9 @@
 #include "GenericTypeDefs.h"
 #include "Compiler.h"
 
-#ifdef STM32F10X
-	#define GetSystemClock()		(SystemCoreClock)	// Hz
-	#define GetInstructionClock()	(GetSystemClock()/1)
-	#define GetPeripheralClock()	(GetSystemClock() / 8ull)
-#else
-	// PIC32MX processor
-	#define GetSystemClock()		(40000000ul)		// Hz
-	#define GetInstructionClock()	(GetSystemClock()/1)
-	#define GetPeripheralClock()	(GetInstructionClock()/1)	// Set your divider according to your Peripheral Bus Frequency configuration fuse setting
-#endif
+#define GetSystemClock()		(SystemCoreClock)	// Hz
+#define GetInstructionClock()	(GetSystemClock()/1)
+#define GetPeripheralClock()	(GetSystemClock() / 8ull)
 
 // Hardware mappings
 //----------------------------
@@ -196,8 +189,6 @@
 // #define WF_RESET_LOW()		WF_RESET_PORT->BRR = BV(WF_RESET_PIN)
 #define WF_SetRST_N(level)
 // if (level == WF_HIGH) WF_RESET_HIGH(); else WF_RESET_LOW()
-
-#define SoftReset()			NVIC_SystemReset()
 
 #define SoftReset()			NVIC_SystemReset()
 

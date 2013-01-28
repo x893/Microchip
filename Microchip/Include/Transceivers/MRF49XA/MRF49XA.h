@@ -396,7 +396,7 @@
             BYTE        Payload[RX_PACKET_SIZE];
             BYTE        PayloadLen;
         } RX_PACKET;
-        
+		
         typedef struct
         {
             BOOL        Valid;

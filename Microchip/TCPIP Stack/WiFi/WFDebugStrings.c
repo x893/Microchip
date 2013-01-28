@@ -11,190 +11,195 @@
     #define WF_MODULE_NUMBER   WF_MODULE_DEBUG_STRINGS
 #endif
 
-ROM char *connectionFailureStrings[] = {
-                                        "NULL",                                  /* 0 - not used */
-                                        "NULL",                                  /* 1 - not used */
-                                        "WF_JOIN_FAILURE",                       /* 2            */
-                                        "WF_AUTHENTICATION_FAILURE",             /* 3            */
-                                        "WF_ASSOCIATION_FAILURE",                /* 4            */
-                                        "WF_WEP_HANDSHAKE_FAILURE",              /* 5            */
-                                        "WF_PSK_CALCULATION_FAILURE",            /* 6            */
-                                        "WF_PSK_HANDSHAKE_FAILURE",              /* 7            */
-                                        "WF_ADHOC_JOIN_FAILURE",                 /* 8            */
-                                        "WF_SECURITY_MISMATCH_FAILURE",          /* 9            */
-                                        "WF_NO_SUITABLE_AP_FOUND_FAILURE",       /* 10           */
-                                        "WF_RETRY_FOREVER_NOT_SUPPORTED_FAILURE",/* 11           */
-                                        "WF_LINK_LOST",                          /* 12           */
-                                        "",                   /* 13           */
-                                        "WF_RSN_MIXED_MODE_NOT_SUPPORTED",       /* 14           */
-                                        "WF_RECV_DEAUTH",                        /* 15           */
-                                        "WF_RECV_DISASSOC",                      /* 16           */
-                                        "WF_WPS_FAILURE",                         /* 17           */
-                                        "WF_P2P_FAILURE",                         /* 18           */
-                                        "WF_LINK_DOWN"                         /* 19           */
-                                       };                                      
+static ROM char *connectionFailureStrings[] =
+	{
+		"NULL",										/* 0 - not used */
+		"NULL",										/* 1 - not used */
+		"WF_JOIN_FAILURE",							/* 2            */
+		"WF_AUTHENTICATION_FAILURE",				/* 3            */
+		"WF_ASSOCIATION_FAILURE",					/* 4            */
+		"WF_WEP_HANDSHAKE_FAILURE",					/* 5            */
+		"WF_PSK_CALCULATION_FAILURE",				/* 6            */
+		"WF_PSK_HANDSHAKE_FAILURE",					/* 7            */
+		"WF_ADHOC_JOIN_FAILURE",					/* 8            */
+		"WF_SECURITY_MISMATCH_FAILURE",				/* 9            */
+		"WF_NO_SUITABLE_AP_FOUND_FAILURE",			/* 10           */
+		"WF_RETRY_FOREVER_NOT_SUPPORTED_FAILURE",	/* 11           */
+		"WF_LINK_LOST",								/* 12           */
+		"",											/* 13           */
+		"WF_RSN_MIXED_MODE_NOT_SUPPORTED",			/* 14           */
+		"WF_RECV_DEAUTH",							/* 15           */
+		"WF_RECV_DISASSOC",							/* 16           */
+		"WF_WPS_FAILURE",							/* 17           */
+		"WF_P2P_FAILURE",							/* 18           */
+		"WF_LINK_DOWN"								/* 19           */
+	};
 
-ROM char *connectionLostStrings[] = {
-                                        "Association Failure",      /* 0 */
-                                        "WF_BEACON_TIMEOUT",        /* 1 */
-                                        "WF_DEAUTH_RECEIVED",       /* 2 */
-                                        "WF_DISASSOCIATE_RECEIVED", /* 3 */
-					"WF_TKIP_MIC_FAILURE", 		/* 4 */                                            
-                                        "WF_LINK_DOWN" 			/* 5 */
-                                    };  
+ROM char *connectionLostStrings[] =
+	{
+		"Association Failure",      /* 0 */
+		"WF_BEACON_TIMEOUT",        /* 1 */
+		"WF_DEAUTH_RECEIVED",       /* 2 */
+		"WF_DISASSOCIATE_RECEIVED", /* 3 */
+		"WF_TKIP_MIC_FAILURE", 		/* 4 */                                            
+		"WF_LINK_DOWN"				/* 5 */
+	};  
                                                                       
 #if defined(MRF24WG) && !defined(__18CXX)
     ROM char *deauthDisssocReasonCodes[] = 
-                                    {
-                                        "",                                     /* 0 */
-                                        "WF_UNSPECIFIED",                       /* 1 */
-                                        "WF_PREV_AUTH_NOT_VALID",               /* 2 */
-                                        "WF_DEAUTH_LEAVING",                    /* 3 */
-                                        "WF_DISASSOC_DUE_TO_INACTIVITY",        /* 4 */
-                                        "WF_DISASSOC_AP_BUSY",                  /* 5 */
-                                        "WF_CLASS2_FRAME_FROM_NONAUTH_STA",     /* 6 */
-                                        "WF_CLASS3_FRAME_FROM_NONASSOC_STA",    /* 7 */
-                                        "WF_DISASSOC_STA_HAS_LEFT",             /* 8 */
-                                        "WF_STA_REQ_ASSOC_WITHOUT_AUTH",        /* 9 */
-                                        "",                                     /* 10 */
-                                        "",                                     /* 11 */
-                                        "",                                     /* 12 */
-                                        "WF_INVALID_IE",                        /* 13 */
-                                        "WF_MIC_FAILURE",                       /* 14 */
-                                        "WF_4WAY_HANDSHAKE_TIMEOUT",            /* 15 */
-                                        "WF_GROUP_KEY_HANDSHAKE_TIMEOUT",       /* 16 */
-                                        "WF_IE_DIFFERENT",                      /* 17 */
-                                        "WF_INVALID_GROUP_CIPHER",              /* 18 */
-                                        "WF_INVALID_PAIRWISE_CIPHER",           /* 19 */
-                                        "WF_INVALID_AKMP",                      /* 20 */
-                                        "WF_UNSUPP_RSN_VERSION",                /* 21 */
-                                        "WF_INVALID_RSN_IE_CAP",                /* 22 */
-                                        "WF_IEEE8021X_FAILED",                  /* 23 */
-                                        "WF_CIPHER_SUITE_REJECTED"              /* 24 */
-                                    };    
+	{
+		"",                                     /* 0 */
+		"WF_UNSPECIFIED",                       /* 1 */
+		"WF_PREV_AUTH_NOT_VALID",               /* 2 */
+		"WF_DEAUTH_LEAVING",                    /* 3 */
+		"WF_DISASSOC_DUE_TO_INACTIVITY",        /* 4 */
+		"WF_DISASSOC_AP_BUSY",                  /* 5 */
+		"WF_CLASS2_FRAME_FROM_NONAUTH_STA",     /* 6 */
+		"WF_CLASS3_FRAME_FROM_NONASSOC_STA",    /* 7 */
+		"WF_DISASSOC_STA_HAS_LEFT",             /* 8 */
+		"WF_STA_REQ_ASSOC_WITHOUT_AUTH",        /* 9 */
+		"",                                     /* 10 */
+		"",                                     /* 11 */
+		"",                                     /* 12 */
+		"WF_INVALID_IE",                        /* 13 */
+		"WF_MIC_FAILURE",                       /* 14 */
+		"WF_4WAY_HANDSHAKE_TIMEOUT",            /* 15 */
+		"WF_GROUP_KEY_HANDSHAKE_TIMEOUT",       /* 16 */
+		"WF_IE_DIFFERENT",                      /* 17 */
+		"WF_INVALID_GROUP_CIPHER",              /* 18 */
+		"WF_INVALID_PAIRWISE_CIPHER",           /* 19 */
+		"WF_INVALID_AKMP",                      /* 20 */
+		"WF_UNSUPP_RSN_VERSION",                /* 21 */
+		"WF_INVALID_RSN_IE_CAP",                /* 22 */
+		"WF_IEEE8021X_FAILED",                  /* 23 */
+		"WF_CIPHER_SUITE_REJECTED"              /* 24 */
+	};    
     
     ROM char *statusCodes[] = 
-                                    {
-                                        "",                                     /* 0 */
-                                        "WF_UNSPECIFIED_FAILURE",               /* 1 */
-                                        "",                                     /* 2 */
-                                        "",                                     /* 3 */
-                                        "",                                     /* 4 */
-                                        "",                                     /* 5 */
-                                        "",                                     /* 6 */
-                                        "",                                     /* 7 */
-                                        "",                                     /* 8 */
-                                        "",                                     /* 9 */
-                                        "WF_CAPS_UNSUPPORTED",                  /* 10 */
-                                        "WF_REASSOC_NO_ASSOC",                  /* 11 */
-                                        "WF_ASSOC_DENIED_UNSPEC",               /* 12 */
-                                        "WF_NOT_SUPPORTED_AUTH_ALG",            /* 13 */
-                                        "WF_UNKNOWN_AUTH_TRANSACTION",          /* 14 */
-                                        "WF_CHALLENGE_FAIL",                    /* 15 */
-                                        "WF_AUTH_TIMEOUT",                      /* 16 */
-                                        "WF_AP_UNABLE_TO_HANDLE_NEW_STA",       /* 17 */
-                                        "WF_ASSOC_DENIED_RATES",                /* 18 */
-                                        "WF_ASSOC_DENIED_NOSHORTPREAMBLE",      /* 19 */
-                                        "WF_ASSOC_DENIED_NOPBCC",               /* 20 */
-                                        "WF_ASSOC_DENIED_NOAGILITY",            /* 21 */
-                                        "",                                     /* 22 */
-                                        "",                                     /* 23 */
-                                        "",                                     /* 24 */
-                                        "WF_ASSOC_DENIED_NOSHORTTIME",          /* 25 */
-                                        "WF_ASSOC_DENIED_NODSSSOFDM",           /* 26 */
-                                        "",                                     /* 27 */
-                                        "",                                     /* 28 */
-                                        "",                                     /* 29 */
-                                        "",                                     /* 30 */
-                                        "",                                     /* 31 */
-                                        "",                                     /* 32 */
-                                        "",                                     /* 33 */
-                                        "",                                     /* 34 */
-                                        "",                                     /* 35 */
-                                        "",                                     /* 36 */
-                                        "",                                     /* 37 */
-                                        "",                                     /* 38 */
-                                        "",                                     /* 39 */
-                                        "WF_NOT_VALID_IE",                      /* 40 */
-                                        "WF_NOT_VALID_GROUPCIPHER",             /* 41 */
-                                        "WF_NOT_VALID_PAIRWISE_CIPHER",         /* 42 */
-                                        "WF_NOT_VALID_AKMP",                    /* 43 */
-                                        "WF_UNSUPPORTED_RSN_VERSION",           /* 44 */
-                                        "WF_INVALID_RSN_IE_CAP",                /* 45 */
-                                        "WF_CIPHER_SUITE_REJECTED",             /* 46 */
-                                        "WF_TIMEOUT"                            /* 47 */
-                                    };
+	{
+		"",                                     /* 0 */
+		"WF_UNSPECIFIED_FAILURE",               /* 1 */
+		"",                                     /* 2 */
+		"",                                     /* 3 */
+		"",                                     /* 4 */
+		"",                                     /* 5 */
+		"",                                     /* 6 */
+		"",                                     /* 7 */
+		"",                                     /* 8 */
+		"",                                     /* 9 */
+		"WF_CAPS_UNSUPPORTED",                  /* 10 */
+		"WF_REASSOC_NO_ASSOC",                  /* 11 */
+		"WF_ASSOC_DENIED_UNSPEC",               /* 12 */
+		"WF_NOT_SUPPORTED_AUTH_ALG",            /* 13 */
+		"WF_UNKNOWN_AUTH_TRANSACTION",          /* 14 */
+		"WF_CHALLENGE_FAIL",                    /* 15 */
+		"WF_AUTH_TIMEOUT",                      /* 16 */
+		"WF_AP_UNABLE_TO_HANDLE_NEW_STA",       /* 17 */
+		"WF_ASSOC_DENIED_RATES",                /* 18 */
+		"WF_ASSOC_DENIED_NOSHORTPREAMBLE",      /* 19 */
+		"WF_ASSOC_DENIED_NOPBCC",               /* 20 */
+		"WF_ASSOC_DENIED_NOAGILITY",            /* 21 */
+		"",                                     /* 22 */
+		"",                                     /* 23 */
+		"",                                     /* 24 */
+		"WF_ASSOC_DENIED_NOSHORTTIME",          /* 25 */
+		"WF_ASSOC_DENIED_NODSSSOFDM",           /* 26 */
+		"",                                     /* 27 */
+		"",                                     /* 28 */
+		"",                                     /* 29 */
+		"",                                     /* 30 */
+		"",                                     /* 31 */
+		"",                                     /* 32 */
+		"",                                     /* 33 */
+		"",                                     /* 34 */
+		"",                                     /* 35 */
+		"",                                     /* 36 */
+		"",                                     /* 37 */
+		"",                                     /* 38 */
+		"",                                     /* 39 */
+		"WF_NOT_VALID_IE",                      /* 40 */
+		"WF_NOT_VALID_GROUPCIPHER",             /* 41 */
+		"WF_NOT_VALID_PAIRWISE_CIPHER",         /* 42 */
+		"WF_NOT_VALID_AKMP",                    /* 43 */
+		"WF_UNSUPPORTED_RSN_VERSION",           /* 44 */
+		"WF_INVALID_RSN_IE_CAP",                /* 45 */
+		"WF_CIPHER_SUITE_REJECTED",             /* 46 */
+		"WF_TIMEOUT"                            /* 47 */
+	};
        
     ROM char *wpsState[] = 
-                                    {
-                                        "NONE",
-                                        "EAPOL_START",
-                                        "EAP_REQ_IDENTITY",
-                                        "EAP_RSP_IDENTITY",
-                                        "EAP_WPS_START",
-                                        "EAP_RSP_M1",
-                                        "EAP_REQ_M2",
-                                        "EAP_RSP_M3",
-                                        "EAP_REQ_M4",
-                                        "EAP_RSP_M5",
-                                        "EAP_REQ_M6",
-                                        "EAP_RSP_M7",
-                                        "EAP_REQ_M8",
-                                        "EAP_RSP_DONE",
-                                        "EAP_FAILURE"
-                                    };
+	{
+		"NONE",
+		"EAPOL_START",
+		"EAP_REQ_IDENTITY",
+		"EAP_RSP_IDENTITY",
+		"EAP_WPS_START",
+		"EAP_RSP_M1",
+		"EAP_REQ_M2",
+		"EAP_RSP_M3",
+		"EAP_REQ_M4",
+		"EAP_RSP_M5",
+		"EAP_REQ_M6",
+		"EAP_RSP_M7",
+		"EAP_REQ_M8",
+		"EAP_RSP_DONE",
+		"EAP_FAILURE"
+	};
         
-    ROM char *wpsConfigErr[] =      {
-                                        "NOERR",
-                                        "SESSION_OVERLAPPED",
-                                        "DECRYPT_CRC_FAILURE",
-                                        "24G_NOT_SUPPORTED",
-        								"RETRY_FAILURE",
-               							"INVALID_MSG",
-                                        "AUTH_FAILURE",
-                                        "ASSOC_FAILURE",
-        								"MSG_TIMEOUT",
-                                        "SESSION_TIMEOUT",
-        								"DEVPASSWD_AUTH_FAILURE",	/* 10 */
-                                        "NO_CONN_TOREG",
-                                        "MULTI_PBC_DETECTED",
-        								"EAP_FAILURE",
-                                        "DEV_BUSY",
-        								"SETUP_LOCKED"
-                                    };
+    ROM char *wpsConfigErr[] =
+	{
+		"NOERR",
+		"SESSION_OVERLAPPED",
+		"DECRYPT_CRC_FAILURE",
+		"24G_NOT_SUPPORTED",
+		"RETRY_FAILURE",
+		"INVALID_MSG",
+		"AUTH_FAILURE",
+		"ASSOC_FAILURE",
+		"MSG_TIMEOUT",
+		"SESSION_TIMEOUT",
+		"DEVPASSWD_AUTH_FAILURE",	/* 10 */
+		"NO_CONN_TOREG",
+		"MULTI_PBC_DETECTED",
+		"EAP_FAILURE",
+		"DEV_BUSY",
+		"SETUP_LOCKED"
+	};
 
-	static ROM char *P2PErr[] = {
-       					"WFD_SUCCESS",
-       					"WFD_INFO_CURRENTLY_UNAVAILABLE",
-       					"WFD_INCOMPATIBLE_PARAMS",
-       					"WFD_LIMIT_REACHED",
-       					"WFD_INVALID_PARAMS",
-       					"WFD_UNABLE_TO_ACCOMMODATE",
-       					"WFD_PREV_PROTOCOL_ERROR",
-       					"WFD_NO_COMMON_CHANNELS",
-       					"WFD_UNKNOWN_GROUP",
-       					"",
-       					"WFD_INCOMPATIBLE_PROV_METHOD",	/* 10 */
-       					"WFD_REJECTED_BY_USER",
-       					"WFD_NO_MEM",
-       					"WFD_INVALID_ACTION",
-       					"WFD_TX_FAILURE",
-       					"WFD_TIME_OUT"
-				};
+	static ROM char *P2PErr[] =
+	{
+		"WFD_SUCCESS",
+		"WFD_INFO_CURRENTLY_UNAVAILABLE",
+		"WFD_INCOMPATIBLE_PARAMS",
+		"WFD_LIMIT_REACHED",
+		"WFD_INVALID_PARAMS",
+		"WFD_UNABLE_TO_ACCOMMODATE",
+		"WFD_PREV_PROTOCOL_ERROR",
+		"WFD_NO_COMMON_CHANNELS",
+		"WFD_UNKNOWN_GROUP",
+		"",
+		"WFD_INCOMPATIBLE_PROV_METHOD",	/* 10 */
+		"WFD_REJECTED_BY_USER",
+		"WFD_NO_MEM",
+		"WFD_INVALID_ACTION",
+		"WFD_TX_FAILURE",
+		"WFD_TIME_OUT"
+	};
 			
-	static ROM char *P2PState[] = {
-       					"P2PSTIdle",
-        				"P2PSTScan",
-        				"P2PSTListen",
-        				"P2PSTFind",
-        				"P2PSTStartFormation",
-        				"P2PSTGONegoReqDone",
-        				"P2PSTGOWaitNegoReqDone",
-        				"P2PSTWaitFormationDone",
-        				"P2PSTInvite",
-        				"P2PSTProvision",
-        				"P2PSTClient"
-				};
+	static ROM char *P2PState[] =
+	{
+		"P2PSTIdle",
+		"P2PSTScan",
+		"P2PSTListen",
+		"P2PSTFind",
+		"P2PSTStartFormation",
+		"P2PSTGONegoReqDone",
+		"P2PSTGOWaitNegoReqDone",
+		"P2PSTWaitFormationDone",
+		"P2PSTInvite",
+		"P2PSTProvision",
+		"P2PSTClient"
+	};
 
 #endif /* MRF24WG */
 
@@ -729,32 +734,40 @@ static void WF_OutputSecurityDebugMessage(UINT8 wepKeyIndex)
 
 void ValidateConfig(void)
 {
-    char buf[64];
+    #if (	\
+			((MY_DEFAULT_NETWORK_TYPE == WF_INFRASTRUCTURE) && (MY_DEFAULT_WIFI_SECURITY_MODE != WF_SECURITY_WPS_PIN) && (MY_DEFAULT_WIFI_SECURITY_MODE != WF_SECURITY_WPS_PUSH_BUTTON))	\
+		||	(MY_DEFAULT_NETWORK_TYPE == WF_P2P)						\
+		||	(MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_WPS_PIN)	\
+		)
+		char buf[64];
+	#endif
 
-    #if (	(MY_DEFAULT_NETWORK_TYPE == WF_INFRASTRUCTURE) \
-		&&	((MY_DEFAULT_WIFI_SECURITY_MODE != WF_SECURITY_WPS_PIN) && (MY_DEFAULT_WIFI_SECURITY_MODE != WF_SECURITY_WPS_PUSH_BUTTON)))
+    #if (	(MY_DEFAULT_NETWORK_TYPE == WF_INFRASTRUCTURE)					\
+		&&	(MY_DEFAULT_WIFI_SECURITY_MODE != WF_SECURITY_WPS_PIN)			\
+		&&	(MY_DEFAULT_WIFI_SECURITY_MODE != WF_SECURITY_WPS_PUSH_BUTTON))
         strcpypgm2ram(buf, MY_DEFAULT_SSID_NAME);
         if (strlen(buf) == 0)
         {
             putrsUART("Fatal Error:  Must define an SSID for this configuration\r\n");
-            WF_ASSERT(FALSE);            
-        }    
+            WF_ASSERT(FALSE);
+        }
     #endif
   
     #if (MY_DEFAULT_NETWORK_TYPE == WF_P2P)
         UINT8 channelList[] = MY_DEFAULT_CHANNEL_LIST;
+
         strcpypgm2ram(buf, MY_DEFAULT_SSID_NAME);        
         if (strcmp(buf, "DIRECT-") != 0)
         {
             putrsUART("Fatal Error:  When in P2P the SSID must be 'DIRECT-'\r\n");
             WF_ASSERT(FALSE);
-        } 
+        }
         
         if (sizeof(channelList) != 3)
         {
             putrsUART("Fatal Error: For P2P, channel list must be 1, 6, 11\r\n");
             WF_ASSERT(FALSE);
-        }    
+        }
         
         if ((channelList[0] != 1) || (channelList[1] != 6) || (channelList[2] != 11))
         {
@@ -765,7 +778,7 @@ void ValidateConfig(void)
     #endif
     
     #if (MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_WPS_PIN)
-        strcpypgm2ram(buf, MY_DEFAULT_SSID_NAME);     
+        strcpypgm2ram(buf, MY_DEFAULT_SSID_NAME);
         if (strlen(buf) == 0)
         {
             putrsUART("Fatal Error: For WF_SECURITY_WPS_PIN, an SSID must be defined\r\n");
@@ -863,25 +876,24 @@ void ValidateConfig(void)
         #endif
     }
     #endif
-    
 }      
    
    
-#if (MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_WPS_PIN)
-    static BOOL ValidatePinChecksum(unsigned long int pin)
-    {
-        unsigned long int accum = 0;
-        accum += 3 * ((pin / 10000000) % 10);
-        accum += 1 * ((pin / 1000000) % 10);
-        accum += 3 * ((pin / 100000) % 10);
-        accum += 1 * ((pin / 10000) % 10);
-        accum += 3 * ((pin / 1000) % 10);
-        accum += 1 * ((pin / 100) % 10);
-        accum += 3 * ((pin / 10) % 10);
-        accum += 1 * ((pin / 1) % 10);
-        return (0 == (accum % 10));
-    }   
-#endif
+	#if (MY_DEFAULT_WIFI_SECURITY_MODE == WF_SECURITY_WPS_PIN)
+		static BOOL ValidatePinChecksum(unsigned long int pin)
+		{
+			unsigned long int accum = 0;
+			accum += 3 * ((pin / 10000000) % 10);
+			accum += 1 * ((pin / 1000000) % 10);
+			accum += 3 * ((pin / 100000) % 10);
+			accum += 1 * ((pin / 10000) % 10);
+			accum += 3 * ((pin / 1000) % 10);
+			accum += 1 * ((pin / 100) % 10);
+			accum += 3 * ((pin / 10) % 10);
+			accum += 1 * ((pin / 1) % 10);
+			return (0 == (accum % 10));
+		}   
+	#endif
    
 #endif /* STACK_USE_UART */
 
@@ -908,78 +920,72 @@ void ValidateConfig(void)
 *********************************************************************************************************
 */
 #if defined(WF_DEBUG)
-#define WIFI_ASSERT_STRING "WiFi Assert     M:"
+	#define WIFI_ASSERT_STRING "WiFi Assert     M:"
 
-void WF_AssertionFailed(UINT8 moduleNumber, UINT16 lineNumber) 
-{
-#if defined(STACK_USE_UART)
-    char buf[64];
-    UINT16 moduleNameIdx;    
+	void WF_AssertionFailed(UINT8 moduleNumber, UINT16 lineNumber) 
+	{
+	#if defined(STACK_USE_UART)
+		char buf[64];
+		UINT16 moduleNameIdx;    
 
-    #if defined(DISPLAY_FILENAME) 
-        putrsUART("WF ASSERTION at ");
-        if (moduleNumber < 100)
-            moduleNameIdx = moduleNumber;
-        else
-            moduleNameIdx = moduleNumber - 81;    /* to make index 19 */
-            
-        #if defined(__18CXX)
-            strcpypgm2ram((char*)buf,  moduleName[moduleNameIdx]);
-        #else
-        sprintf(buf, "%s  ", moduleName[moduleNameIdx]);
-        #endif /* __18CXX */
+		#if defined(DISPLAY_FILENAME) 
+			putrsUART("WF ASSERTION at ");
+			if (moduleNumber < 100)
+				moduleNameIdx = moduleNumber;
+			else
+				moduleNameIdx = moduleNumber - 81;    /* to make index 19 */
+				
+			#if defined(__18CXX)
+				strcpypgm2ram((char*)buf,  moduleName[moduleNameIdx]);
+			#else
+			sprintf(buf, "%s  ", moduleName[moduleNameIdx]);
+			#endif /* __18CXX */
+		
+		#else /* not displaying file name, just module number */
+			putrsUART("WF ASSERTION: Module Number = ");
+			   sprintf(buf, "%d  ", moduleNumber);
+		#endif /* DISPLAY_FILENAME */
+		
+		putsUART(buf);
+		
+		putrsUART("Line Number = ");
+		
+		sprintf(buf, "%d\r\n", lineNumber);
+		putsUART(buf);
+	#endif /* STACK_USE_UART */
     
-    #else /* not displaying file name, just module number */
-        putrsUART("WF ASSERTION: Module Number = ");
-           sprintf(buf, "%d  ", moduleNumber);
-    #endif /* DISPLAY_FILENAME */
-    
-    putsUART(buf);
-    
-    putrsUART("Line Number = ");
-    
-    sprintf(buf, "%d\r\n", lineNumber);
-    putsUART(buf);
-#endif /* STACK_USE_UART */
-    
-    #if defined(USE_LCD)
-    {
-        char buf[] = {WIFI_ASSERT_STRING};
-        memset(LCDText, ' ', sizeof(LCDText));
-        memcpy((void *)LCDText, (void *)buf, strlen(buf));
-        uitoa(moduleNumber, (BYTE*)buf);
-        memcpy((void *)&LCDText[18], (void *)buf, strlen(buf));
-        LCDText[23] = 'L';
-        LCDText[24] = ':';
-        uitoa(lineNumber, &LCDText[25]);
-        LCDUpdate();
-    }    
-    #endif
+	#if defined(USE_LCD)
+		{
+			char buf[] = {WIFI_ASSERT_STRING};
+			memset(LCDText, ' ', sizeof(LCDText));
+			memcpy((void *)LCDText, (void *)buf, strlen(buf));
+			uitoa(moduleNumber, (BYTE*)buf);
+			memcpy((void *)&LCDText[18], (void *)buf, strlen(buf));
+			LCDText[23] = 'L';
+			LCDText[24] = ':';
+			uitoa(lineNumber, &LCDText[25]);
+			LCDUpdate();
+		}    
+	#endif
 
-	//!!! while(1);
-}    
+		//!!! while(1);
+	}    
 
-#if defined(MRF24WG)
-void WF_DisplayModuleAssertInfo()
-{
-    #if defined(STACK_USE_UART)
-    char buf[16];
-    UINT32 assertInfo;
+	#if defined(MRF24WG)
+		void WF_DisplayModuleAssertInfo()
+		{
+			#if defined(STACK_USE_UART)
+				char buf[16];
+				UINT32 assertInfo;
 
-    assertInfo = (((UINT32)Read16BitWFRegister(WF_HOST_MAIL_BOX_0_MSW_REG)) << 16) | Read16BitWFRegister(WF_HOST_MAIL_BOX_0_LSW_REG);
-    putrsUART("MRF24G module ASSERTED -- assertInfo = ");
-    sprintf(buf, "M:%d, I:%d", (int)(assertInfo >> 24), (int)(assertInfo & 0xffffff));
-    putsUART(buf);
-    putrsUART("\r\n");
-    #endif
-}
-#endif /* MRF24WG */
-
-
+				assertInfo = (((UINT32)Read16BitWFRegister(WF_HOST_MAIL_BOX_0_MSW_REG)) << 16) | Read16BitWFRegister(WF_HOST_MAIL_BOX_0_LSW_REG);
+				putrsUART("MRF24G module ASSERTED -- assertInfo = ");
+				sprintf(buf, "M:%d, I:%d", (int)(assertInfo >> 24), (int)(assertInfo & 0xffffff));
+				putsUART(buf);
+				putrsUART("\r\n");
+			#endif
+		}
+	#endif /* MRF24WG */
 #endif /* WF_DEBUG */
 
-
-
 #endif /* WF_CS_TRIS */
-
-

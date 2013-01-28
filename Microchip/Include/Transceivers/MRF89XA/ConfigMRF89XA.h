@@ -53,11 +53,11 @@
     // band for Microchip MRF89XA. One and only one of the frequency
     // band must be defined 
     /*********************************************************************/
-    #define BAND_902      //Choose BAND_902 and BAND_915 for FCC and IC
+    //#define BAND_902      //Choose BAND_902 and BAND_915 for FCC and IC
                             //Supports frequencies between 902 - 915MHz
     //#define BAND_915      //Supports frequencies between 915 - 928MHz
 
-    //#define BAND_863        //Choose this for Europe ETSI 868MHz Frequency band
+    #define BAND_863        //Choose this for Europe ETSI 868MHz Frequency band
                             //Supports frequencies between 863MHz - 870MHz
     
     /*********************************************************************/
@@ -205,18 +205,10 @@
     //enable this mode
     /*********************************************************************/
     //#define USE_IRQ0_AS_INTERRUPT
-	#ifndef RFIE
     	#define RFIE        PHY_IRQ1_En
-	#endif
-	#ifndef RFIF
     	#define RFIF        PHY_IRQ1
-	#endif
-	#ifndef RF_INT_PIN
     	#define RF_INT_PIN  IRQ1_INT_PIN
-	#endif
-	#ifndef RF_INT_TRIS
     	#define RF_INT_TRIS IRQ1_INT_TRIS
-	#endif
 
     /***********************************************************************/
     //  SECURITY_KEY_xx defines xxth byte of security key used in the block

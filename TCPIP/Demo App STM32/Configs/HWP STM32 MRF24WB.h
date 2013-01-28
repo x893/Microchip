@@ -93,46 +93,55 @@
 #define WF_SPI_SCALE		SPI_BaudRatePrescaler_2
 
 #define WF_SPI_PIN_INIT()	\
-	GPIO_Mode_00_07 ( WF_SPI_SCK_PORT,  WF_SPI_SCK_PIN,  GPIO_AF_PP_50M );		\
-	GPIO_Mode_00_07 ( WF_SPI_MISO_PORT, WF_SPI_MISO_PIN, GPIO_In_Floating );	\
-	GPIO_Mode_00_07 ( WF_SPI_MOSI_PORT, WF_SPI_MOSI_PIN, GPIO_AF_PP_50M )
+	do {					\
+		GPIO_Mode_00_07 ( WF_SPI_SCK_PORT,  WF_SPI_SCK_PIN,  GPIO_AF_PP_50M );		\
+		GPIO_Mode_00_07 ( WF_SPI_MISO_PORT, WF_SPI_MISO_PIN, GPIO_In_Floating );	\
+		GPIO_Mode_00_07 ( WF_SPI_MOSI_PORT, WF_SPI_MOSI_PIN, GPIO_AF_PP_50M );		\
+	} while (0)
 
 #define WF_INT_TRIS			1
 #define WF_INT_PIN			GPIO_PinSource9
 #define WF_INT_PORT			GPIOA
 #define WF_INT_IF_PIN()		(WF_INT_PORT->IDR & BV(WF_INT_PIN))
 #define WF_INT_EXTI			EXTI_Line9
+#define WF_INT_IRQn			EXTI9_5_IRQn
 #define WF_IRQ_HANDLER		EXTI9_5_IRQHandler
 #define WF_INT_IF			(EXTI->PR & WF_INT_EXTI)
 #define WF_INT_IF_CLEAR()	EXTI->PR = WF_INT_EXTI
-#define WF_INT_IF_SET()		EXTI->SWIER |= WF_INT_EXTI; EXTI->SWIER &= ~WF_INT_EXTI
-#define WF_INT_IE			(EXTI->IMR & WF_INT_EXTI)
-#define WF_INT_INIT()		do {	\
-								NVIC_InitTypeDef   NVIC_InitStructure;							\
-								EXTI_InitTypeDef EXTI_InitStruct;								\
-																								\
-								RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);			\
-								RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);			\
-								GPIO_Mode_08_15(WF_INT_PORT, WF_INT_PIN, GPIO_In_Floating);		\
-																								\
-								GPIO_EXTILineConfig(GPIO_PortSourceGPIOA, WF_INT_PIN);			\
-																								\
-								EXTI_InitStruct.EXTI_Mode = EXTI_Mode_Interrupt;				\
-								EXTI_InitStruct.EXTI_Line = WF_INT_EXTI;						\
-								EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Falling;			\
-								EXTI_InitStruct.EXTI_LineCmd = ENABLE;							\
-								EXTI_Init(&EXTI_InitStruct);									\
-								WF_INT_IE_DISABLE();											\
-								WF_INT_IF_CLEAR();												\
-								/* Enable and set EXTI9_5 Interrupt to the lowest priority */	\
-								NVIC_InitStructure.NVIC_IRQChannel = EXTI9_5_IRQn;				\
-								NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x0F;	\
-								NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x0F;			\
-								NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;					\
-								NVIC_Init(&NVIC_InitStructure);									\
-							} while (0)
-#define WF_INT_IE_ENABLE()	EXTI->IMR |= WF_INT_EXTI
-#define WF_INT_IE_DISABLE()	EXTI->IMR &= ~WF_INT_EXTI
+// #define WF_INT_IF_SET()		EXTI->SWIER |= WF_INT_EXTI; EXTI->SWIER &= ~WF_INT_EXTI
+#define WF_INT_IE			NVIC_GetActive(WF_INT_IRQn)
+//							(EXTI->IMR & WF_INT_EXTI)
+
+#define WF_INT_IE_ENABLE()	NVIC_EnableIRQ(WF_INT_IRQn);
+#define WF_INT_IE_DISABLE()	NVIC_DisableIRQ(WF_INT_IRQn);
+
+#define WF_INT_INIT()		\
+	do {					\
+		NVIC_InitTypeDef   NVIC_InitStructure;							\
+		EXTI_InitTypeDef EXTI_InitStruct;								\
+		\
+		RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);			\
+		RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);			\
+		GPIO_Mode_08_15(WF_INT_PORT, WF_INT_PIN, GPIO_In_Floating);		\
+		\
+		GPIO_EXTILineConfig(GPIO_PortSourceGPIOA, WF_INT_PIN);			\
+		\
+		/* Enable and set EXTI9_5 Interrupt to the lowest priority */	\
+		NVIC_InitStructure.NVIC_IRQChannel = WF_INT_IRQn;				\
+		NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x0F;	\
+		NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x0F;			\
+		NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;					\
+		NVIC_Init(&NVIC_InitStructure);									\
+		\
+		WF_INT_IE_DISABLE();											\
+		\
+		EXTI_InitStruct.EXTI_Mode = EXTI_Mode_Interrupt;				\
+		EXTI_InitStruct.EXTI_Line = WF_INT_EXTI;						\
+		EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Falling;			\
+		EXTI_InitStruct.EXTI_LineCmd = ENABLE;							\
+		EXTI_Init(&EXTI_InitStruct);									\
+		WF_INT_IF_CLEAR();												\
+	} while (0)
 
 //!	#define WF_HIBERNATE_PIN
 //!	#define WF_HIBERNATE_PORT

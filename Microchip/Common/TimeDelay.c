@@ -150,6 +150,18 @@ void Delay10us( UINT32 tenMicroSecondCounter )
                 }
             }
         }
+	#elif defined(__STM32F10X__)
+		#define TEN_MICROSECONDS_DELAY	(100ul * 72000000ul)
+		while (tenMicroSecondCounter != 0)
+		{
+			--tenMicroSecondCounter;
+			cyclesRequiredForEntireDelay = TEN_MICROSECONDS_DELAY / SystemCoreClock;
+			while (cyclesRequiredForEntireDelay != 0)
+			{
+				__NOP();
+				--cyclesRequiredForEntireDelay;
+			}
+		}
     #endif
 }
 
@@ -175,9 +187,9 @@ void Delay10us( UINT32 tenMicroSecondCounter )
 void DelayMs( UINT16 ms )
 {
     #if defined(__18CXX) || defined (COMPILER_HITECH_PICC)
-        
+
         INT32 cyclesRequiredForEntireDelay;
-        
+
         // We want to pre-calculate number of cycles required to delay 1ms, using a 1 cycle granule.
         cyclesRequiredForEntireDelay = (signed long)(GetInstructionClock()/1000) * ms;
         
@@ -198,7 +210,7 @@ void DelayMs( UINT16 ms )
             }
         }
         
-    #elif defined(__C30__) || defined(__PIC32MX__)
+    #elif defined(__C30__) || defined(__PIC32MX__) || defined(__STM32F10X__)
     
         volatile UINT8 i;
         

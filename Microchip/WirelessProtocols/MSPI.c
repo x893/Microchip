@@ -117,6 +117,7 @@ void SPIPut(BYTE v)
     #endif
 }
 
+
 /*********************************************************************
 * Function:         BYTE SPIGet(void)
 *
@@ -135,23 +136,21 @@ void SPIPut(BYTE v)
 BYTE SPIGet(void)
 {
     #if !defined(HARDWARE_SPI)
-		#if defined(__PIC32MX__)
-			BYTE i;
-			BYTE spidata = 0;
+    BYTE i;
+    BYTE spidata = 0;
 
+		#if defined(__STM32F10X__)
 			SPI_SDO_LOW();
 			SPI_SCK_LOW();
 			
 			for(i = 0; i < 8; i++)
 			{
-				spidata = (spidata << 1) | SPI_SDI_READ();
+				spidata = (spidata << 1) | SPI_SDI;
 				SPI_SCK_HIGH();
 				SPI_SCK_LOW();
 			}
 			return spidata;
 		#else
-			BYTE i;
-			BYTE spidata = 0;
 
 			SPI_SDO = 0;
 			SPI_SCK = 0;
@@ -167,11 +166,8 @@ BYTE SPIGet(void)
 		#endif
     #else 
         #if defined(__PIC32MX__) || defined(__STM32F10X__)
-            BYTE dummy;
-
             putcSPI1(0x00);
-            dummy = (BYTE)getcSPI1();
-            return(dummy);
+            return (BYTE)getcSPI1();
         #else
             SPIPut(0x00);
             return SPI1BUF;
@@ -272,6 +268,7 @@ BYTE SPIGet(void)
         #endif
     }
 #endif
+
 
 #elif defined(__18CXX)
 
@@ -468,3 +465,8 @@ BYTE SPIGet(void)
 #else
     #error Unknown processor.  See Compiler.h
 #endif
+
+
+
+
+

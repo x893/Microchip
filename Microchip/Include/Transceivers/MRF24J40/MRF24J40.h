@@ -57,13 +57,14 @@
     #include "Transceivers/MCHP_MAC.h"    
     #include "Transceivers/MRF24J40/ConfigMRF24J40.h"
 
-    #define SEC_LEVEL_CTR           0
-    #define SEC_LEVEL_CBC_MAC_32    1
-    #define SEC_LEVEL_CBC_MAC_64    2
-    #define SEC_LEVEL_CBC_MAC_128   3
+
+    #define SEC_LEVEL_CBC_MAC_32    7
+    #define SEC_LEVEL_CBC_MAC_64    6
+    #define SEC_LEVEL_CBC_MAC_128   5
     #define SEC_LEVEL_CCM_32        4
-    #define SEC_LEVEL_CCM_64        5
-    #define SEC_LEVEL_CCM_128       6
+    #define SEC_LEVEL_CCM_64        3
+    #define SEC_LEVEL_CCM_128       2
+    #define SEC_LEVEL_CTR           1
     
     #if defined(PROTOCOL_MIWI) 
         #define PROTOCOL_HEADER_SIZE MIWI_HEADER_LEN

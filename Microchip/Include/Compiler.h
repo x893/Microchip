@@ -119,6 +119,7 @@
 	#include <plib.h>
 #elif defined(__STM32F10X__)
 	#include "stm32f10x.h"
+	#undef CRC
 #else
 	#error Unknown processor or compiler.  See Compiler.h
 #endif
@@ -129,7 +130,7 @@
 
 
 // Base RAM and ROM pointer types for given architecture
-#if defined(__PIC32MX__) || defined(__CC_ARM)
+#if defined(__PIC32MX__) || defined(__STM32F10X__)
 	#define PTR_BASE		unsigned long
 	#define ROM_PTR_BASE	unsigned long
 #elif defined(__C30__)
@@ -200,8 +201,8 @@
 	#endif
 
 	// 32-bit specific defines (PIC32)
-	#if defined(__PIC32MX__) || defined(__CC_ARM)
-        #if (__C32_VERSION__ < 200) || defined(__CC_ARM)
+	#if defined(__PIC32MX__) || defined(__STM32F10X__)
+        #if (__C32_VERSION__ < 200) || defined(__STM32F10X__)
             #define persistent
         #endif
 		#define far
@@ -212,10 +213,10 @@
 		// MPLAB C Compiler for PIC32 MCUs version 1.04 and below don't have a 
 		// Nop() function. However, version 1.05 has Nop() declared as _nop().
 		#if !defined(Nop) && (__C32_VERSION__ <= 104)
-			#if defined(__CC_ARM)
-				#define Nop()	__NOP()
+			#if defined(__STM32F10X__)
+				#define Nop()		__NOP()
 			#else
-				#define Nop()				asm("nop")
+				#define Nop()		asm("nop")
 			#endif
 		#endif
 	#endif

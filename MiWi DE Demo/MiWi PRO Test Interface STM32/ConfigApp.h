@@ -82,7 +82,7 @@
 // MRF49XA subGHz proprietary RF transceiver. Only one RF transceiver
 // can be defined.
 /*********************************************************************/
-//#define MRF49XA
+// #define MRF49XA
 
 /*********************************************************************/
 // Definition of MRF89XA enables the application to use Microchip
@@ -90,13 +90,12 @@
 /*********************************************************************/
 #define MRF89XA
 
-
 /*********************************************************************/
 // MY_ADDRESS_LENGTH defines the size of wireless node permanent 
 // address in byte. This definition is not valid for IEEE 802.15.4
 // compliant RF transceivers.
 /*********************************************************************/
-#define MY_ADDRESS_LENGTH       4 
+#define MY_ADDRESS_LENGTH       4
 
 /*********************************************************************/
 // EUI_x defines the xth byte of permanent address for the wireless
@@ -115,19 +114,19 @@
 // TX_BUFFER_SIZE defines the maximum size of application payload
 // which is to be transmitted
 /*********************************************************************/
-#define TX_BUFFER_SIZE 40
+#define TX_BUFFER_SIZE		40
 
 /*********************************************************************/
 // RX_BUFFER_SIZE defines the maximum size of application payload
 // which is to be received
 /*********************************************************************/
-#define RX_BUFFER_SIZE 40
+#define RX_BUFFER_SIZE		40
 
 /*********************************************************************/
 // MY_PAN_ID defines the PAN identifier. Use 0xFFFF if prefer a 
 // random PAN ID.
 /*********************************************************************/
-#define MY_PAN_ID                       0x1234
+#define MY_PAN_ID			0x1234
 
 /*********************************************************************/
 // ADDITIONAL_NODE_ID_SIZE defines the size of additional payload
@@ -142,7 +141,7 @@
 // P2P_CONNECTION_SIZE defines the maximum P2P connections that this 
 // device allowes at the same time. 
 /*********************************************************************/
-#define CONNECTION_SIZE             16
+#define CONNECTION_SIZE		16
 
 
 /*********************************************************************/
@@ -217,7 +216,7 @@
 // timeout. RFD depends on the setting of the watchdog timer to wake 
 // up, thus this definition is not used.
 /*********************************************************************/
-#define RFD_WAKEUP_INTERVAL     8
+#define RFD_WAKEUP_INTERVAL	8
 
 
 /*********************************************************************/
@@ -227,7 +226,17 @@
 #define ENABLE_FREQUENCY_AGILITY
 
 // Constants Validation
-    
+#if defined(NWK_ROLE_END_DEVICE) && defined(ENABLE_INDIRECT_MESSAGE)
+    #warning "ENABLE_INDIRECT_MESSAGE can defined only for Coordinator"
+	#undef ENABLE_INDIRECT_MESSAGE
+#endif
+
+#if defined(NWK_ROLE_END_DEVICE) && defined(ENABLE_FREQUENCY_AGILITY)
+    #warning "ENABLE_FREQUENCY_AGILITY can defined only for Coordinator"
+	#undef ENABLE_FREQUENCY_AGILITY
+#endif
+
+
 #if !defined(MRF24J40) && !defined(MRF49XA) && !defined(MRF89XA)
     #error "One transceiver must be defined for the wireless application"
 #endif

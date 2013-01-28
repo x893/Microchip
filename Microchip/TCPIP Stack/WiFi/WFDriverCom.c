@@ -211,11 +211,11 @@ void SignalWiFiConnectionChanged(BOOL state)
  *****************************************************************************/
 void WFProcess(void)
 {
-    #if defined(__18CXX)
-        static UINT16 len; 
-    #else
+#if defined(__18CXX)
+	static UINT16 len; 
+#else
     UINT16 len;
-    #endif
+#endif
 
     //----------------------------------------------------------
     // if there is a MRF24W External interrupt (EINT) to process

@@ -78,7 +78,7 @@
     #define WFTOHL(a) HTOWFL(a)
 
     /* 16-bit data type conversion */
-    #define HSTOWFS(a) (((a & 0xFF) << 8) | ((a & 0xFF00) >> 8))
+    #define HSTOWFS(a) (((a & 0x00FF) << 8) | ((a & 0xFF00) >> 8))
     #define WFSTOHS(a) HSTOWFS(a)
     
 /* else Host CPU is Big-Endian, which matches the MRF24W */

@@ -189,30 +189,38 @@ void ProcessMenu( void )
             break;
             
         case '2':
+		#if defined(NWK_ROLE_COORDINATOR)
             Printf("\r\nFamily Tree: ");
-            for(i = 0; i < NUM_COORDINATOR; i++)
+            for (i = 0; i < NUM_COORDINATOR; i++)
             {
                 PrintChar(FamilyTree[i]);
                 Printf(" ");
             }
+		#else
+			Printf("\r\nNot a coordinator !");
+		#endif
             break;
             
         case '3':
+		#if defined(NWK_ROLE_COORDINATOR)
             Printf("\r\nMy Routing Table: ");
-            for(i = 0; i < NUM_COORDINATOR/8; i++)
+            for (i = 0; i < NUM_COORDINATOR/8; i++)
             {
                 PrintChar(RoutingTable[i]);
             }
             Printf("\r\nNeighbor Routing Table: ");
-            for(i = 0; i < NUM_COORDINATOR; i++)
+            for (i = 0; i < NUM_COORDINATOR; i++)
             {
                 BYTE j;
-                for(j = 0; j < NUM_COORDINATOR/8; j++)
+                for (j = 0; j < NUM_COORDINATOR/8; j++)
                 {
                     PrintChar(NeighborRoutingTable[i][j]);
                 }
                 Printf(" ");
             }
+		#else
+			Printf("\r\nNot a coordinator !");
+		#endif
             break;
             
         case '4':
@@ -253,7 +261,7 @@ void ProcessMenu( void )
                     	{
                         	case '1':
                         	    Printf("\r\nDestination Long Address: ");
-                        	    for(i = 0; i < MY_ADDRESS_LENGTH; i++)
+                        	    for (i = 0; i < MY_ADDRESS_LENGTH; i++)
                         	    {
                             	    tempLongAddress[MY_ADDRESS_LENGTH-1-i] = GetMACByte();
                             	}
@@ -283,42 +291,58 @@ void ProcessMenu( void )
             
         case '5':
             {
+			#if defined(NWK_ROLE_COORDINATOR)
                 Printf("\r\nMSB of the Coordinator: ");
                 i = GetMACByte();
                 Printf("\r\nSet MSB of this Node's Parent: ");
                 FamilyTree[i] = GetMACByte();
+			#else
+				Printf("\r\nNot a coordinator !");
+			#endif
             }
             break;
             
         case '6':
             {
+			#if defined(NWK_ROLE_COORDINATOR)
                 Printf("\r\nSet my Routing Table: ");
-                for(i = 0; i < NUM_COORDINATOR/8; i++)
+                for (i = 0; i < NUM_COORDINATOR/8; i++)
                 {
                     RoutingTable[i] = GetMACByte();
                     Printf(" ");
                 }
+			#else
+				Printf("\r\nNot a coordinator !");
+			#endif
             }
             break;
             
         case '7':
             {
+			#if defined(NWK_ROLE_COORDINATOR)
                 BYTE j;
                 
                 Printf("\r\nNode Number: ");
                 i = GetMACByte();
                 Printf("\r\nContent of Neighbor Routing Table: ");
-                for(j = 0; j < NUM_COORDINATOR/8; j++)
+                for (j = 0; j < NUM_COORDINATOR/8; j++)
                 {
                     NeighborRoutingTable[i][j] = GetMACByte();
                     Printf(" ");
                 }
+			#else
+				Printf("\r\nNot a coordinator !");
+			#endif
             }
             break;
         
         case '8':
             {
+			#if defined(NWK_ROLE_COORDINATOR)
                 MiApp_InitChannelHopping(0xFFFFFFFF);
+			#else
+				Printf("\r\nNot a coordinator !");
+			#endif
             }
             break;    
         
@@ -381,7 +405,9 @@ int main(void)
     /*******************************************************************/
     // Initialize the system
     /*******************************************************************/
+
     BoardInit();
+
     ConsoleInit();
 
     Printf("\r\nStarting Testing Interface for MiWi(TM) PRO Stack ...");
@@ -413,7 +439,7 @@ int main(void)
         LCDDisplay((char *)"MiWi PRO Test Interface MRF89XA", 0, TRUE); 
 #endif
 
-    if( (BUTTON_1_READ() == 0) || ( MiApp_ProtocolInit(TRUE) == FALSE ) )
+    if ( (BUTTON_1_READ() == 0) || ( MiApp_ProtocolInit(TRUE) == FALSE ) )
     {  
         MiApp_ProtocolInit(FALSE);   
 
@@ -449,11 +475,11 @@ int main(void)
         /*******************************************************************/
         i = MiApp_SearchConnection(10, 0x02000000);
 
-        if( i > 0 )
+        if ( i > 0 )
         {
             // now print out the scan result.
             Printf("\r\nActive Scan Results: \r\n");
-            for(j = 0; j < i; j++)
+            for (j = 0; j < i; j++)
             {
                 Printf("Channel: ");
                 PrintDec(ActiveScanResults[j].Channel );
@@ -494,7 +520,7 @@ int main(void)
             //      radio range; Indirect mode means connection may or may not 
             //      in the radio range. 
             /*******************************************************************/
-            if( MiApp_EstablishConnection(0, CONN_MODE_DIRECT) == 0xFF )
+            if ( MiApp_EstablishConnection(0, CONN_MODE_DIRECT) == 0xFF )
             {
                 Printf("\r\nJoin Fail");
             }
@@ -558,18 +584,18 @@ int main(void)
         // transceiver. If a message has been received, all information will 
         // be stored in the rxMessage, structure of RECEIVED_MESSAGE.
         /*******************************************************************/
-        if( MiApp_MessageAvailable() )
+        if ( MiApp_MessageAvailable() )
         {
             /*******************************************************************/
             // If a packet has been received, following code prints out some of
             // the information available in rxFrame.
             /*******************************************************************/
-            if( rxMessage.flags.bits.secEn )
+            if ( rxMessage.flags.bits.secEn )
             {
                 ConsolePutROMString((ROM char *)"Secured ");
             }
 
-            if( rxMessage.flags.bits.broadcast )
+            if ( rxMessage.flags.bits.broadcast )
             {
                 ConsolePutROMString((ROM char *)"Broadcast Packet with RSSI ");
             }
@@ -578,17 +604,17 @@ int main(void)
                 ConsolePutROMString((ROM char *)"Unicast Packet with RSSI ");
             }
             PrintChar(rxMessage.PacketRSSI);
-            if( rxMessage.flags.bits.srcPrsnt )
+            if ( rxMessage.flags.bits.srcPrsnt )
             {
                 ConsolePutROMString((ROM char *)" from ");
-                if( rxMessage.flags.bits.altSrcAddr )
+                if ( rxMessage.flags.bits.altSrcAddr )
                 {
                     PrintChar(rxMessage.SourceAddress[1]);
                     PrintChar(rxMessage.SourceAddress[0]);
                 }
                 else
                 {    
-                    for(i = 0; i < MY_ADDRESS_LENGTH; i++)
+                    for (i = 0; i < MY_ADDRESS_LENGTH; i++)
                     {
                         PrintChar(rxMessage.SourceAddress[MY_ADDRESS_LENGTH-1-i]);
                     }
@@ -598,7 +624,7 @@ int main(void)
             ConsolePutROMString((ROM char *)": ");
             
             
-            for(i = 0; i < rxMessage.PayloadSize; i++)
+            for (i = 0; i < rxMessage.PayloadSize; i++)
             {
                 ConsolePut(rxMessage.Payload[i]);
             }

@@ -53,9 +53,9 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include "HardwareProfile.h"
 #include "GenericTypeDefs.h"
 #include "Compiler.h"
-#include "HardwareProfile.h"
 
 // RESERVED FEATURE -- do not change from current value of 1u as this is not 
 // fully implemented yet.
@@ -92,9 +92,7 @@
  *******************************************************************/
 
 #ifndef STACK_USE_MDD
-	
-	
-	
+
 	#if defined(STACK_USE_HTTP2_SERVER) || defined(STACK_USE_FTP_SERVER)
 		#define STACK_USE_MPFS2
 	#endif

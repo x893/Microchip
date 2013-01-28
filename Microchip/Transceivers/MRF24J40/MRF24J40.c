@@ -73,6 +73,8 @@
         #define MIPS    (CLOCK_FREQ/2000000)
     #elif defined(__PIC32MX__)
         #define MIPS    (CLOCK_FREQ/1000000)   // PIC32 has various execution timing. Here assumes the best situation
+    #elif defined(__STM32F10X__)
+        #define MIPS    (CLOCK_FREQ / 1000000ul)   // PIC32 has various execution timing. Here assumes the best situation
     #else
         #error "Unsupported MCU family. Please contact Microchip Technology for more support information"
     #endif
@@ -151,14 +153,23 @@
     void PHYSetLongRAMAddr(INPUT WORD address, INPUT BYTE value)
     {
         volatile BYTE tmpRFIE = RFIE;
-        
+	#if defined(__STM32F10X__)
+        RFIE_DISABLE();
+        PHY_CS_LOW();
+	#else
         RFIE = 0;
         PHY_CS = 0;
+	#endif
         SPIPut((((BYTE)(address>>3))&0x7F)|0x80);
         SPIPut((((BYTE)(address<<5))&0xE0)|0x10);
         SPIPut(value);
+	#if defined(__STM32F10X__)
+        PHY_CS_HIGH();
+        RFIE_SET(tmpRFIE);
+	#else
         PHY_CS = 1;
         RFIE = tmpRFIE;
+	#endif
     }
     
     /*********************************************************************
@@ -185,13 +196,22 @@
     void PHYSetShortRAMAddr(INPUT BYTE address, INPUT BYTE value)
     {
         volatile BYTE tmpRFIE = RFIE;
-        
+	#if defined(__STM32F10X__)
+		RFIE_DISABLE();
+        PHY_CS_LOW();
+	#else
         RFIE = 0;
         PHY_CS = 0;     
+	#endif
         SPIPut(address);
         SPIPut(value);
+	#if defined(__STM32F10X__)
+        PHY_CS_HIGH();
+		RFIE_SET(tmpRFIE);
+	#else
         PHY_CS = 1;
         RFIE = tmpRFIE;
+	#endif
     }
     
     /*********************************************************************
@@ -216,13 +236,22 @@
     {
         BYTE toReturn;
         volatile BYTE tmpRFIE = RFIE;
-        
+	#if defined(__STM32F10X__)
+		RFIE_DISABLE();
+        PHY_CS_LOW();
+	#else
         RFIE = 0;
-        PHY_CS = 0;
+        PHY_CS = 0;     
+	#endif
         SPIPut(address);
         toReturn = SPIGet();
+	#if defined(__STM32F10X__)
+        PHY_CS_HIGH();
+		RFIE_SET(tmpRFIE);
+	#else
         PHY_CS = 1;
         RFIE = tmpRFIE;
+	#endif
         
         return toReturn;
     }
@@ -248,13 +277,23 @@
         BYTE toReturn;
         volatile BYTE tmpRFIE = RFIE;
         
+	#if defined(__STM32F10X__)
+		RFIE_DISABLE();
+        PHY_CS_LOW();
+	#else
         RFIE = 0;
-        PHY_CS = 0;
+        PHY_CS = 0;     
+	#endif
         SPIPut(((address>>3)&0x7F)|0x80);
         SPIPut(((address<<5)&0xE0));
         toReturn = SPIGet();
+	#if defined(__STM32F10X__)
+        PHY_CS_HIGH();
+		RFIE_SET(tmpRFIE);
+	#else
         PHY_CS = 1;
         RFIE = tmpRFIE;
+	#endif
         
         return toReturn;
     }
@@ -265,11 +304,19 @@
         WORD j;
         
         // first perform a hardware reset
+	#if defined(__STM32F10X__)
+		PHY_RESETn_LOW();
+	#else
         PHY_RESETn = 0;
-        for(j=0;j<(WORD)300;j++){}
+	#endif
+        for(j = 0; j < (WORD)300; j++){}
     
+	#if defined(__STM32F10X__)
+		PHY_RESETn_HIGH();
+	#else
         PHY_RESETn = 1;
-        for(j=0;j<(WORD)300;j++){}
+	#endif
+        for(j = 0; j < (WORD)300; j++){}
       
         /* do a soft reset */
         PHYSetShortRAMAddr(WRITE_SOFTRST,0x07);
@@ -277,9 +324,9 @@
         {
             i = PHYGetShortRAMAddr(READ_SOFTRST);
         }
-        while((i&0x07) != (BYTE)0x00);   
+        while ((i&0x07) != (BYTE)0x00);
     
-        for(j=0;j<(WORD)1000;j++){}
+        for(j = 0; j < (WORD)1000; j++){}
      
         /* flush the RX fifo */
         PHYSetShortRAMAddr(WRITE_RXFLUSH,0x01);
@@ -342,8 +389,8 @@
         #if defined(ENABLE_PA_LNA)
             
             #if defined(MRF24J40MC)
-                PHYSetShortRAMAddr(WRITE_GPIO, 0x08);
                 PHYSetShortRAMAddr(WRITE_GPIODIR, 0x08); 
+                PHYSetShortRAMAddr(WRITE_GPIO, 0x08);
             #endif
             PHYSetLongRAMAddr(TESTMODE, 0x0F);
             
@@ -430,11 +477,17 @@
         BYTE i;
         
         //set the interrupt flag just in case the interrupt was missed
+	#if defined(__STM32F10X__)
+		if (RFIF_PIN() == 0)
+		{
+			RFIF_SET();
+		}
+	#else
         if(RF_INT_PIN == 0)
         {
             RFIF = 1;
         }
-        
+	#endif
         //If the stack TX has been busy for a long time then
         //time out the TX because we may have missed the interrupt 
         //and don't want to lock up the stack forever
@@ -1049,12 +1102,19 @@
         #ifdef VERIFY_TRANSMIT
             t1 = MiWi_TickGet();
             while(1)
-            {   
-                if( RF_INT_PIN == 0 )
-                {
-                    RFIF = 1;
-                }
-                if( MRF24J40Status.bits.TX_BUSY == 0 )
+            {
+			#if defined(__STM32F10X__)
+				if (RFIF_PIN() == 0)
+				{
+					RFIF_SET();
+				}
+			#else
+				if(RF_INT_PIN == 0)
+				{
+					RFIF = 1;
+				}
+			#endif
+                if ( MRF24J40Status.bits.TX_BUSY == 0 )
                 {
                     if( MRF24J40Status.bits.TX_FAIL )
                     {
@@ -1147,11 +1207,11 @@
             
             #if defined(ENABLE_PA_LNA)
                 #if defined(MRF24J40MC)
-                    PHYSetShortRAMAddr(WRITE_GPIO, 0x08);
                     PHYSetShortRAMAddr(WRITE_GPIODIR, 0x08);
+                    PHYSetShortRAMAddr(WRITE_GPIO, 0x08);
                 #else
-                    PHYSetShortRAMAddr(WRITE_GPIO, 0);
                     PHYSetShortRAMAddr(WRITE_GPIODIR, 0x00);
+                    PHYSetShortRAMAddr(WRITE_GPIO, 0);
                 #endif
                 PHYSetLongRAMAddr(TESTMODE, 0x0F);
             #endif
@@ -1299,11 +1359,11 @@
                         
                         #if defined(ENABLE_PA_LNA)
                             #if defined(MRF24J40MC)
-                                PHYSetShortRAMAddr(WRITE_GPIO, 0x08);
                                 PHYSetShortRAMAddr(WRITE_GPIODIR, 0x08);
+                                PHYSetShortRAMAddr(WRITE_GPIO, 0x08);
                             #else
-                                PHYSetShortRAMAddr(WRITE_GPIO, 0);
                                 PHYSetShortRAMAddr(WRITE_GPIODIR, 0x00);
+                                PHYSetShortRAMAddr(WRITE_GPIO, 0);
                             #endif
                             PHYSetLongRAMAddr(TESTMODE, 0x0F);
                         #endif             
@@ -1590,7 +1650,9 @@
         void _ISRFAST __attribute__((interrupt, auto_psv)) _INT1Interrupt(void)
     #elif defined(__PIC32MX__)
         void __ISR(_EXTERNAL_1_VECTOR, ipl4) _INT1Interrupt(void)
-    #else
+    #elif defined(__STM32F10X__)
+		void RF_IRQ_HANDLER(void)
+	#else
         void _ISRFAST _INT1Interrupt(void)
     #endif
     {
@@ -1601,7 +1663,11 @@
               
             //clear the interrupt flag as soon as possible such that another interrupt can
             //occur quickly.
+		#if defined(__STM32F10X__)
+			RFIF_CLEAR();
+		#else
             RFIF = 0;
+		#endif
 
             //create a new scope for the MRF24J40 interrupts so that we can clear the interrupt
             //flag quickly and then handle the interrupt that we have already received
@@ -1619,28 +1685,28 @@
                     
                     failureCounter = 0;
                     
-                    #ifndef TARGET_SMALL
-                        //if we were waiting for an ACK
-                        if(MRF24J40Status.bits.TX_PENDING_ACK)
-                        {
-                            BYTE_VAL results;
-                            
-                            //read out the results of the transmission
-                            results.Val = PHYGetShortRAMAddr(READ_TXSR);
-                            
-                            if(results.bits.b0 == 1)
-                            {
-                                //the transmission wasn't successful and the number
-                                //of retries is located in bits 7-6 of TXSR
-                                MRF24J40Status.bits.TX_FAIL = 1;
-                            }
+				#ifndef TARGET_SMALL
+					//if we were waiting for an ACK
+					if(MRF24J40Status.bits.TX_PENDING_ACK)
+					{
+						BYTE_VAL results;
+						
+						//read out the results of the transmission
+						results.Val = PHYGetShortRAMAddr(READ_TXSR);
+						
+						if(results.bits.b0 == 1)
+						{
+							//the transmission wasn't successful and the number
+							//of retries is located in bits 7-6 of TXSR
+							MRF24J40Status.bits.TX_FAIL = 1;
+						}
 
-                            //transmission finished
-                            //clear that I am pending an ACK, already got it
-                            MRF24J40Status.bits.TX_PENDING_ACK = 0;
+						//transmission finished
+						//clear that I am pending an ACK, already got it
+						MRF24J40Status.bits.TX_PENDING_ACK = 0;
 
-                        }
-                    #endif
+					}
+				#endif
                 }
                 
                 if(flags.bits.RF_RXIF)
@@ -1659,94 +1725,94 @@
                     //if the RX interrupt was triggered
                     if( RxBank < BANK_SIZE )
                     {
-                        #ifdef ENABLE_SECURITY
-                            if( MRF24J40Status.bits.RX_SECURITY )
-                            {
-                                BYTE DecryptionStatus = PHYGetShortRAMAddr(READ_SECISR);
-                                BYTE FrameControl;
-                                
-                                MRF24J40Status.bits.RX_SECURITY = 0;
-                                if( (DecryptionStatus & 0x02) != 0 )
-                                {
-                                    PHYSetShortRAMAddr(WRITE_RXFLUSH,0x01);
-                                    goto START_OF_SEC_INT;
-                                }
-                                
-                                i = 6;
-                                FrameControl = PHYGetLongRAMAddr(0x301);
-                                if( (FrameControl & 0x40) == 0 ) // intra PAN?
-                                {
-                                    i += 2;
-                                }
-                                
-                                FrameControl = PHYGetLongRAMAddr(0x302);
-                                if( (FrameControl & 0x0C) == 0x0C )
-                                {
-                                    i += 8;
-                                }
-                                else
-                                {
-                                    i += 2;
-                                }
-            
-                                // get the source address
-                                for(j = 0; j < 8; j++)
-                                {
-                                    tmpSourceLongAddress[j] = PHYGetLongRAMAddr(0x300 + i + j);
-                                }
-                              
-                                for(j = 0; j < 4; j++)
-                                {
-                                    tmpFrameCounter.v[j] = PHYGetLongRAMAddr(0x308 + i + j);
-                                }
-                                
+					#ifdef ENABLE_SECURITY
+						if( MRF24J40Status.bits.RX_SECURITY )
+						{
+							BYTE DecryptionStatus = PHYGetShortRAMAddr(READ_SECISR);
+							BYTE FrameControl;
+							
+							MRF24J40Status.bits.RX_SECURITY = 0;
+							if( (DecryptionStatus & 0x02) != 0 )
+							{
+								PHYSetShortRAMAddr(WRITE_RXFLUSH,0x01);
+								goto START_OF_SEC_INT;
+							}
+							
+							i = 6;
+							FrameControl = PHYGetLongRAMAddr(0x301);
+							if( (FrameControl & 0x40) == 0 ) // intra PAN?
+							{
+								i += 2;
+							}
+							
+							FrameControl = PHYGetLongRAMAddr(0x302);
+							if( (FrameControl & 0x0C) == 0x0C )
+							{
+								i += 8;
+							}
+							else
+							{
+								i += 2;
+							}
+		
+							// get the source address
+							for(j = 0; j < 8; j++)
+							{
+								tmpSourceLongAddress[j] = PHYGetLongRAMAddr(0x300 + i + j);
+							}
+						  
+							for(j = 0; j < 4; j++)
+							{
+								tmpFrameCounter.v[j] = PHYGetLongRAMAddr(0x308 + i + j);
+							}
+							
 
-                                for(i = 0; i < CONNECTION_SIZE; i++)
-                                {
-                                    if( (ConnectionTable[i].status.bits.isValid) && 
-                                        isSameAddress(ConnectionTable[i].Address, tmpSourceLongAddress) )
-                                    {
-                                        break;
-                                    }
-                                }
-                                
-                                if( i < CONNECTION_SIZE )
-                                {
-                                    if( IncomingFrameCounter[i].Val > tmpFrameCounter.Val )
-                                    {
-                                        PHYSetShortRAMAddr(WRITE_RXFLUSH,0x01);  
-                                        goto START_OF_SEC_INT;
-                                    }
-                                    else
-                                    {
-                                        if( tmpFrameCounter.Val == 0xFFFFFFFF )
-                                        {
-                                            IncomingFrameCounter[i].Val = 0;
-                                        }
-                                        else
-                                        {
-                                            IncomingFrameCounter[i].Val = tmpFrameCounter.Val;
-                                        }
-                                        
-                                    }
-                                }
+							for(i = 0; i < CONNECTION_SIZE; i++)
+							{
+								if( (ConnectionTable[i].status.bits.isValid) && 
+									isSameAddress(ConnectionTable[i].Address, tmpSourceLongAddress) )
+								{
+									break;
+								}
+							}
+							
+							if( i < CONNECTION_SIZE )
+							{
+								if( IncomingFrameCounter[i].Val > tmpFrameCounter.Val )
+								{
+									PHYSetShortRAMAddr(WRITE_RXFLUSH,0x01);  
+									goto START_OF_SEC_INT;
+								}
+								else
+								{
+									if( tmpFrameCounter.Val == 0xFFFFFFFF )
+									{
+										IncomingFrameCounter[i].Val = 0;
+									}
+									else
+									{
+										IncomingFrameCounter[i].Val = tmpFrameCounter.Val;
+									}
+									
+								}
+							}
 
-                            }
-                            else
-                        #endif
-                        #if defined(ENABLE_SECURITY) && !defined(TARGET_SMALL)
-                            if( MRF24J40Status.bits.RX_IGNORE_SECURITY )
-                            {
-                                MRF24J40Status.bits.RX_IGNORE_SECURITY = 0;
-                                PHYSetShortRAMAddr(WRITE_RXFLUSH,0x01);
-                                goto START_OF_SEC_INT; 
-                            }
-                        #endif
-                        //If the part is enabled for receiving packets right now
-                        //(not pending an ACK)
-                        //indicate that we have a packet in the buffer pending to 
-                        //be read into the buffer from the FIFO
-                        PHYSetShortRAMAddr(WRITE_BBREG1, 0x04);
+						}
+						else
+					#endif
+					#if defined(ENABLE_SECURITY) && !defined(TARGET_SMALL)
+							if( MRF24J40Status.bits.RX_IGNORE_SECURITY )
+							{
+								MRF24J40Status.bits.RX_IGNORE_SECURITY = 0;
+								PHYSetShortRAMAddr(WRITE_RXFLUSH,0x01);
+								goto START_OF_SEC_INT; 
+							}
+					#endif
+							//If the part is enabled for receiving packets right now
+							//(not pending an ACK)
+							//indicate that we have a packet in the buffer pending to 
+							//be read into the buffer from the FIFO
+							PHYSetShortRAMAddr(WRITE_BBREG1, 0x04);
 
                         //get the size of the packet
                         //2 more bytes for RSSI and LQI reading 
@@ -1778,12 +1844,12 @@
                         //else if the RX is not enabled then we need to flush this packet
                         //flush the buffer
                         PHYSetShortRAMAddr(WRITE_RXFLUSH,0x01);
-                        #if defined(ENABLE_SECURITY)
-                            MRF24J40Status.bits.RX_SECURITY = 0;
-                            #if !defined(TARGET_SMALL)
-                                MRF24J40Status.bits.RX_IGNORE_SECURITY = 0;
-                            #endif
-                        #endif
+				#if defined(ENABLE_SECURITY)
+						MRF24J40Status.bits.RX_SECURITY = 0;
+					#if !defined(TARGET_SMALL)
+						MRF24J40Status.bits.RX_IGNORE_SECURITY = 0;
+					#endif
+				#endif
                     }//end of RX_BUFFERED check
                         
                 } //end of RXIF check
@@ -1791,93 +1857,93 @@
 START_OF_SEC_INT:                
                 if( flags.bits.SECIF )
                 {
-                    #ifdef ENABLE_SECURITY
-                        BYTE FrameControl;
-                        if( MRF24J40Status.bits.TX_BUSY )
-                        {
-                            MRF24J40Status.bits.RX_IGNORE_SECURITY = 1;
-                            PHYSetShortRAMAddr(WRITE_SECCR0, 0x80);
-                            PHYSetShortRAMAddr(WRITE_RXFLUSH,0x01);
-                            goto END_OF_RF_INT;
-                        }
-                        
-                        #ifndef TARGET_SMALL
-                            
-                            // all the code below is to check the key sequence
-                            // number
-                            
-                            i = 6;
-                            FrameControl = PHYGetLongRAMAddr(0x301);
-                            if( (FrameControl & 0x40) == 0 ) // intra PAN?
-                            {
-                                i += 2;
-                            }
-                            
-                            FrameControl = PHYGetLongRAMAddr(0x302);
-                            if( (FrameControl & 0x0C) == 0x0C )
-                            {
-                                i += 8;
-                            }
-                            else
-                            {
-                                i += 2;
-                            }
-                            
-                            // wait until the key sequence number is available
-                            for(j = 0; j < i + 10; j++)
-                            {
-                                PHYGetLongRAMAddr(0x301+j);
-                            }
-                            
-                            // get key sequence number
-                            j = PHYGetLongRAMAddr(0x30C + i);
-    
-                            if( j != myKeySequenceNumber )
-                            {
-                                PHYSetShortRAMAddr(WRITE_SECCR0, 0x80); // ignore the packet
-                                MRF24J40Status.bits.RX_IGNORE_SECURITY = 1;
-                            }
+			#ifdef ENABLE_SECURITY
+					BYTE FrameControl;
+					if( MRF24J40Status.bits.TX_BUSY )
+					{
+						MRF24J40Status.bits.RX_IGNORE_SECURITY = 1;
+						PHYSetShortRAMAddr(WRITE_SECCR0, 0x80);
+						PHYSetShortRAMAddr(WRITE_RXFLUSH,0x01);
+						goto END_OF_RF_INT;
+					}
+					
+				#ifndef TARGET_SMALL
+					
+					// all the code below is to check the key sequence
+					// number
+					
+					i = 6;
+					FrameControl = PHYGetLongRAMAddr(0x301);
+					if( (FrameControl & 0x40) == 0 ) // intra PAN?
+					{
+						i += 2;
+					}
+					
+					FrameControl = PHYGetLongRAMAddr(0x302);
+					if( (FrameControl & 0x0C) == 0x0C )
+					{
+						i += 8;
+					}
+					else
+					{
+						i += 2;
+					}
+					
+					// wait until the key sequence number is available
+					for(j = 0; j < i + 10; j++)
+					{
+						PHYGetLongRAMAddr(0x301+j);
+					}
+					
+					// get key sequence number
+					j = PHYGetLongRAMAddr(0x30C + i);
 
-                            if( MRF24J40Status.bits.RX_IGNORE_SECURITY == 0 )
-                        #endif
-                        {
-                            // supply the key
-                            for(i = 0; i < 16; i++)
-                            {
-                                PHYSetLongRAMAddr(0x2B0 + i, mySecurityKey[i]);
-                            }
-                            MRF24J40Status.bits.RX_SECURITY = 1;
-    
-                            // set security level and trigger the decryption
-                            PHYSetShortRAMAddr(WRITE_SECCR0, mySecurityLevel << 3 | 0x40);
-                        }
-                    #else
-                        PHYSetShortRAMAddr(WRITE_SECCR0, 0x80); // ignore the packet
-                        //MRF24J40Status.bits.RX_IGNORE_SECURITY = 1;
-                    #endif 
+					if( j != myKeySequenceNumber )
+					{
+						PHYSetShortRAMAddr(WRITE_SECCR0, 0x80); // ignore the packet
+						MRF24J40Status.bits.RX_IGNORE_SECURITY = 1;
+					}
+
+					if( MRF24J40Status.bits.RX_IGNORE_SECURITY == 0 )
+				#endif
+					{
+						// supply the key
+						for(i = 0; i < 16; i++)
+						{
+							PHYSetLongRAMAddr(0x2B0 + i, mySecurityKey[i]);
+						}
+						MRF24J40Status.bits.RX_SECURITY = 1;
+
+						// set security level and trigger the decryption
+						PHYSetShortRAMAddr(WRITE_SECCR0, mySecurityLevel << 3 | 0x40);
+					}
+			#else
+					PHYSetShortRAMAddr(WRITE_SECCR0, 0x80); // ignore the packet
+					//MRF24J40Status.bits.RX_IGNORE_SECURITY = 1;
+			#endif 
                 }                
             } //end of scope of RF interrupt handler
         } //end of if(RFIE && RFIF)
 
 END_OF_RF_INT:        
-        #if defined(__18CXX)
-            //check to see if the symbol timer overflowed
-            if(TMR_IF)
-            {
-                if(TMR_IE)
-                {
-                    /* there was a timer overflow */
-                    TMR_IF = 0;
-                    timerExtension1++;
-                    if(timerExtension1 == 0)
-                    {
-                        timerExtension2++;
-                    }
-                }
-            }
-            
-            UserInterruptHandler(); 
-        #endif
+	#if defined(__18CXX)
+		//check to see if the symbol timer overflowed
+		if(TMR_IF)
+		{
+			if(TMR_IE)
+			{
+				/* there was a timer overflow */
+				TMR_IF = 0;
+				timerExtension1++;
+				if(timerExtension1 == 0)
+				{
+					timerExtension2++;
+				}
+			}
+		}
+		
+		UserInterruptHandler(); 
+	#endif
 
         
         return;

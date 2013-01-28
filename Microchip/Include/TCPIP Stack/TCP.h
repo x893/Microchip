@@ -203,26 +203,26 @@ typedef struct
 
 void TCPInit(void);
 SOCKET_INFO* TCPGetRemoteInfo(TCP_SOCKET hTCP);
-BOOL TCPWasReset(TCP_SOCKET hTCP);
-BOOL TCPIsConnected(TCP_SOCKET hTCP);
-void TCPDisconnect(TCP_SOCKET hTCP);
-void TCPClose(TCP_SOCKET hTCP);
-WORD TCPIsPutReady(TCP_SOCKET hTCP);
-BOOL TCPPut(TCP_SOCKET hTCP, BYTE byte);
-WORD TCPPutArray(TCP_SOCKET hTCP, BYTE* Data, WORD Len);
-BYTE* TCPPutString(TCP_SOCKET hTCP, BYTE* Data);
-WORD TCPIsGetReady(TCP_SOCKET hTCP);
+BOOL TCPWasReset	(TCP_SOCKET hTCP);
+BOOL TCPIsConnected	(TCP_SOCKET hTCP);
+void TCPDisconnect	(TCP_SOCKET hTCP);
+void TCPClose		(TCP_SOCKET hTCP);
+WORD TCPIsPutReady	(TCP_SOCKET hTCP);
+BOOL TCPPut			(TCP_SOCKET hTCP, BYTE byte);
+WORD TCPPutArray	(TCP_SOCKET hTCP, BYTE* Data, WORD Len);
+BYTE* TCPPutString	(TCP_SOCKET hTCP, BYTE* Data);
+WORD TCPIsGetReady	(TCP_SOCKET hTCP);
 WORD TCPGetRxFIFOFree(TCP_SOCKET hTCP);
-BOOL TCPGet(TCP_SOCKET hTCP, BYTE* byte);
-WORD TCPGetArray(TCP_SOCKET hTCP, BYTE* buffer, WORD count);
-BYTE TCPPeek(TCP_SOCKET hTCP, WORD wStart);
-WORD TCPPeekArray(TCP_SOCKET hTCP, BYTE *vBuffer, WORD wLen, WORD wStart);
-WORD TCPFindEx(TCP_SOCKET hTCP, BYTE cFind, WORD wStart, WORD wSearchLen, BOOL bTextCompare);
-WORD TCPFindArrayEx(TCP_SOCKET hTCP, BYTE* cFindArray, WORD wLen, WORD wStart, WORD wSearchLen, BOOL bTextCompare);
-void TCPDiscard(TCP_SOCKET hTCP);
-BOOL TCPProcess(NODE_INFO* remote, IP_ADDR* localIP, WORD len);
-void TCPTick(void);
-void TCPFlush(TCP_SOCKET hTCP);
+BOOL TCPGet			(TCP_SOCKET hTCP, BYTE* byte);
+WORD TCPGetArray	(TCP_SOCKET hTCP, BYTE* buffer, WORD count);
+BYTE TCPPeek		(TCP_SOCKET hTCP, WORD wStart);
+WORD TCPPeekArray	(TCP_SOCKET hTCP, BYTE *vBuffer, WORD wLen, WORD wStart);
+WORD TCPFindEx		(TCP_SOCKET hTCP, BYTE cFind, WORD wStart, WORD wSearchLen, BOOL bTextCompare);
+WORD TCPFindArrayEx	(TCP_SOCKET hTCP, BYTE* cFindArray, WORD wLen, WORD wStart, WORD wSearchLen, BOOL bTextCompare);
+void TCPDiscard		(TCP_SOCKET hTCP);
+BOOL TCPProcess		(NODE_INFO* remote, IP_ADDR* localIP, WORD len);
+void TCPTick	(void);
+void TCPFlush	(TCP_SOCKET hTCP);
 
 // Create a server socket and ignore dwRemoteHost.
 #define TCP_OPEN_SERVER		0u

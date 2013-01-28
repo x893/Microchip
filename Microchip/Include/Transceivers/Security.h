@@ -99,5 +99,7 @@
 	void CCM_Enc(BYTE *text, BYTE headerLen, BYTE payloadLen, BYTE *key);
 	BOOL CCM_Dec(BYTE *text, BYTE headerLen, BYTE payloadLen, BYTE *key);
 
-#endif // SOFTWARE_SECURITY
 #endif
+
+#endif
+

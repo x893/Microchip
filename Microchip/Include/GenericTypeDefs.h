@@ -69,7 +69,7 @@
 #include <stddef.h> 
 
 typedef enum _BOOL { FALSE = 0, TRUE } BOOL;    /* Undefined size */
-#if defined(__CC_ARM)
+#if defined(__STM32F10X__)
 	typedef enum _BIT { CLEAR = 0 } BIT;
 #else
 	typedef enum _BIT { CLEAR = 0, SET } BIT;

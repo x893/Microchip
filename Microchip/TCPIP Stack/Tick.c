@@ -200,8 +200,8 @@ static void GetTickCopy(void)
 
 	BSP_ENTER_CRITICAL_SECTION();
 	dwTempTicks = dwInternalTicks;
-	BSP_EXIT_CRITICAL_SECTION();
 	*((DWORD*)&vTickReading[0]) = ((SysTick->VAL & 0xFFFFFF) >> 8) ^ 0xFFFF;
+	BSP_EXIT_CRITICAL_SECTION();
 	*((DWORD*)&vTickReading[2]) = dwTempTicks;
 
 #else	// PIC32

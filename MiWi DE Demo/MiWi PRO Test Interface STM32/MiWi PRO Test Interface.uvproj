@@ -12,14 +12,14 @@
       <ToolsetName>ARM-ADS</ToolsetName>
       <TargetOption>
         <TargetCommonOption>
-          <Device>STM32F103RE</Device>
+          <Device>STM32F103RB</Device>
           <Vendor>STMicroelectronics</Vendor>
-          <Cpu>IRAM(0x20000000-0x2000FFFF) IROM(0x8000000-0x807FFFF) CLOCK(8000000) CPUTYPE("Cortex-M3")</Cpu>
+          <Cpu>IRAM(0x20000000-0x20004FFF) IROM(0x8000000-0x801FFFF) CLOCK(8000000) CPUTYPE("Cortex-M3")</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
-          <StartupFile>"STARTUP\ST\STM32F10x\startup_stm32f10x_hd.s" ("STM32 High Density Line Startup Code")</StartupFile>
-          <FlashDriverDll>UL2CM3(-O14 -S0 -C0 -N00("ARM Cortex-M3") -D00(1BA00477) -L00(4) -FO7 -FD20000000 -FC800 -FN1 -FF0STM32F10x_512 -FS08000000 -FL080000)</FlashDriverDll>
-          <DeviceId>4229</DeviceId>
-          <RegisterFile>stm32f10x_hd.h</RegisterFile>
+          <StartupFile>"STARTUP\ST\STM32F10x\startup_stm32f10x_md.s" ("STM32 Medium Density Line Startup Code")</StartupFile>
+          <FlashDriverDll>UL2CM3(-O14 -S0 -C0 -N00("ARM Cortex-M3") -D00(1BA00477) -L00(4) -FO7 -FD20000000 -FC800 -FN1 -FF0STM32F10x_128 -FS08000000 -FL020000)</FlashDriverDll>
+          <DeviceId>4231</DeviceId>
+          <RegisterFile>stm32f10x_md.h</RegisterFile>
           <MemoryEnv></MemoryEnv>
           <Cmp></Cmp>
           <Asm></Asm>
@@ -100,13 +100,13 @@
         </CommonProperty>
         <DllOption>
           <SimDllName>SARMCM3.DLL</SimDllName>
-          <SimDllArguments>-REMAP</SimDllArguments>
-          <SimDlgDll>DCM.DLL</SimDlgDll>
-          <SimDlgDllArguments>-pCM3</SimDlgDllArguments>
+          <SimDllArguments></SimDllArguments>
+          <SimDlgDll>DARMSTM.DLL</SimDlgDll>
+          <SimDlgDllArguments>-pSTM32F103RB</SimDlgDllArguments>
           <TargetDllName>SARMCM3.DLL</TargetDllName>
           <TargetDllArguments></TargetDllArguments>
-          <TargetDlgDll>TCM.DLL</TargetDlgDll>
-          <TargetDlgDllArguments>-pCM3</TargetDlgDllArguments>
+          <TargetDlgDll>TARMSTM.DLL</TargetDlgDll>
+          <TargetDlgDllArguments>-pSTM32F103RB</TargetDlgDllArguments>
         </DllOption>
         <DebugOption>
           <OPTHX>
@@ -119,13 +119,13 @@
           <Simulator>
             <UseSimulator>1</UseSimulator>
             <LoadApplicationAtStartup>1</LoadApplicationAtStartup>
-            <RunToMain>1</RunToMain>
+            <RunToMain>0</RunToMain>
             <RestoreBreakpoints>1</RestoreBreakpoints>
             <RestoreWatchpoints>1</RestoreWatchpoints>
             <RestoreMemoryDisplay>1</RestoreMemoryDisplay>
             <RestoreFunctions>1</RestoreFunctions>
             <RestoreToolbox>1</RestoreToolbox>
-            <LimitSpeedToRealTime>0</LimitSpeedToRealTime>
+            <LimitSpeedToRealTime>1</LimitSpeedToRealTime>
           </Simulator>
           <Target>
             <UseTarget>0</UseTarget>
@@ -138,7 +138,7 @@
             <RestoreToolbox>1</RestoreToolbox>
           </Target>
           <RunDebugAfterBuild>0</RunDebugAfterBuild>
-          <TargetSelection>1</TargetSelection>
+          <TargetSelection>0</TargetSelection>
           <SimDlls>
             <CpuDll></CpuDll>
             <CpuDllArguments></CpuDllArguments>
@@ -216,7 +216,7 @@
             <RoSelD>3</RoSelD>
             <RwSelD>3</RwSelD>
             <CodeSel>0</CodeSel>
-            <OptFeed>0</OptFeed>
+            <OptFeed>1</OptFeed>
             <NoZi1>0</NoZi1>
             <NoZi2>0</NoZi2>
             <NoZi3>0</NoZi3>
@@ -266,12 +266,12 @@
               <IRAM>
                 <Type>0</Type>
                 <StartAddress>0x20000000</StartAddress>
-                <Size>0x10000</Size>
+                <Size>0x5000</Size>
               </IRAM>
               <IROM>
                 <Type>1</Type>
                 <StartAddress>0x8000000</StartAddress>
-                <Size>0x80000</Size>
+                <Size>0x20000</Size>
               </IROM>
               <XRAM>
                 <Type>0</Type>
@@ -296,7 +296,7 @@
               <OCR_RVCT4>
                 <Type>1</Type>
                 <StartAddress>0x8000000</StartAddress>
-                <Size>0x80000</Size>
+                <Size>0x20000</Size>
               </OCR_RVCT4>
               <OCR_RVCT5>
                 <Type>1</Type>
@@ -321,7 +321,7 @@
               <OCR_RVCT9>
                 <Type>0</Type>
                 <StartAddress>0x20000000</StartAddress>
-                <Size>0x10000</Size>
+                <Size>0x5000</Size>
               </OCR_RVCT9>
               <OCR_RVCT10>
                 <Type>0</Type>
@@ -347,9 +347,9 @@
             <uSurpInc>0</uSurpInc>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define></Define>
+              <Define>STM32VLDISCOVERY</Define>
               <Undefine></Undefine>
-              <IncludePath>.\;..\..\Microchip\Include;..\..\Microchip\Include\WirelessProtocols;..\..\Microchip\Include\WirelessProtocols\MiWiPRO;..\..\Microchip\Include\WirelessProtocols\MiWi;..\..\Microchip\Include\WirelessProtocols\P2P;..\..\Microchip\Include\Transceivers;..\..\Microchip\Include\Transceivers\MRF24J40;..\..\Microchip\Include\Transceivers\MRF49XA;..\..\Microchip\Include\Transceivers\MRF89XA;..\..\STM\MapleRET6;..\..\STM\CMSIS\CM3\DeviceSupport;..\..\STM\STM32F10x_StdPeriph_Driver\inc</IncludePath>
+              <IncludePath>.\;..\..\STM\MapleRET6;..\..\Microchip\Include;..\..\Microchip\Include\WirelessProtocols;..\..\Microchip\Include\WirelessProtocols\MiWiPRO;..\..\Microchip\Include\WirelessProtocols\MiWi;..\..\Microchip\Include\WirelessProtocols\P2P;..\..\Microchip\Include\Transceivers;..\..\Microchip\Include\Transceivers\MRF24J40;..\..\Microchip\Include\Transceivers\MRF49XA;..\..\Microchip\Include\Transceivers\MRF89XA;..\..\STM\CMSIS\CM3\DeviceSupport;..\..\STM\STM32F10x_StdPeriph_Driver\inc</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -403,6 +403,31 @@
           </Files>
         </Group>
         <Group>
+          <GroupName>Headers</GroupName>
+          <Files>
+            <File>
+              <FileName>ConfigApp.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\ConfigApp.h</FilePath>
+            </File>
+            <File>
+              <FileName>HardwareProfile.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\HardwareProfile.h</FilePath>
+            </File>
+            <File>
+              <FileName>SystemProfile.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\SystemProfile.h</FilePath>
+            </File>
+            <File>
+              <FileName>Config.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Config.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
           <GroupName>Common</GroupName>
           <Files>
             <File>
@@ -419,11 +444,6 @@
               <FileName>Console.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\Microchip\WirelessProtocols\Console.c</FilePath>
-            </File>
-            <File>
-              <FileName>LCDBlocking.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\Microchip\WirelessProtocols\LCDBlocking.c</FilePath>
             </File>
             <File>
               <FileName>MiWi.c</FileName>
@@ -550,25 +570,10 @@
               <FileType>1</FileType>
               <FilePath>..\..\STM\STM32F10x_StdPeriph_Driver\src\stm32f10x_usart.c</FilePath>
             </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>Headers</GroupName>
-          <Files>
             <File>
-              <FileName>ConfigApp.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\ConfigApp.h</FilePath>
-            </File>
-            <File>
-              <FileName>HardwareProfile.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\HardwareProfile.h</FilePath>
-            </File>
-            <File>
-              <FileName>SystemProfile.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\SystemProfile.h</FilePath>
+              <FileName>stm32f10x_tim.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\STM\STM32F10x_StdPeriph_Driver\src\stm32f10x_tim.c</FilePath>
             </File>
           </Files>
         </Group>

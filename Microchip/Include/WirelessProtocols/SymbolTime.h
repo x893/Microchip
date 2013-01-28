@@ -118,6 +118,7 @@
     
     
 #elif defined(__dsPIC30F__) || defined(__dsPIC33F__) || defined(__PIC24F__) || defined(__PIC24FK__) || defined(__PIC24H__)
+
     /* this section is based on the Timer 2/3 module of the dsPIC33/PIC24 family */
     #if(CLOCK_FREQ <= 125000)
         #define CLOCK_DIVIDER 1
@@ -141,7 +142,9 @@
     /* SYMBOLS_TO_TICKS to only be used with input (a) as a constant, otherwise you will blow up the code */
     #define SYMBOLS_TO_TICKS(a) (((DWORD)CLOCK_FREQ/10000 * a ) / ((DWORD)SYMBOL_TO_TICK_RATE / 10000))
     #define TICKS_TO_SYMBOLS(a) (((DWORD)SYMBOL_TO_TICK_RATE/10000) * a / ((DWORD)CLOCK_FREQ/10000))
+
 #elif defined(__PIC32MX__)
+
     /* this section is based on the Timer 2/3 module of the PIC32MX family */
     #define INSTR_FREQ  (CLOCK_FREQ / 4)
     #if(INSTR_FREQ <= 125000)
@@ -170,47 +173,33 @@
     /* SYMBOLS_TO_TICKS to only be used with input (a) as a constant, otherwise you will blow up the code */
     #define SYMBOLS_TO_TICKS(a) (((DWORD)(INSTR_FREQ/100000) * a) / (SYMBOL_TO_TICK_RATE / 100000))
     #define TICKS_TO_SYMBOLS(a) (((DWORD)SYMBOL_TO_TICK_RATE/100000) * a / ((DWORD)CLOCK_FREQ/100000))
+
 #elif defined(__STM32F10X__)
-    #define INSTR_FREQ  (CLOCK_FREQ / 2)
-    #if(INSTR_FREQ <= 125000)
-        #define CLOCK_DIVIDER			1
-        #define CLOCK_DIVIDER_SETTING	0x0000 /* no prescalar */
-        #define SYMBOL_TO_TICK_RATE		125000
-    #elif(INSTR_FREQ <= 1000000)
-        #define CLOCK_DIVIDER			8
-        #define CLOCK_DIVIDER_SETTING	0x0030
-        #define SYMBOL_TO_TICK_RATE		1000000
-    #elif(INSTR_FREQ <= 8000000)
-        #define CLOCK_DIVIDER			64
-        #define CLOCK_DIVIDER_SETTING	0x0060
-        #define SYMBOL_TO_TICK_RATE		8000000
-    #elif(INSTR_FREQ <= 16000000)
-        #define CLOCK_DIVIDER			256
-        #define CLOCK_DIVIDER_SETTING	0x0070
-        #define SYMBOL_TO_TICK_RATE INSTR_FREQ
+
+	#define INSTR_FREQ					CLOCK_FREQ
+    #if (INSTR_FREQ == 72000000ul)
+		#define SYMBOL_TO_TICK_RATE		(INSTR_FREQ / 10000ul)
     #else
-        #define CLOCK_DIVIDER			256
-        #define CLOCK_DIVIDER_SETTING	0x70
-        #define SYMBOL_TO_TICK_RATE INSTR_FREQ
+        #error "UUnknown INSTR_FREQ value. New timing definitions required for proper operation"
     #endif
 
-    #define ONE_SECOND 			(((DWORD)INSTR_FREQ / 1000 * 62500) / (SYMBOL_TO_TICK_RATE / 1000))
+    #define ONE_SECOND 			(((DWORD)INSTR_FREQ / 1000) / (SYMBOL_TO_TICK_RATE / 1000))
     /* SYMBOLS_TO_TICKS to only be used with input (a) as a constant, otherwise you will blow up the code */
-    #define SYMBOLS_TO_TICKS(a)	(((DWORD)(INSTR_FREQ / 100000) * a) / (SYMBOL_TO_TICK_RATE / 100000))
-    #define TICKS_TO_SYMBOLS(a) (((DWORD)SYMBOL_TO_TICK_RATE / 100000) * a / ((DWORD)CLOCK_FREQ/100000))
+    #define SYMBOLS_TO_TICKS(a)	(INSTR_FREQ * a / SYMBOL_TO_TICK_RATE)
+    // #define TICKS_TO_SYMBOLS(a) (((DWORD)SYMBOL_TO_TICK_RATE / 100000) * a / ((DWORD)CLOCK_FREQ/100000))
 #else
     #error "Unsupported processor.  New timing definitions required for proper operation"
 #endif
 
-#define ONE_MILI_SECOND     (ONE_SECOND/1000)
-#define HUNDRED_MILI_SECOND (ONE_SECOND/10)
-#define FORTY_MILI_SECOND   (ONE_SECOND/25)
-#define TWENTY_MILI_SECOND  (ONE_SECOND/50)
-#define TEN_MILI_SECOND     (ONE_SECOND/100)
-#define FIVE_MILI_SECOND    (ONE_SECOND/200)
-#define TWO_MILI_SECOND     (ONE_SECOND/500)
-#define ONE_MINUTE          (ONE_SECOND*60)
-#define ONE_HOUR            (ONE_MINUTE*60)
+#define ONE_MILI_SECOND     (ONE_SECOND / 1000)
+#define HUNDRED_MILI_SECOND (ONE_SECOND / 10)
+#define FORTY_MILI_SECOND   (ONE_SECOND / 25)
+#define TWENTY_MILI_SECOND  (ONE_SECOND / 50)
+#define TEN_MILI_SECOND     (ONE_SECOND / 100)
+#define FIVE_MILI_SECOND    (ONE_SECOND / 200)
+#define TWO_MILI_SECOND     (ONE_SECOND / 500)
+#define ONE_MINUTE          (ONE_SECOND * 60)
+#define ONE_HOUR            (ONE_MINUTE * 60)
 
 #define MiWi_TickGetDiff(a,b) (a.Val - b.Val)
 

@@ -302,13 +302,7 @@
 	#endif
 	void WF_EintEnable(void)
 	{
-		if (WF_INT_IF_PIN() == 0) //!!! && WF_INT_IF == 0)
-		{
-			WF_INT_IE_ENABLE();
-			WF_INT_IF_SET();
-		}
-		else
-			WF_INT_IE_ENABLE();
+		WF_INT_IE_ENABLE();
 	}
 	void WF_EintDisable(void)
 	{

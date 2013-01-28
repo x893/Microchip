@@ -44,18 +44,12 @@
  *  Rev   Date         Description
  *  0.1   2/17/2009    Initial revision
  *****************************************************************************/
+#include "HardwareProfile.h"
 #include "SystemProfile.h"
 #include "Compiler.h"
 #include "WirelessProtocols/Console.h"
 #include "WirelessProtocols/LCDBlocking.h"
 #include "TimeDelay.h"
-#include "HardwareProfile.h"
-
-#define PIC32MX_SPI1_SDO_SCK_MASK_VALUE		(0x00000140)
-#define PIC32MX_SPI1_SDI_MASK_VALUE			(0x00000080)
-#define PIC32MX_INT1_MASK_VALUE				(0x00000100)
-/* MAX SPI CLOCK FREQ SUPPORTED FOR MIWI TRANSCIEVER */
-#define MAX_SPI_CLK_FREQ_FOR_P2P			(2000000)
 
 #define DEBOUNCE_TIME 0x00003FFF
 
@@ -82,69 +76,57 @@ MIWI_TICK PUSH_BUTTON_press_time;
 
 void BoardInit(void)
 {
-#if defined(MAPLE_RET6)
+	RCC_APB2PeriphClockCmd(
+			RCC_APB2Periph_AFIO		|
+			RCC_APB2Periph_GPIOA	|
+			RCC_APB2Periph_GPIOB	|
+			RCC_APB2Periph_GPIOC,
+			ENABLE);
 
-	// set I/O ports
 	BUTTON_1_INIT();
 	BUTTON_2_INIT();
 	LED_1_INIT();
 	LED_2_INIT();
+	
+	#if defined(MRF24J40) || defined(MRF49XA)
+		PHY_CS_HIGH();
+		PHY_CS_INIT();
+		PHY_RESETn_HIGH();
+		PHY_RESETn_INIT();
+	#endif
 
-#if defined(MRF24J40) || defined(MRF49XA)
-	PHY_CS_HIGH();
-	PHY_CS_INIT();
-	PHY_RESETn_HIGH;
-	PHY_RESETn_INIT();
-#endif
+	#if defined(MRF49XA)
+		nFSEL_INIT();
+		FINT_INIT();
+		nFSEL_HIGH();
+	#elif defined(MRF24J40)
+		PHY_WAKE_HIGH();
+		PHY_WAKE_INIT();
+	#elif defined(MRF89XA)
+		Data_nCS_HIGH();
+		Data_nCS_INIT();
+		Config_nCS_HIGH();
+		Config_nCS_INIT();
+	#else
+		#error "RF module not define"
+	#endif
 
-	RF_INT_INIT();
+	#if defined(ENABLE_NVM) && (defined(USE_EXTERNAL_EEPROM) || defined(USE_DATA_EEPROM))
+		EE_nCS_HIGH();
+		EE_nCS_INIT();
+	#endif
 
-#if defined(MRF49XA)
-	nFSEL_INIT();
-	FINT_INIT();
-	nFSEL_HIGH();		// nFSEL inactive
-#elif defined(MRF24J40)
-	PHY_WAKE_INIT();
-	PHY_WAKE_HIGH();
-#elif defined(MRF89XA)	//MRF89XA
-	Data_nCS_HIGH();
-	Config_nCS_HIGH();
-	Data_nCS_INIT();
-	Config_nCS_INIT();
-	PHY_IRQ1_HIGH();
-#else
-	#error "RF module not define"
-#endif
+	SPI_INIT();
 
-	SPI_PINS_INIT();
+	#if defined(MRF89XA)
+		PHY_IRQ1_INIT();
+	#endif
 
-	#warning "Enable interrupt with falling edge"
-
-#if defined(ENABLE_NVM)
-
-	EE_nCS_INIT();
-	EE_nCS_HIGH();
-
-#endif
-
-	RFIF_DISABLE();
-
-#if defined(MRF89XA)
-	PHY_IRQ1_HIGH();
-#endif
-
-	if( RF_INT_READ() == 0 )
+	if( RFIF_PIN() == 0 )
 	{
-		RFIF_ENABLE();
+		RFIF_SET();
 	}
-
-	LCDInit();
-
-#else
-	#error "Unknown demo board.  Please properly initialize the part for the board."
-#endif
 }
-
 
 /*********************************************************************
  * Function:        void LCDTRXCount(BYTE txCount, BYTE rxCount)
@@ -208,9 +190,7 @@ void LCDDisplay(char *text, BYTE value, BOOL delay)
 	{
 		BYTE i;
 		for(i = 0; i < 8; i++)
-		{
 			DelayMs(250);
-		}
 	}
 #endif
 }

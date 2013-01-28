@@ -164,13 +164,22 @@
     void RegisterSet(WORD setting)
     {
         BYTE oldRFIE = RFIE;
-        
-        RFIE = 0;
+	#if defined(__STM32F10X__)
+		RFIE_DISABLE();
+        PHY_CS_LOW();
+	#else
+		RFIE = 0;
         PHY_CS = 0;
+	#endif
         SPIPut((BYTE)(setting >> 8));
         SPIPut((BYTE)setting);
+	#if defined(__STM32F10X__)
+		PHY_CS_HIGH();
+        RFIE_SET(oldRFIE);
+	#else
         PHY_CS = 1;
         RFIE = oldRFIE;
+	#endif
     }
     
     /*********************************************************************
@@ -195,20 +204,25 @@
         BYTE preNFSEL = nFSEL;
         BYTE preNCS = PHY_CS;
         BYTE oldRFIE = RFIE;
-        
+	#if defined(__STM32F10X__)
+        RFIE_DISABLE();
+        nFSEL_HIGH();
+        PHY_CS_LOW();
+	#else
         RFIE = 0;
         nFSEL = 1;
         PHY_CS = 0;
-        
+	#endif
+
         #if defined(HARDWARE_SPI)
         
             TransceiverStatus.v[0] = SPIGet();
             TransceiverStatus.v[1] = SPIGet();
             
         #else
-            SPI_SDO = 0;
+			SPI_SDO = 0;
 
-            TransceiverStatus.bits.RG_FF_IT = SPI_SDI;    
+            TransceiverStatus.bits.RG_FF_IT = SPI_SDI;
             SPI_SCK = 1;
             SPI_SCK = 0;
            
@@ -253,9 +267,15 @@
             SPI_SCK = 0;
         #endif
         
-        nFSEL = preNFSEL;
+	#if defined(__STM32F10X__)
+		nFSEL_SET(preNFSEL);
+        PHY_CS_SET(preNCS);
+        RFIE_SET(oldRFIE);
+	#else
+		nFSEL = preNFSEL;
         PHY_CS = preNCS;
         RFIE = oldRFIE;
+	#endif
     }
     
     
@@ -342,7 +362,11 @@ Start_CCA:
                 }
             #endif
             
+		#if defined(__STM32F10X__)
+			RFIE_DISABLE();
+		#else
             RFIE = 0;
+		#endif
             
             // Turn off receiver, enable the TX register
             RegisterSet(PMCREG);
@@ -356,7 +380,11 @@ Start_CCA:
             TxPacketPtr = 0;
             synCount = 0;
 
+		#if defined(__STM32F10X__)
+			PHY_CS_LOW();
+		#else
             PHY_CS = 0;
+		#endif
 
             SPIPut(0xB8);
             SPIPut(0xAA);                 // 3rd preamble
@@ -395,7 +423,11 @@ Start_CCA:
                 {
                     if( counter++ > 0xFFFE )
                     {
-                        PHY_CS = 1;
+					#if defined(__STM32F10X__)
+						PHY_CS_HIGH();
+					#else
+						PHY_CS = 1;
+					#endif
                         
                         if( allowedTxFailure++ > MAX_ALLOWED_TX_FAILURE )
                         {
@@ -407,14 +439,20 @@ Start_CCA:
                         RegisterSet(GENCREG | 0x0040 );
                         RegisterSet(FIFORSTREG | 0x0002);
                         DelayMs(5);
+					#if defined(__STM32F10X__)
+						RFIE_ENABLE();
+					#else
                         RFIE = 1;
-    
+					#endif
                         goto Start_Transmitting;
                     }
                 }  
             }
-            PHY_CS = 1;
-
+		#if defined(__STM32F10X__)
+			PHY_CS_HIGH();
+		#else
+			PHY_CS = 1;
+		#endif
             // Turn off the transmitter, disable the Tx register
             RegisterSet(PMCREG | 0x0080);
             RegisterSet(GENCREG | 0x0040 );
@@ -423,8 +461,12 @@ Start_CCA:
             
             StatusRead();
             
+		#if defined(__STM32F10X__)
+			RFIE_ENABLE();
+		#else
             RFIE = 1;
-    
+		#endif
+
             #if defined(ENABLE_ACK) 
                 if( (MACTxBuffer[0] & ACK_MASK) > 0 )        // required acknowledgement
                 {
@@ -632,11 +674,18 @@ TX_END_HERE:
          
         MACInitParams = initValue;
            
+	#if defined(__STM32F10X__)
+        PHY_CS_HIGH();		// nSEL inactive
+        nFSEL_HIGH();		// nFFS inactive
+		#warning "Really need this ?"
+        SPI_SDO_LOW();
+        SPI_SCK_LOW();
+	#else
         PHY_CS = 1;           // nSEL inactive
         nFSEL = 1;           // nFFS inactive
         SPI_SDO = 0;        
         SPI_SCK = 0;        
-    
+	#endif
         MACSeq = TMRL;
         ReceivedBankIndex = 0xFF;
         
@@ -698,7 +747,7 @@ TX_END_HERE:
         RegisterSet(FIFORSTREG | 0x0002);                               // enable synchron latch
         RegisterSet(0x0000);										    // read status byte (read ITs)
         
-        
+
         return TRUE;
     }
     
@@ -863,7 +912,7 @@ TX_END_HERE:
         MACTxBuffer[TxIndex++] = (BYTE)(crc>>8);
         MACTxBuffer[TxIndex++] = (BYTE)crc;
           
-        return TxPacket(TxIndex, MACInitParams.actionFlags.bits.CCAEnable);
+        return TxPacket(TxIndex, (BOOL)MACInitParams.actionFlags.bits.CCAEnable);
     }
     
 

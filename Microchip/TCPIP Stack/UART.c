@@ -66,7 +66,7 @@ BYTE ReadStringUART(BYTE *Dest, BYTE BufferLen)
 	{
 		*Dest = '\0';
 
-		while(!DataRdyUART());
+		while (!DataRdyUART());
 		c = ReadUART();
 
 		if(c == '\r' || c == '\n')

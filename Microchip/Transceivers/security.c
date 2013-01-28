@@ -77,7 +77,7 @@
         #if defined(__18CXX)
             //#pragma romdata securityKey = 0x2E
         #endif
-            ROM const unsigned char mySecurityKey[8] = {SECURITY_KEY_00, SECURITY_KEY_01, SECURITY_KEY_02,    // The 16-byte security key used in the
+            ROM unsigned char mySecurityKey[8] = {SECURITY_KEY_00, SECURITY_KEY_01, SECURITY_KEY_02,    // The 16-byte security key used in the
                 SECURITY_KEY_03, SECURITY_KEY_04, SECURITY_KEY_05, SECURITY_KEY_06, SECURITY_KEY_07};   // security module.                                                              
         #if defined(__18CXX)
             //#pragma romdata
