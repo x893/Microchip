@@ -13,44 +13,22 @@
 
 #define SDCS_PIN		GPIO_PinSource7
 #define SDCS_PORT		GPIOB
-#define BOARD_INIT()	\
-	do {				\
-		RCC_APB2PeriphClockCmd(					\
-			RCC_APB2Periph_GPIOA	|			\
-			RCC_APB2Periph_GPIOB	|			\
-			RCC_APB2Periph_GPIOC	|			\
-			RCC_APB2Periph_AFIO, ENABLE			\
-		);										\
-		SDCS_PORT->BSRR = BV(GPIO_PinSource7);	\
-		GPIO_Mode_00_07(SDCS_PORT, GPIO_PinSource7, GPIO_Out_PP_50M);	\
-	} while (0)
+#define SDCS_INIT()		SDCS_OFF(); GPIO_Mode_00_07(SDCS_PORT, SDCS_PIN, GPIO_Out_PP_50M)
+#define SDCS_OFF()		SDCS_PORT->BSRR = BV(SDCS_PIN)
+#define SDCS_ON()		SDCS_PORT->BRR  = BV(SDCS_PIN)
 
-	// LEDs
-/*
-#define LED0_PIN		GPIO_PinSource8
-#define LED0_PORT		GPIOC
-#define LED0_INIT()		GPIO_Mode_08_15(LED0_PORT, LED0_PIN, GPIO_Out_PP_2M)
-#define LED0_OFF()		LED0_PORT->BRR  = BV(LED0_PIN)
-#define LED0_ON()		LED0_PORT->BSRR = BV(LED0_PIN)
-#define LED0_TOGGLE()	LED0_PORT->ODR ^= BV(LED0_PIN)
-#define LED0_READ()		((LED0_PORT->ODR & BV(LED0_PIN)) ? 1 : 0)
-*/
 #define LED1_PIN		GPIO_PinSource10
 #define LED1_PORT		GPIOA
-#define LED1_INIT()		LED1_ON(); GPIO_Mode_08_15(LED1_PORT, LED1_PIN, GPIO_Out_PP_2M)
+#define LED1_INIT()		LED1_OFF(); GPIO_Mode_08_15(LED1_PORT, LED1_PIN, GPIO_Out_PP_2M)
 #define LED1_OFF()		LED1_PORT->BRR  = BV(LED1_PIN)
 #define LED1_ON()		LED1_PORT->BSRR = BV(LED1_PIN)
 #define LED1_TOGGLE()	LED1_PORT->ODR ^= BV(LED1_PIN)
 #define LED1_READ()		((LED1_PORT->ODR & BV(LED1_PIN)) ? TRUE : FALSE)
 
-#define LEDS_OFF()		LED0_PORT->BRR  = (BV(LED0_PIN) | BV(LED1_PIN))
-#define LEDS_ON()		LED0_PORT->BSRR = (BV(LED0_PIN) | BV(LED1_PIN))
+#define LEDS_OFF()		LED0_PORT->BRR  = BV(LED1_PIN)
+#define LEDS_ON()		LED0_PORT->BSRR = BV(LED1_PIN)
 
-#define LED0_INIT()
-#define LED0_OFF()
-#define LED0_ON()
-#define LED0_TOGGLE()
-#define LED0_READ()		0
+#define LEDS_INIT()		LED1_INIT()
 
 // Momentary push buttons
 #define BUTTON0_PIN		GPIO_PinSource9
@@ -59,15 +37,44 @@
 #define BUTTON0_PRESS()	((BUTTON0_PORT->IDR & BV(BUTTON0_PIN)) != 0)
 #define BUTTON0_READ()	((BUTTON0_PORT->IDR & BV(BUTTON0_PIN)) ? TRUE : FALSE)
 
+#define BOARD_INIT()	\
+	do {							\
+		RCC_APB2PeriphClockCmd(		\
+			RCC_APB2Periph_GPIOA |	\
+			RCC_APB2Periph_GPIOB |	\
+			RCC_APB2Periph_GPIOC |	\
+			RCC_APB2Periph_AFIO,	\
+			ENABLE					\
+			);						\
+									\
+		SDCS_INIT();				\
+		LEDS_INIT();				\
+		BUTTON0_INIT();				\
+	} while (0)
+
 // UART configuration (not too important since we don't have a UART 
 // connector attached normally, but needed to compile if the STACK_USE_UART 
 // or STACK_USE_UART2TCP_BRIDGE features are enabled.
-// #define UARTTX_TRIS		(TRISFbits.TRISF3)
-// #define UARTRX_TRIS		(TRISFbits.TRISF2)
+
 #define STACK_USE_UART_PORT		USART2
-#define STACK_USE_UART_INIT()	RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, ENABLE);	\
-								GPIO_Mode_00_07(GPIOA, 3, GPIO_In_Floating);	\
-								GPIO_Mode_00_07(GPIOA, 2, GPIO_AF_PP_50M)
+
+#define STACK_USE_UART_INIT()	\
+	do {																				\
+		USART_InitTypeDef USART_InitStructure;											\
+																						\
+		RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, ENABLE);							\
+		GPIO_Mode_00_07(GPIOA, 3, GPIO_In_Floating);									\
+		GPIO_Mode_00_07(GPIOA, 2, GPIO_AF_PP_50M);										\
+																						\
+		USART_InitStructure.USART_BaudRate = 115200;									\
+		USART_InitStructure.USART_WordLength = USART_WordLength_8b;						\
+		USART_InitStructure.USART_StopBits = USART_StopBits_1;							\
+		USART_InitStructure.USART_Parity = USART_Parity_No;								\
+		USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;	\
+		USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;					\
+		USART_Init(STACK_USE_UART_PORT, &USART_InitStructure);							\
+		USART_Cmd(STACK_USE_UART_PORT,  ENABLE);										\
+	} while (0)
 
 //----------------------------
 // MRF24WB0M WiFi I/O pins
@@ -190,4 +197,4 @@ void __bsp_EXIT_CRITICAL_SECTION(void);
 #define putcUART(a)			WriteUSART(a)
 #define putrsUART(a)		putrsUSART((const char *)a)
 
-#endif // #ifndef HARDWARE_PROFILE_H
+#endif

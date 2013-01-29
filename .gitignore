@@ -10,3 +10,22 @@
 *.lai
 *.la
 *.a
+
+# Keil
+*.dep
+*.bak
+*.lst
+*.d
+*.crf
+*.map
+*.plg
+*.idx
+*.uvopt
+*.uvgui.*
+*.__i
+*._ia
+*.tra
+*.sct
+*.lnp
+*.axf
+build

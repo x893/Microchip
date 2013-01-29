@@ -409,7 +409,7 @@ static void HTTPProcess(void)
 	BYTE * dummyPtr=NULL;
 	BYTE * ptr = NULL;
 	BYTE * tempPtr=NULL;
-	BYTE dummyCntr;
+	BYTE dummyCntr = 0;
 	signed char chdirRetVal;
 #endif
 
@@ -660,27 +660,27 @@ static void HTTPProcess(void)
 						
 						//Allocate memory for the modified file name string 	
 						dirlen=strlen((const char*)&curHTTP.data[0]);
-						tempPtr=dummyPtr=directoryPtr=(BYTE*) malloc(dirlen+(cntr*2)+1);
+						tempPtr = dummyPtr=directoryPtr=(BYTE*) malloc(dirlen+(cntr*2)+1);
 
 						//Modify the directory string to be compatible to MDD calls
 						for (j=0;j<dirlen;j++)
 						{
-							if (curHTTP.data[j]== '/')
+							if (curHTTP.data[j] == '/')
 							{
-								*(dummyPtr++)='\\';
-								*(dummyPtr++)='\\';
+								*(dummyPtr++) = '\\';
+								*(dummyPtr++) = '\\';
 								cntr-=1;
 								if (cntr == 0)
 								{	
-									dummyCntr=j;
-									*dummyPtr='\0';
+									dummyCntr = j;
+									*dummyPtr = '\0';
 									cntr++;
 									break;
 								}
 							}
 							else
 							{
-								*(dummyPtr++)=curHTTP.data[j];
+								*(dummyPtr++) = curHTTP.data[j];
 							}
 						}
 
@@ -688,9 +688,9 @@ static void HTTPProcess(void)
 						//Change working directory to MDD_ROOT_DIR_PATH
 						if (!CurWorkDirChangedToMddRootPath)
 						{
-							chdirRetVal=FSchdir(MDD_ROOT_DIR_PATH);
+							chdirRetVal = FSchdir(MDD_ROOT_DIR_PATH);
 							
-							if (chdirRetVal==0)
+							if (chdirRetVal == 0)
 							{	
 								CurWorkDirChangedToMddRootPath =TRUE;
 							}
@@ -729,23 +729,23 @@ static void HTTPProcess(void)
 							}
 
 							//Serach by first six chars of the file name
-							*(dummyPtr++)= '~';
-							*(dummyPtr++)= '1';
+							*(dummyPtr++) = '~';
+							*(dummyPtr++) = '1';
 
 							//Parse till file extension starts
 							do
 							{
 								;	
 							}
-							while(curHTTP.data[++dummyCntr] != 0x2e);
+							while(curHTTP.data[++dummyCntr] != '.');
 
 
 							//Add the extension to the modifed fle name
-							*(dummyPtr++)=0x2e;
-							*(dummyPtr++)=curHTTP.data[++dummyCntr];
-							*(dummyPtr++)=curHTTP.data[++dummyCntr];
-							*(dummyPtr++)=curHTTP.data[++dummyCntr];
-							*(dummyPtr++)='\0';
+							*(dummyPtr++) = '.';
+							*(dummyPtr++) = curHTTP.data[++dummyCntr];
+							*(dummyPtr++) = curHTTP.data[++dummyCntr];
+							*(dummyPtr++) = curHTTP.data[++dummyCntr];
+							*(dummyPtr++) = '\0';
 
 							//try to open the file
 							curHTTP.file = FileOpen((const char *)tempPtr, "r");
@@ -776,7 +776,7 @@ static void HTTPProcess(void)
 			{
 				// Add the directory delimiter if needed
 				if (curHTTP.data[lenB-1] != '/')
-					curHTTP.data[lenB++] = '/';
+					curHTTP.data[lenB++]  = '/';
 				
 				// Add our default file name			
 				#if defined(STACK_USE_SSL_SERVER)

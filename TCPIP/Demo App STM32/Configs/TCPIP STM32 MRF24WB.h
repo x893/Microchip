@@ -455,5 +455,5 @@
 #define END_OF_SNMP_READ_COMMUNITIES
 #define SNMP_WRITE_COMMUNITIES     	{"private", "write", "public"}
 #define END_OF_SNMP_WRITE_COMMUNITIES
-#endif
 
+#endif

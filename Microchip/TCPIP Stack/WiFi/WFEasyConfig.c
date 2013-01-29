@@ -138,16 +138,18 @@ static int WFEasyConfigProcess(void)
     /* Now set the various connection profile parameters */
 
     /* Set SSID... */
-    if (CFGCXT.ssid)
+    if (CFGCXT.ssid[0])
 #if defined(__18CXX)
-        WF_CPSetSsid(ConnectionProfileID, 
+        WF_CPSetSsid(
+			ConnectionProfileID,
         	//(ROM char *)CFGCXT.ssid,   Note (VMH): fixed compile warning - not sure why this is necessary.
-        	CFGCXT.ssid, 
-            strlen(CFGCXT.ssid));  
+        	CFGCXT.ssid,
+            strlen(&CFGCXT.ssid[0]));
 #else
-        WF_CPSetSsid(ConnectionProfileID, 
-            CFGCXT.ssid, 
-            strlen((char*)CFGCXT.ssid));  
+        WF_CPSetSsid(
+			ConnectionProfileID,
+            CFGCXT.ssid,
+            strlen((char*)CFGCXT.ssid));
 #endif       
 
 #if defined(DERIVE_KEY_FROM_PASSPHRASE_IN_HOST)
@@ -167,13 +169,13 @@ static int WFEasyConfigProcess(void)
             break; 
 
         case WF_SECURITY_WPA_AUTO_WITH_PASS_PHRASE:
-            if (CFGCXT.key) {
+            if (CFGCXT.key[0]) {
                 WF_CPSetSecurity(ConnectionProfileID, WF_SECURITY_WPA_AUTO_WITH_PASS_PHRASE, 0, CFGCXT.key, strlen((char *)CFGCXT.key));
             }
             break;
 
         case WF_SECURITY_WPA_AUTO_WITH_KEY:
-            if (CFGCXT.key) {
+            if (CFGCXT.key[0]) {
                 WF_CPSetSecurity(ConnectionProfileID, WF_SECURITY_WPA_AUTO_WITH_KEY, 0, CFGCXT.key, 32);
             }
             break;
@@ -183,7 +185,7 @@ static int WFEasyConfigProcess(void)
                 BYTE  keys[20];
                 int   i;
 
-                if (CFGCXT.key) {
+                if (CFGCXT.key[0]) {
                     /* Clear key */
                     for (i = 0; i < 20; i++)
                         keys[i] = 0;
@@ -198,7 +200,7 @@ static int WFEasyConfigProcess(void)
                 BYTE  keys[52];
                 int   i;
 
-                if (CFGCXT.key) {
+                if (CFGCXT.key[0]) {
                     /* Clear key */
                     for (i = 0; i < 52; i++)
                         keys[i] = 0;

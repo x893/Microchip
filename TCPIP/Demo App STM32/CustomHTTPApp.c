@@ -194,16 +194,18 @@ HTTP_IO_RESULT HTTPExecuteGet(void)
 	if (!memcmppgm2ram(filename, "forms.htm", 9))
 	{
 		// Seek out each of the four LED strings, and if it exists set the LED states
-
+#ifdef LED0_ON
 		ptr = HTTPGetROMArg(curHTTP.data, (ROM BYTE *)"led0");
 		if (ptr)
 			if (*ptr == '1')	LED0_ON();
 			else				LED0_OFF();
-
+#endif
+#ifdef LED1_ON
 		ptr = HTTPGetROMArg(curHTTP.data, (ROM BYTE *)"led1");
 		if (ptr)
 			if (*ptr == '1')	LED1_ON();
 			else				LED1_OFF();
+#endif
 	}
 	
 	// If it's the LED updater file
@@ -225,8 +227,12 @@ HTTP_IO_RESULT HTTPExecuteGet(void)
 		ptr = HTTPGetROMArg(curHTTP.data, (ROM BYTE *)"led");
 		
 		// Toggle the specified LED
-		if (*ptr == '0')		LED0_TOGGLE();
-		else if (*ptr == '1')	LED1_TOGGLE();
+#ifdef LED0_TOGGLE
+		if (*ptr == '0') LED0_TOGGLE();
+#endif
+#ifdef LED1_TOGGLE
+		if (*ptr == '1') LED1_TOGGLE();
+#endif
 	}
 	return HTTP_IO_DONE;
 }
@@ -1378,17 +1384,20 @@ void HTTPPrint_btn(WORD num)
 	
 void HTTPPrint_led(WORD num)
 {
+	num = 0;
 	// Determine which LED
 	switch(num)
 	{
 		case 0:
+#ifdef LED0_READ
 			num = LED0_READ();
+#endif
 			break;
 		case 1:
+#ifdef LED1_READ
 			num = LED1_READ();
+#endif
 			break;
-		default:
-			num = 0;
 	}
 
 	// Print the output
@@ -1398,17 +1407,21 @@ void HTTPPrint_led(WORD num)
 
 void HTTPPrint_ledSelected(WORD num, WORD state)
 {
+	num = 0;
+
 	// Determine which LED to check
 	switch(num)
 	{
 		case 0:
+#ifdef LED0_READ
 			num = LED0_READ();
+#endif
 			break;
 		case 1:
+#ifdef LED1_READ
 			num = LED1_READ();
+#endif
 			break;
-		default:
-			num = 0;
 	}
 	
 	// Print output if TRUE and ON or if FALSE and OFF

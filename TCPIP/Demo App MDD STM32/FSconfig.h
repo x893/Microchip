@@ -38,7 +38,6 @@
 #include "HardwareProfile.h"
 #include "Compiler.h"
 
-
 // Summary: A macro indicating the maximum number of concurrently open files
 // Description: The FS_MAX_FILES_OPEN #define is only applicable when dynamic memory allocation is not used (FS_DYNAMIC_MEM is not defined).
 //              This macro defines the maximum number of open files at any given time.  The amount of RAM used by FSFILE objects will
@@ -46,18 +45,14 @@
 //              as dictated by the application.  This will reduce memory usage.
 #define FS_MAX_FILES_OPEN	3
 
-
 // Summary: A macro defining the size of a sector
 // Description: The MEDIA_SECTOR_SIZE macro will define the size of a sector on the FAT file system.  This value must equal 512 bytes,
 //              1024 bytes, 2048 bytes, or 4096 bytes.  The value of a sector will usually be 512 bytes.
 #define MEDIA_SECTOR_SIZE	512
 
-
-
 /* *******************************************************************************************************/
 /************** Compiler options to enable/Disable Features based on user's application ******************/
 /* *******************************************************************************************************/
-
 
 // Summary: A macro to enable/disable file search functions.
 // Description: The ALLOW_FILESEARCH definition can be commented out to disable file search functions in the library.  This will
@@ -68,7 +63,6 @@
 // Description: The ALLOW_WRITES definition can be commented out to disable all operations that write to the device.  This will
 //              greatly reduce code size.
 #define ALLOW_WRITES
-
 
 // Summary: A macro to enable/disable format functionality
 // Description: The ALLOW_FORMATS definition can be commented out to disable formatting functionality.  This will prevent the use of
@@ -103,7 +97,6 @@
 #define SUPPORT_FAT32
 
 
-
 /**************************************************************************************************/
 // Select a method for updating file timestamps
 /**************************************************************************************************/
@@ -129,9 +122,8 @@
 //              are not necessary.                                                    
 #define INCREMENTTIMESTAMP
 
-
 #ifndef USEREALTIMECLOCK
-    #ifndef USERDEFINEDCLOCK
+	#ifndef USERDEFINEDCLOCK
         #ifndef INCREMENTTIMESTAMP
             #error "Please enable USEREALTIMECLOCK, USERDEFINEDCLOCK, or INCREMENTTIMESTAMP"
         #endif

@@ -112,9 +112,9 @@ int main(void)
 		}
 #endif
 
-		#if defined(STACK_USE_UART)
+#if defined(STACK_USE_UART)
         DoUARTConfig();
-		#endif
+#endif
 	}
 
 	// Initialize core stack layers (MAC, ARP, TCP, UDP) and
@@ -470,15 +470,7 @@ None
 ***************************************************************************/
 void InitializeBoard(void)
 {
-#if defined(STACK_USE_UART)
-	USART_InitTypeDef USART_InitStructure;
-#endif
-
 	BOARD_INIT();
-
-	LED0_INIT();
-	LED1_INIT();
-	BUTTON0_INIT();
 
 #if defined WF_CS_TRIS
 	WF_CS_HIGH();
@@ -486,18 +478,7 @@ void InitializeBoard(void)
 #endif
 
 #if defined(STACK_USE_UART)
-
 	STACK_USE_UART_INIT();
-
-	USART_InitStructure.USART_BaudRate = 115200;
-	USART_InitStructure.USART_WordLength = USART_WordLength_8b;
-	USART_InitStructure.USART_StopBits = USART_StopBits_1;
-	USART_InitStructure.USART_Parity = USART_Parity_No;
-	USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
-	USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
-	USART_Init(STACK_USE_UART_PORT, &USART_InitStructure);
-	USART_Cmd(STACK_USE_UART_PORT, ENABLE);
-
 #endif
 }
 
