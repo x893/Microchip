@@ -11,7 +11,9 @@
 *.la
 *.a
 
-# Keil
+#############
+## Keil
+#############
 *.dep
 *.bak
 *.lst
@@ -25,7 +27,6 @@
 *.__i
 *._ia
 *.tra
-*.sct
 *.lnp
 *.axf
 build
