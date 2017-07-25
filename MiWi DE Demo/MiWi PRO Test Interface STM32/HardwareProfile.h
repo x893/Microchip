@@ -12,7 +12,9 @@
 #ifndef _HARDWARE_PROFILE_H
 #define _HARDWARE_PROFILE_H
 
-#define __STM32F10X__
+#ifndef __STM32F10X__
+	#define __STM32F10X__
+#endif
 
 #ifdef STM32VLDISCOVERY
 	#define STM32F10X_MD
